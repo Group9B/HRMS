@@ -13,7 +13,7 @@
             <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark min-vh-100">
                 <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white">
                     <div class="d-flex align-items-center pb-3 mb-md-1 mt-md-3 me-md-auto">
-                        <img src="assets/img/logo.png" height="60" width="60">
+                        <img src="../assets/img/logo.png" height="60" width="60">
                       
                     </div>
                     
