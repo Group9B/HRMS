@@ -1,3 +1,9 @@
+<?php
+session_start();
+require_once '../includes/functions.php';
+
+$_SESSION['role'] = 'Employee'; // Example role, replace with actual session role
+?>
 <html lang="en">
 
     <head>
