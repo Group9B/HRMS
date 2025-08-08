@@ -1,60 +1,7 @@
 <?php require_once '../components/layout/header.php'; ?>
 <div class="d-flex">
-  <!-- Sidebar -->
-  <div class="d-flex flex-column flex-shrink-0 p-3 hrms-sidebar" style="width: 250px; min-height: 100vh;">
-    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none">
-      <span class="fs-4">HRMS</span>
-    </a>
-    <hr>
-    <ul class="nav nav-pills flex-column mb-auto">
-      <li class="nav-item">
-        <a href="#" class="nav-link active" aria-current="page">
-          <i class="bi bi-speedometer2 me-2"></i>
-          Dashboard
-        </a>
-      </li>
-      <li>
-        <a href="#" class="nav-link">
-          <i class="bi bi-people me-2"></i>
-          Employees
-        </a>
-      </li>
-      <li>
-        <a href="#" class="nav-link">
-          <i class="bi bi-calendar-check me-2"></i>
-          Attendance
-        </a>
-      </li>
-      <li>
-        <a href="#" class="nav-link">
-          <i class="bi bi-cash-stack me-2"></i>
-          Payroll
-        </a>
-      </li>
-      <li>
-        <a href="#" class="nav-link">
-          <i class="bi bi-gear me-2"></i>
-          Settings
-        </a>
-      </li>
-    </ul>
-  </div>
-
-  <!-- Content -->
+  <?php require_once '../components/layout/sidebar.php'; ?>
   <div class="p-4" style="flex: 1;">
-    <!-- Header with Theme Toggle -->
-    <div class="hrms-header p-3 mb-4 d-flex justify-content-between align-items-center">
-      <div>
-        <h2 class="mb-0 text-primary">Welcome to HRMS Dashboard</h2>
-        <p class="text-secondary mb-0">Manage your human resources efficiently</p>
-      </div>
-      <div class="theme-toggle-wrapper">
-        <div id="toggleThemeBtn" class="theme-toggle">
-          <div class="toggle-circle"></div>
-        </div>
-      </div>
-    </div>
-
     <div class="row">
       <div class="col-md-6 col-lg-3 mb-4">
         <div class="card">
