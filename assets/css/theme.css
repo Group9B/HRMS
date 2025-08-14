@@ -169,71 +169,25 @@ body {
 	transition: all 0.3s ease;
 }
 
-/* Theme Toggle Styling */
-.theme-toggle {
-	position: relative;
-	width: 60px;
-	height: 30px;
-	border-radius: 15px;
-	background-color: var(--bs-body-bg);
-	cursor: pointer;
-	transition: 0.3s;
-	overflow: hidden;
-	box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-}
-
-.theme-toggle::before {
-	position: absolute;
-	left: 5px;
-	top: 50%;
-	transform: translateY(-50%);
-	font-size: 16px;
-}
-
-.theme-toggle::after {
-	position: absolute;
-	right: 5px;
-	top: 50%;
-	transform: translateY(-50%);
-	font-size: 16px;
-}
-
-.toggle-circle {
-	position: absolute;
-	top: 2px;
-	left: 2px;
-	width: 26px;
-	height: 26px;
-	border-radius: 50%;
-	background: #fff;
-	transition: 0.3s;
-	box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-}
-
-[data-bs-theme="dark"] .toggle-circle {
-	left: calc(100% - 28px);
-	background: #2b2b2b;
-}
-
-[data-bs-theme="dark"] .theme-toggle {
-	background-color: var(--bs-body-bg) !important;
-}
-
-.theme-toggle-wrapper {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	padding: 10px;
-	border-radius: 8px;
-	transition: 0.3s;
-}
-
-.theme-toggle-wrapper:hover {
-	background: rgba(255, 255, 255, 0.1);
-}
-
 /* Additional Theme Transitions */
 * {
 	transition: background-color 0.3s ease, color 0.3s ease,
 		border-color 0.3s ease;
+}
+
+.form-control,
+.form-select {
+	background-color: var(--bs) !important;
+	color: var(--bs-body-color) !important;
+	border: 1px solid var(--bs-border-color) !important;
+	border-radius: 0.25rem;
+	transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.form-control:focus,
+.form-select:focus {
+	background-color: var(--bg-subtle) !important;
+	color: var(--bs-body-color) !important;
+	border-color: var(--primary-color) !important;
+	box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.15);
 }

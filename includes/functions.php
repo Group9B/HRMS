@@ -5,9 +5,9 @@ function isLoggedIn()
     return isset($_SESSION['user_id']);
 }
 
-function redirect($url)
+function redirect(string $url): void
 {
-    header("Location:" . $url);
+    header("Location: $url");
     exit();
 }
 
@@ -33,6 +33,24 @@ function requireAuth()
             header('Location: /hrms/auth/login.php');
             exit;
         }
+    }
+}
+
+
+
+function toastBgClass($type)
+{
+    switch ($type) {
+        case 'success':
+            return 'success';
+        case 'error':
+            return 'danger';
+        case 'warning':
+            return 'warning';
+        case 'info':
+            return 'info';
+        default:
+            return 'secondary';
     }
 }
 

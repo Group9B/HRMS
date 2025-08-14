@@ -1,7 +1,42 @@
 <?php
 
 $current_page = $_SERVER['PHP_SELF'] ?? '';
-$navigation_menu = [
+switch ($_SESSION['role_id']) {
+  case 1:
+    $navigation_menu = [
+      'dashboard' => [
+        'title' => 'Dashboard',
+        'icon' => 'fas fa-tachometer-alt',
+        'url' => '/hrms/admin/index.php',
+        'permission' => null, // Available to all logged in users
+        'submenu' => []
+      ],
+      'Companies' => [
+        'title' => 'Companies',
+        'icon' => 'fas fa-building',
+        'url' => '/hrms/admin/companies.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+    ];
+    break;
+  case 2:
+    redirect("/hrms/company/");
+    break;
+  case 3:
+    redirect("/hrms/hr/");
+    break;
+  case 4:
+    redirect("/hrms/employee/");
+    break;
+  case 5:
+    redirect("/hrms/auditor/");
+    break;
+  default:
+    http_response_code(404);
+    break;
+}
+/* $navigation_menu = [
   'dashboard' => [
     'title' => 'Dashboard',
     'icon' => 'fas fa-tachometer-alt',
@@ -108,7 +143,7 @@ $navigation_menu = [
     'permission' => 'audit_logs',
     'submenu' => []
   ]
-];
+]; */
 // Function to check if menu item should be displayed
 function shouldShowMenuItem($item)
 {
@@ -125,7 +160,8 @@ function isActivePage($url)
   return strpos($current_page, $url) !== false;
 }
 ?>
-<div class="d-flex flex-column flex-shrink-0 p-3 bg-body d-sm-none d-md-flex" style="width: 200px; min-height: 100vh;">
+<div class="d-flex flex-column flex-shrink-0 p-3 bg-body d-none d-md-flex border-end sidebar"
+  style="width: 200px; min-height: 100vh;">
   <ul class="nav nav-pills flex-column mb-auto"><?php foreach ($navigation_menu as $key => $item): ?>
       <?php if (shouldShowMenuItem($item)): ?>
         <li class="nav-item mb-2">

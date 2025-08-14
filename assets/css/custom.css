@@ -1,0 +1,156 @@
+:root {
+	--bs-card-cap-bg: rgba(var(--bs-body-color-rgb), 0.03);
+}
+
+.hrms-header,
+.sidebar {
+	background-color: var(--bs-card-cap-bg) !important;
+}
+
+/* Theme Toggle Styling */
+.theme-toggle {
+	position: relative;
+	width: 60px;
+	height: 30px;
+	border-radius: 15px;
+	background-color: var(--bs-body-bg);
+	cursor: pointer;
+	transition: 0.3s;
+	overflow: hidden;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle::before {
+	position: absolute;
+	left: 5px;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 16px;
+}
+
+.theme-toggle::after {
+	position: absolute;
+	right: 5px;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 16px;
+}
+
+.toggle-circle {
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	background: #fff;
+	transition: 0.3s;
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+[data-bs-theme="dark"] .toggle-circle {
+	left: calc(100% - 28px);
+	background: #2b2b2b;
+}
+
+[data-bs-theme="dark"] .theme-toggle {
+	background-color: var(--bs-body-bg) !important;
+}
+
+.theme-toggle-wrapper {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 10px;
+	border-radius: 8px;
+	transition: 0.3s;
+}
+
+.theme-toggle-wrapper:hover {
+	background: rgba(255, 255, 255, 0.1);
+}
+
+/* Dashboard */
+
+.stat-card {
+	border: 1px solid #e3e6f0;
+	border-radius: 0.75rem;
+	transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.stat-card .card-body {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+}
+
+.stat-card .icon-circle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 45px;
+	height: 45px;
+	border-radius: 50%;
+	color: #fff;
+}
+
+.stat-card .icon-circle.bg-primary {
+	background-color: #4e73df !important;
+}
+
+.stat-card .icon-circle.bg-success {
+	background-color: #1cc88a !important;
+}
+
+.stat-card .icon-circle.bg-info {
+	background-color: #36b9cc !important;
+}
+
+.stat-card .icon-circle.bg-warning {
+	background-color: #f6c23e !important;
+}
+
+.main-content-card {
+	border-radius: 0.75rem;
+	border: 1px solid #e3e6f0;
+}
+
+.quick-actions .btn {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	text-align: left;
+	padding: 0.75rem 1.25rem;
+	font-size: 1rem;
+	margin-bottom: 0.5rem;
+}
+
+.quick-actions .btn i {
+	margin-right: 1rem;
+	font-size: 1.2rem;
+	width: 20px;
+	text-align: center;
+}
+
+/* New styles for recent companies list */
+.recent-companies-list .list-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 1rem 0;
+	border-bottom: 1px solid #e3e6f0;
+}
+
+.recent-companies-list .list-item:last-child {
+	border-bottom: none;
+	padding-bottom: 0;
+}
+
+.recent-companies-list .list-item:first-child {
+	padding-top: 0;
+}
