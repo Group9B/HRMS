@@ -1,69 +1,34 @@
 <?php
 require_once '../config/db.php';
 require_once '../includes/functions.php';
-
-// Handle Add, Edit, Delete Actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
-    $company_id = isset($_POST['company_id']) ? (int) $_POST['company_id'] : 0;
-
-    $name = $_POST['name'] ?? '';
-    $address = $_POST['address'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $phone = $_POST['phone'] ?? '';
-
-    if ($action === 'add') {
-        $sql = "INSERT INTO companies (name, address, email, phone) VALUES (?, ?, ?, ?)";
-        $stmt = $mysqli->prepare($sql);
-        // 's' denotes the type is a string
-        $stmt->bind_param('ssss', $name, $address, $email, $phone);
-        $stmt->execute();
-    } elseif ($action === 'edit' && $company_id > 0) {
-        $sql = "UPDATE companies SET name = ?, address = ?, email = ?, phone = ? WHERE id = ?";
-        $stmt = $mysqli->prepare($sql);
-        // 'i' denotes the type is an integer
-        $stmt->bind_param('ssssi', $name, $address, $email, $phone, $company_id);
-        $stmt->execute();
-    } elseif ($action === 'delete' && $company_id > 0) {
-        $sql = "DELETE FROM companies WHERE id = ?";
-        $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param('i', $company_id);
-        $stmt->execute();
-    }
-    redirect('companies.php?success=1');
-    exit();
-}
-
-
-// Fetch all companies
-$companiesQuery = "SELECT * FROM companies ORDER BY created_at DESC";
-$result = $mysqli->query($companiesQuery);
-$companies = $result->fetch_all(MYSQLI_ASSOC);
-
 $title = "Company Management";
+
+// --- INITIAL DATA FETCHING ---
+// The only PHP needed now is to get the initial list of companies for the page load.
+$companies_result = query($mysqli, "SELECT * FROM companies ORDER BY created_at DESC");
+$companies = $companies_result['success'] ? $companies_result['data'] : [];
+
 require_once '../components/layout/header.php';
 ?>
 
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
-    <div class="p-4" style="flex: 1;">
+    <div class="p-3 p-md-4" style="flex: 1;">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="fas fa-building me-2"></i>Company Management</h2>
+            <h2 class="h3 mb-0 text-gray-800"><i class="fas fa-building me-2"></i>Company Management</h2>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#companyModal"
                 onclick="prepareAddModal()">
                 <i class="fas fa-plus me-2"></i>Add Company
             </button>
         </div>
 
-        <div class="card">
+        <div class="card shadow-sm">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-striped" id="companiesTable">
-                        <thead>
+                    <table class="table table-hover" id="companiesTable">
+                        <thead class="">
                             <tr>
-                                <th>ID</th>
                                 <th>Name</th>
-                                <th>Address</th>
                                 <th>Email</th>
                                 <th>Phone</th>
                                 <th>Created At</th>
@@ -72,10 +37,8 @@ require_once '../components/layout/header.php';
                         </thead>
                         <tbody>
                             <?php foreach ($companies as $company): ?>
-                                <tr>
-                                    <td><?= $company['id']; ?></td>
-                                    <td><?= htmlspecialchars($company['name']); ?></td>
-                                    <td><?= htmlspecialchars($company['address']); ?></td>
+                                <tr id="company-row-<?= $company['id']; ?>">
+                                    <td><strong><?= htmlspecialchars($company['name']); ?></strong></td>
                                     <td><?= htmlspecialchars($company['email']); ?></td>
                                     <td><?= htmlspecialchars($company['phone']); ?></td>
                                     <td><?= date('M d, Y', strtotime($company['created_at'])); ?></td>
@@ -99,9 +62,6 @@ require_once '../components/layout/header.php';
                 </div>
             </div>
         </div>
-        <?php if (isset($_GET['success'])): ?>
-            <div class="alert alert-success mt-3">Action completed successfully.</div>
-        <?php endif; ?>
     </div>
 </div>
 
@@ -109,7 +69,7 @@ require_once '../components/layout/header.php';
 <div class="modal fade" id="companyModal" tabindex="-1" aria-labelledby="companyModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" id="companyForm">
+            <form id="companyForm">
                 <div class="modal-header">
                     <h5 class="modal-title" id="companyModalLabel">Add Company</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -143,11 +103,49 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
+<!-- Toast Notification -->
+<div id="toast" class="toast-notification"></div>
+
 <?php require_once '../components/layout/footer.php'; ?>
 
 <script>
+    let companyModal;
+    let companiesTable;
+
     $(function () {
-        $('#companiesTable').DataTable({ order: [[5, 'desc']], pageLength: 10 });
+        companiesTable = $('#companiesTable').DataTable({ order: [[3, 'desc']] });
+        companyModal = new bootstrap.Modal(document.getElementById('companyModal'));
+
+        // Handle form submission with AJAX
+        $('#companyForm').on('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            fetch('/hrms/api/api_companies.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        companyModal.hide();
+
+                        const action = $('#formAction').val();
+                        if (action === 'add') {
+                            addCompanyRow(data.company);
+                        } else {
+                            updateCompanyRow(data.company);
+                        }
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('An unexpected error occurred.', 'error');
+                });
+        });
     });
 
     function prepareAddModal() {
@@ -170,14 +168,76 @@ require_once '../components/layout/header.php';
 
     function deleteCompany(companyId) {
         if (confirm('Are you sure you want to delete this company?')) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.innerHTML = `
-                <input type="hidden" name="company_id" value="${companyId}">
-                <input type="hidden" name="action" value="delete">
-            `;
-            document.body.append(form);
-            form.submit();
+            const formData = new FormData();
+            formData.append('action', 'delete');
+            formData.append('company_id', companyId);
+
+            fetch('api_companies.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        companiesTable.row(`#company-row-${companyId}`).remove().draw();
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    }
+
+    // --- Helper functions to dynamically update the DataTable ---
+
+    function createCompanyRowHTML(company) {
+        const createdDate = new Date(company.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        return `
+            <td><strong>${escapeHTML(company.name)}</strong></td>
+            <td>${escapeHTML(company.email)}</td>
+            <td>${escapeHTML(company.phone)}</td>
+            <td>${createdDate}</td>
+            <td>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick='prepareEditModal(${JSON.stringify(company)})' data-bs-toggle="modal" data-bs-target="#companyModal"><i class="fas fa-edit"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteCompany(${company.id})"><i class="fas fa-trash"></i></button>
+                </div>
+            </td>
+        `;
+    }
+
+    function addCompanyRow(company) {
+        const newRowNode = companiesTable.row.add($(
+            `<tr id="company-row-${company.id}">${createCompanyRowHTML(company)}</tr>`
+        )).draw().node();
+        // Add a temporary highlight to the new row for better UX
+        $(newRowNode).addClass('table-success').delay(2000).queue(function (next) {
+            $(this).removeClass('table-success');
+            next();
+        });
+    }
+
+    function updateCompanyRow(company) {
+        const rowNode = companiesTable.row(`#company-row-${company.id}`);
+        if (rowNode.length) {
+            // Create jQuery object of the new TD elements from the HTML string
+            const newCells = $(createCompanyRowHTML(company));
+
+            // Map the jQuery object to a simple array of HTML strings for each cell.
+            // This is the format DataTables' .data() method expects.
+            const newCellData = newCells.map(function () {
+                return $(this).html();
+            }).get();
+
+            // Update the row's data with the new array and redraw the table
+            rowNode.data(newCellData).draw();
+
+            // Add a temporary highlight to the updated row for better UX
+            $(rowNode.node()).addClass('table-info').delay(2000).queue(function (next) {
+                $(this).removeClass('table-info');
+                next();
+            });
         }
     }
 </script>

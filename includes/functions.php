@@ -11,6 +11,75 @@ function redirect(string $url): void
     exit();
 }
 
+/**
+ * A utility function to execute mysqli prepared statements securely.
+ *
+ * This function prepares, binds parameters, executes, and fetches results,
+ * handling different query types (SELECT, INSERT, UPDATE, DELETE) appropriately.
+ *
+ * @param mysqli $mysqli The active database connection object.
+ * @param string $sql The SQL query with '?' placeholders for parameters.
+ * @param array $params An array of parameters to bind to the query. The types (i, s, d, b) are determined automatically.
+ * @return array An associative array containing the result of the operation.
+ * - For SELECT: ['success' => true, 'data' => array_of_rows]
+ * - For INSERT: ['success' => true, 'insert_id' => new_id]
+ * - For UPDATE/DELETE: ['success' => true, 'affected_rows' => number_of_affected_rows]
+ * - On Failure: ['success' => false, 'error' => 'Error message']
+ */
+function query(mysqli $mysqli, string $sql, array $params = []): array
+{
+    try {
+        // Prepare the statement
+        $stmt = $mysqli->prepare($sql);
+        if ($stmt === false) {
+            throw new Exception("Unable to prepare statement: " . $mysqli->error);
+        }
+
+        // Bind parameters if they exist
+        if (!empty($params)) {
+            $types = '';
+            // Dynamically determine the type for each parameter
+            foreach ($params as $param) {
+                if (is_int($param)) {
+                    $types .= 'i'; // Integer
+                } elseif (is_double($param)) {
+                    $types .= 'd'; // Double
+                } elseif (is_string($param)) {
+                    $types .= 's'; // String
+                } else {
+                    $types .= 'b'; // Blob for other types
+                }
+            }
+            $stmt->bind_param($types, ...$params);
+        }
+
+        // Execute the statement
+        $stmt->execute();
+
+        // Determine the query type to return the correct result format
+        $query_type = strtoupper(substr(trim($sql), 0, 6));
+
+        if ($query_type === 'SELECT') {
+            $result = $stmt->get_result();
+            $data = $result->fetch_all(MYSQLI_ASSOC);
+            return ['success' => true, 'data' => $data];
+        } elseif ($query_type === 'INSERT') {
+            return ['success' => true, 'insert_id' => $stmt->insert_id];
+        } else { // UPDATE, DELETE, etc.
+            return ['success' => true, 'affected_rows' => $stmt->affected_rows];
+        }
+
+    } catch (Exception $e) {
+        // In a production environment, you might want to log this error instead of exposing it.
+        return ['success' => false, 'error' => $e->getMessage()];
+    } finally {
+        // Ensure the statement is always closed
+        if (isset($stmt)) {
+            $stmt->close();
+        }
+    }
+}
+
 function getCurrentUser($mysqli)
 {
     if (!isLoggedIn()) {
@@ -140,11 +209,11 @@ function getUserPermissions($role_name)
  */
 function hasPermission($permission)
 {
-    if (!isset($_SESSION['role'])) {
+    if (!isset($_SESSION['role_id'])) {
         return false;
     }
 
-    $permissions = getUserPermissions($_SESSION['role']);
+    $permissions = getUserPermissions($_SESSION['role_id']);
     return $permissions[$permission] ?? false;
 }
 /**

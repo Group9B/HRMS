@@ -3,6 +3,14 @@ require_once '../config/db.php';
 require_once '../includes/functions.php';
 $title = "Dashboard";
 
+if (!isLoggedIn()) {
+  redirect("/hrms/auth/login.php");
+}
+
+if ($_SESSION['role_id'] !== 1) {
+  redirect("/hrms/unauthorized.php");
+}
+
 // --- DATA FETCHING ---
 
 // Stat Card: Total Companies
@@ -113,7 +121,10 @@ require_once '../components/layout/header.php';
                       <div class="company-name"><?= htmlspecialchars($company['name']); ?></div>
                       <div class="user-count text-muted"><?= $company['user_count']; ?> users</div>
                     </div>
-                    <div>
+                    <div class="d-flex justify-space-between align-items-center">
+                      <div class="created-at text-muted"><?= date('F j, Y', strtotime($company['created_at'])); ?>
+                      </div>
+                      <div class="vr mx-2 font-weight-bold"></div>
                       <span class="badge bg-success">Active</span>
                     </div>
                   </div>
@@ -135,7 +146,8 @@ require_once '../components/layout/header.php';
           <div class="card-body quick-actions">
             <div class="d-grid gap-2">
               <a href="companies.php" class="btn btn-primary"><i class="fas fa-plus"></i> Add New Company</a>
-              <a href="#" class="btn btn-success"><i class="fas fa-user-plus"></i> Create Admin User</a>
+              <a href="user_management.php" class="btn btn-success"><i class="fas fa-user-plus"></i> Create Admin
+                User</a>
               <a href="#" class="btn btn-info"><i class="fas fa-file-alt"></i> Generate Report</a>
               <a href="#" class="btn btn-warning text-dark"><i class="fas fa-database"></i> Schedule Backup</a>
             </div>

@@ -18,6 +18,27 @@ switch ($_SESSION['role_id']) {
         'permission' => null,
         'submenu' => []
       ],
+      'Users' => [
+        'title' => 'User Management',
+        'icon' => 'fas fa-users',
+        'url' => '/hrms/admin/user_management.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'Configuration' => [
+        'title' => 'Configuration',
+        'icon' => 'fas fa-cog',
+        'url' => '/hrms/admin/settings.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'Reports/Analytics' => [
+        'title' => 'Reports Analytics',
+        'icon' => 'fas fa-chart-bar',
+        'url' => '/hrms/admin/reports.php',
+        'permission' => null,
+        'submenu' => []
+      ],
     ];
     break;
   case 2:
