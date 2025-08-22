@@ -2,7 +2,7 @@
 
 $current_page = $_SERVER['PHP_SELF'] ?? '';
 switch ($_SESSION['role_id']) {
-  case 1:
+  case 1:// Super Admin
     $navigation_menu = [
       'dashboard' => [
         'title' => 'Dashboard',
@@ -39,13 +39,107 @@ switch ($_SESSION['role_id']) {
         'permission' => null,
         'submenu' => []
       ],
+      'Support' => [
+        'title' => 'Support',
+        'icon' => 'fas fa-circle-question',
+        'url' => '/hrms/admin/support.php',
+        'permission' => null,
+        'submenu' => []
+      ],
     ];
     break;
-  case 2:
-    redirect("/hrms/company/");
+  case 2://Company Admin
+    $navigation_menu = [
+      'dashboard' => [
+        'title' => 'Dashboard',
+        'icon' => 'fas fa-tachometer-alt',
+        'url' => '/hrms/company/index.php',
+        'permission' => null, // Available to all logged in users
+        'submenu' => []
+      ],
+      'Users' => [
+        'title' => 'Employee Management',
+        'icon' => 'fas fa-users',
+        'url' => '/hrms/company/employees.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'Department' => [
+        'title' => 'Deparments Management',
+        'icon' => 'fas fa-sitemap',
+        'url' => '/hrms/company/departments.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'Attendence' => [
+        'title' => 'Attendence Management',
+        'icon' => 'fas fa-calendar-check',
+        'url' => '/hrms/company/attendance.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'Leave' => [
+        'title' => 'Leave Management',
+        'icon' => 'fas fa-calendar-alt',
+        'url' => '/hrms/company/leaves.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'Settings' => [
+        'title' => 'Settings',
+        'icon' => 'fas fa-cog',
+        'url' => '/hrms/company/company_settings.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+    ];
     break;
   case 3:
-    redirect("/hrms/hr/");
+    $navigation_menu = [
+      'dashboard' => [
+        'title' => 'Dashboard',
+        'icon' => 'fas fa-tachometer-alt',
+        'url' => '/hrms/hr/index.php',
+        'permission' => null, // Available to all logged in users
+        'submenu' => []
+      ],
+      'Employees' => [
+        'title' => 'Employees',
+        'icon' => 'fas fa-users',
+        'url' => '/hrms/hr/employees.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'Departments' => [
+        'title' => 'Departments',
+        'icon' => 'fas fa-sitemap',
+        'url' => '/hrms/hr/departments.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'Designations' => [
+        'title' => 'Designations',
+        'icon' => 'fas fa-id-badge',
+        'url' => '/hrms/hr/designations.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'Attendance' => [
+        'title' => 'Attendance',
+        'icon' => 'fas fa-calendar-check',
+        'url' => '/hrms/hr/attendance.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'Leaves' => [
+        'title' => 'Leave Management',
+        'icon' => 'fas fa-calendar-alt',
+        'url' => '/hrms/hr/leaves.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      /* Add more HR specific menu items here */
+    ];
     break;
   case 4:
     redirect("/hrms/employee/");
@@ -181,9 +275,9 @@ function isActivePage($url)
   return strpos($current_page, $url) !== false;
 }
 ?>
-<div class="d-flex flex-column flex-shrink-0 p-3 bg-body d-none d-md-flex border-end sidebar"
+<div class="flex-column flex-shrink-0 p-3 bg-body border-end sidebar d-md-flex" id="backdrop"
   style="width: 200px; min-height: 100vh;">
-  <ul class="nav nav-pills flex-column mb-auto"><?php foreach ($navigation_menu as $key => $item): ?>
+  <ul class="nav nav-pills flex-column mb-auto" id="sidebar"><?php foreach ($navigation_menu as $key => $item): ?>
       <?php if (shouldShowMenuItem($item)): ?>
         <li class="nav-item mb-2">
           <?php if (empty($item['submenu'])): ?>
@@ -228,21 +322,3 @@ function isActivePage($url)
     <?php endforeach; ?>
   </ul>
 </div>
-<script>
-  const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
-
-  navLinks.forEach(link => {
-    if (link.getAttribute('href') === currentPath) {
-      link.classList.add('active');
-      // Expand parent submenu if exists
-      const parentCollapse = link.closest('.collapse');
-      if (parentCollapse) {
-        parentCollapse.classList.add('show');
-        const parentToggle = document.querySelector(`[data-bs-target="#${parentCollapse.id}"]`);
-        if (parentToggle) {
-          parentToggle.setAttribute('aria-expanded', 'true');
-        }
-      }
-    }
-  });
-</script>

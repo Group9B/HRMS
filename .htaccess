@@ -1,0 +1,45 @@
+# ========================
+
+# Security Headers
+
+# ========================
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# ========================
+
+# Deny access to hidden files like .htaccess
+
+# ========================
+
+<FilesMatch "^\.">
+Require all denied
+</FilesMatch>
+
+# ========================
+
+# Deny access to sensitive PHP files
+
+# ========================
+
+<FilesMatch "^(db|functions)\.php$">
+Require all denied
+</FilesMatch>
+
+# Custom pages
+
+ErrorDocument 404 /hrms/pages/404.php
+ErrorDocument 403 /eduvault/pages/404.php
+ErrorDocument 500 /eduvault/pages/500.php
+
+# ========================
+
+# Optional: Custom 403 Error Page (Make this page yourself)
+
+# ========================
+
+# ErrorDocument 403 /pages/access_denied.php

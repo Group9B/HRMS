@@ -13,59 +13,161 @@ document.addEventListener("DOMContentLoaded", () => {
 	if (savedTheme) {
 		document.documentElement.setAttribute("data-bs-theme", savedTheme);
 	}
+	initializePasswordToggle("passwordInput", "togglePassword");
+	initializeSidebarToggle("sidebar", "sidebarToggle", "backdrop");
 });
 
-// --- NEW UTILITY FUNCTIONS ---
+window.addEventListener("load", () => {
+	const pageLoader = document.getElementById("pageLoader");
+	if (pageLoader) {
+		pageLoader.style.transition = "opacity 0.5s ease";
+		pageLoader.style.opacity = "0";
+		setTimeout(() => {
+			pageLoader.remove();
+		}, 500);
+	}
+});
 
-/**
- * Displays a Bootstrap 5 toast notification.
- * @param {string} message The message to display.
- * @param {string} type The type of toast ('success' or 'error').
- */
+function initializeSidebarToggle(sidebarId, toggleBtnId, backdropId) {
+	const sidebar = document.getElementById(sidebarId);
+	const toggleBtn = document.getElementById(toggleBtnId);
+	const backdrop = document.getElementById(backdropId);
+	if (toggleBtn && sidebar && backdrop) {
+		toggleBtn.addEventListener("click", function () {
+			sidebar.classList.toggle("show");
+			backdrop.style.display = sidebar.classList.contains("show")
+				? "block"
+				: "none";
+		});
+		backdrop.addEventListener("click", function () {
+			sidebar.classList.remove("show");
+			backdrop.style.display = "none";
+		});
+	}
+}
+
+// --- UTILITY FUNCTIONS ---
+
 function showToast(message, type = "success") {
-	// Ensure a toast container exists on the page
 	if (!$("#toast-container").length) {
 		$("body").append(
 			'<div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3"></div>'
 		);
 	}
-
 	const toastId = "toast-" + Date.now();
 	const bgClass = type === "success" ? "bg-success" : "bg-danger";
-
-	const toastHTML = `
-        <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    ${message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div>
-    `;
-
+	const toastHTML = `<div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true"><div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div></div>`;
 	$("#toast-container").append(toastHTML);
-
 	const toastElement = new bootstrap.Toast(document.getElementById(toastId));
-
-	// Remove the toast from the DOM after it's hidden
 	document
 		.getElementById(toastId)
 		.addEventListener("hidden.bs.toast", function () {
 			this.remove();
 		});
-
 	toastElement.show();
 }
 
-/**
- * Escapes HTML special characters in a string to prevent XSS.
- * @param {string} str The string to escape.
- * @returns {string} The escaped string.
- */
 function escapeHTML(str) {
 	if (str === null || str === undefined) return "";
 	const div = document.createElement("div");
 	div.appendChild(document.createTextNode(str));
 	return div.innerHTML;
+}
+
+function initializePasswordToggle(inputId, toggleBtnId) {
+	const passwordinp = document.getElementById(inputId);
+	const togglePasswordBtn = document.getElementById(toggleBtnId);
+	if (passwordinp && togglePasswordBtn) {
+		togglePasswordBtn.addEventListener("click", function () {
+			const type =
+				passwordinp.getAttribute("type") === "password"
+					? "text"
+					: "password";
+			passwordinp.setAttribute("type", type);
+			this.querySelector("i").classList.toggle("fa-eye");
+			this.querySelector("i").classList.toggle("fa-eye-slash");
+		});
+	}
+}
+
+/**
+ * Initializes a modular To-Do list widget.
+ * @param {string} formSelector The CSS selector for the form element.
+ * @param {string} listSelector The CSS selector for the UL element.
+ */
+function initializeTodoList(formSelector, listSelector) {
+	const todoForm = $(formSelector);
+	const todoList = $(listSelector);
+
+	if (!todoForm.length || !todoList.length) {
+		return; // Exit if the required elements aren't on the page
+	}
+
+	function loadTodos() {
+		fetch("/hrms/api/todo.php?action=get_todos")
+			.then((res) => res.json())
+			.then((result) => {
+				todoList.empty();
+				if (result.success && result.data.length > 0) {
+					result.data.forEach((item) => {
+						const isCompleted = parseInt(item.is_completed) === 1;
+						const li = `
+                        <li data-id="${item.id}">
+                            <input class="form-check-input" type="checkbox" ${
+								isCompleted ? "checked" : ""
+							}>
+                            <span class="task-text ${
+								isCompleted ? "completed" : ""
+							}">${escapeHTML(item.task)}</span>
+                            <button class="btn btn-sm btn-outline-danger delete-btn"><i class="fas fa-trash"></i></button>
+                        </li>`;
+						todoList.append(li);
+					});
+				} else {
+					todoList.append(
+						'<li class="text-muted text-center">No tasks yet. Add one above!</li>'
+					);
+				}
+			});
+	}
+
+	todoForm.on("submit", function (e) {
+		e.preventDefault();
+		const formData = new FormData(this);
+		formData.append("action", "add_todo");
+		fetch("/hrms/api/todo.php", {
+			method: "POST",
+			body: formData,
+		}).then(() => {
+			this.reset();
+			loadTodos();
+		});
+	});
+
+	todoList.on("change", ".form-check-input", function () {
+		const li = $(this).closest("li");
+		const formData = new FormData();
+		formData.append("action", "update_todo_status");
+		formData.append("task_id", li.data("id"));
+		formData.append("is_completed", this.checked ? 1 : 0);
+		fetch("/hrms/api/todo.php", {
+			method: "POST",
+			body: formData,
+		}).then(() => loadTodos());
+	});
+
+	todoList.on("click", ".delete-btn", function () {
+		if (confirm("Delete this task?")) {
+			const li = $(this).closest("li");
+			const formData = new FormData();
+			formData.append("action", "delete_todo");
+			formData.append("task_id", li.data("id"));
+			fetch("/hrms/api/todo.php", {
+				method: "POST",
+				body: formData,
+			}).then(() => loadTodos());
+		}
+	});
+
+	loadTodos(); // Initial load
 }

@@ -5,9 +5,8 @@ $error = "";
 
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $email = trim($_POST["email"]);
-    $password = trim($_POST["password"]);
-
+    $email = trim($_POST["email"]) ?? '';
+    $password = trim($_POST["password"]) ?? '';
     if (empty($email) || empty($password)) {
         $error = "Please fill in all fields.";
     } else {
@@ -86,7 +85,12 @@ require_once "../components/layout/header.php";
 
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" name="password" id="password" required>
+                            <div class="input-group">
+                                <input type="password" class="form-control" name="password" id="passwordInput" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100">Login</button>

@@ -18,12 +18,36 @@ require_once '../includes/functions.php';
     </head>
 
     <body class="bg-body">
+        <div class="bg-body d-flex justify-content-center align-items-center position-fixed top-0 start-0 w-100 h-100 "
+            style="z-index: 9999;" id="pageLoader">
+            <div class="text-center">
+                <div class="spinner-border text-primary fs-2 mb-3 d-flex justify-content-center align-items-center"
+                    style="width: 5rem; height: 5rem;" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                    <div class="spinner-border text-success fs-2 d-flex justify-content-center align-items-center"
+                        style="width: 3rem; height: 3rem;" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                        <div class="spinner-border text-warning fs-6" style="width: 1rem; height: 1rem;" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="hrms-header p-1 d-flex justify-content-between align-items-center border-bottom">
-            <div class="logo">
-                <a href="index.php" class="navbar-brand d-flex align-items-center text-decoration-none">
-                    <img src="/hrms/assets/img/SS.png" alt="" height="40" class="d-inline-block align-text-top">
-                    <h2 class="m-0">Staff Sync</h2>
-                </a>
+            <div class="wrapper d-flex align-items-center justify-content-start">
+                <button class="btn fs-2 d-lg-none fa-color" id="sidebarToggle" type="button">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="logo">
+                    <a href="index.php" class="navbar-brand d-flex align-items-center text-decoration-none">
+                        <img src="/hrms/assets/img/SS.png" alt="" height="40"
+                            class="d-inline-block align-text-top pe-1">
+                        <h2 class="m-0 d-none d-md-block">Staff Sync</h2>
+                        <h2 class="m-0 d-block d-md-none">SS</h2>
+                    </a>
+                </div>
             </div>
             <div class="wrapper d-flex align-items-center justify-content-end gap-3">
                 <!-- theme toggle -->
@@ -32,44 +56,48 @@ require_once '../includes/functions.php';
                         <div class="toggle-circle"></div>
                     </div>
                 </div>
-                <!-- notifications -->
-                <div class="notifications">
-                    <div class="dropdown">
-                        <button class="btn dropdown-toggle" type="button" id="notificationButton"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-bell svg"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationButton">
-                            <li><a class="dropdown-item" href="#">New employee added</a></li>
-                            <li><a class="dropdown-item" href="#">Leave request approved</a></li>
-                            <li><a class="dropdown-item" href="#">Payroll processed</a></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li><a class="dropdown-item" href="#">View all notifications</a></li>
-                        </ul>
+                <?php if (isLoggedIn()): ?>
+                    <?php if (false): ?>
+                        <div class="notifications">
+                            <div class="dropdown">
+                                <button class="btn dropdown-toggle" type="button" id="notificationButton"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-bell svg"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationButton">
+                                    <li><a class="dropdown-item" href="#">New employee added</a></li>
+                                    <li><a class="dropdown-item" href="#">Leave request approved</a></li>
+                                    <li><a class="dropdown-item" href="#">Payroll processed</a></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item" href="#">View all notifications</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                    <div class="user-menu">
+                        <div class="dropdown">
+                            <button class="btn dropdown-toggle" type="button" id="userMenuButton" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                <i class="fas fa-user svg"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="userMenuButton">
+                                <li><a class="dropdown-item" href="ok.php">Profile</a></li>
+                                <li><a class="dropdown-item" href="#">Settings</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item text-danger" href="/hrms/auth/logout.php">Logout</a></li>
+                            </ul>
+                        </div>
                     </div>
-                </div>
-                <div class="user-menu">
-                    <div class="dropdown">
-                        <button class="btn dropdown-toggle" type="button" id="userMenuButton" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                            <i class="fas fa-user svg"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="userMenuButton">
-                            <li><a class="dropdown-item" href="#">Profile</a></li>
-                            <li><a class="dropdown-item" href="#">Settings</a></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li><a class="dropdown-item text-danger" href="/hrms/auth/logout.php">Logout</a></li>
-                        </ul>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
 
-        <?php if (!empty($_SESSION['toasts'])): ?>
+        <?php if (!empty($_SESSION['toasts'])):
+            ?>
             <div class="toast-container position-fixed top-0 end-0 p-3 show" style="z-index: 1055;">
                 <?php foreach ($_SESSION['toasts'] as $toast): ?>
                     <div class="toast align-items-center text-white bg-<?= toastBgClass($toast['type']) ?> mb-2" role="alert"
