@@ -8,14 +8,14 @@ require_once '../includes/functions.php';
 $response = ['success' => false, 'message' => 'An unknown error occurred.'];
 
 // Security Check: Ensure the user is a logged-in Company Admin
-if (!isLoggedIn() || !isset($_SESSION['role_id']) || $_SESSION['role_id'] !== 2) {
+if (!isLoggedIn() || !in_array($_SESSION['role_id'], [2, 3])) {
     $response['message'] = 'Unauthorized access.';
     echo json_encode($response);
     exit();
 }
 
 $action = $_REQUEST['action'] ?? '';
-$company_id = $_SESSION['company_id']; // All operations are scoped to this company
+$company_id = $_SESSION['company_id'];
 
 switch ($action) {
     case 'get_employees':

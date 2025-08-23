@@ -106,7 +106,7 @@ switch ($_SESSION['role_id']) {
       'Employees' => [
         'title' => 'Employees',
         'icon' => 'fas fa-users',
-        'url' => '/hrms/hr/employees.php',
+        'url' => '/hrms/company/employees.php',
         'permission' => null,
         'submenu' => []
       ],
