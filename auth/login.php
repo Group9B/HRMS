@@ -2,7 +2,9 @@
 require_once "../config/db.php";
 require_once "../includes/functions.php";
 $error = "";
-
+if (isLoggedIn()) {
+    redirect("/hrms/dashboard.php");
+}
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email = trim($_POST["email"]) ?? '';

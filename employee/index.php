@@ -18,7 +18,7 @@ $employee_profile = query($mysqli, "SELECT id, first_name FROM employees WHERE u
 if (!$employee_profile['success'] || empty($employee_profile['data'])) {
     // Optional: Redirect to profile page if employee record doesn't exist yet
     // redirect("/hrms/admin/profile.php"); 
-    die("Employee profile not found for this user account.");
+    redirect("/hrms/unauthorized.php");
 }
 $employee_id = $employee_profile['data'][0]['id'];
 $employee_name = $employee_profile['data'][0]['first_name'];

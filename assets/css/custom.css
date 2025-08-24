@@ -17,7 +17,7 @@
 	width: 60px;
 	height: 30px;
 	border-radius: 15px;
-	background-color: var(--bs-body-bg);
+	background-color: #f0f0f0;
 	cursor: pointer;
 	transition: 0.3s;
 	overflow: hidden;
@@ -58,7 +58,7 @@
 }
 
 [data-bs-theme="dark"] .theme-toggle {
-	background-color: var(--bs-body-bg) !important;
+	background-color: #c1c1c1;
 }
 
 .theme-toggle-wrapper {
