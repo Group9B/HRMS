@@ -172,7 +172,7 @@ require_once '../components/layout/header.php';
             formData.append('action', 'delete');
             formData.append('company_id', companyId);
 
-            fetch('api_companies.php', {
+            fetch('/hrms/api/api_companies.php', {
                 method: 'POST',
                 body: formData
             })
