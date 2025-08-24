@@ -34,10 +34,10 @@ require_once '../components/layout/header.php';
                 <h6 class="m-0 font-weight-bold">All Employees</h6>
             </div>
             <div class="card-body">
+                <!-- Responsive wrapper -->
                 <div class="table-responsive">
                     <table id="employeesTable" class="table table-striped table-bordered nowrap" style="width:100%">
-
-                        <thead class="table">
+                        <thead class="table-head">
                             <tr>
                                 <th>Name</th>
                                 <th>Department</th>
@@ -47,7 +47,7 @@ require_once '../components/layout/header.php';
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody class="table-group-divider"></tbody>
                     </table>
                 </div>
             </div>
@@ -55,7 +55,6 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
-<!-- Employee Modal -->
 <div class="modal fade" id="employeeModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -121,7 +120,6 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
-<!-- Create User Modal -->
 <div class="modal fade" id="createUserModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -170,21 +168,61 @@ require_once '../components/layout/header.php';
 
         employeesTable = $('#employeesTable').DataTable({
             processing: true,
-            ajax: { url: '/hrms/api/api_employees.php?action=get_employees', dataSrc: 'data' },
+            ajax: {
+                url: '/hrms/api/api_employees.php?action=get_employees',
+                dataSrc: 'data'
+            },
             columns: [
-                { data: null, render: (d, t, r) => `<strong>${escapeHTML(r.first_name)} ${escapeHTML(r.last_name)}</strong>` },
-                { data: 'department_name' }, { data: 'designation_name', defaultContent: 'N/A' },
+                {
+                    data: null,
+                    render: (d, t, r) => `<strong>${escapeHTML(r.first_name)} ${escapeHTML(r.last_name)}</strong>`
+                },
+                { data: 'department_name' },
+                { data: 'designation_name', defaultContent: 'N/A' },
                 { data: 'shift_name', defaultContent: 'N/A' },
-                { data: 'status', render: (d) => `<span class="badge text-bg-${d === 'active' ? 'success' : 'danger'}">${capitalize(d)}</span>` },
-                { data: null, orderable: false, render: (d, t, r) => `<div class="btn-group"><button class="btn btn-sm btn-outline-primary" onclick='prepareEditModal(${JSON.stringify(r)})'><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-outline-danger" onclick="deleteEmployee(${r.id})"><i class="fas fa-trash"></i></button></div>` }
+                {
+                    data: 'status',
+                    render: (d) => `<span class="badge text-bg-${d === 'active' ? 'success' : 'danger'}">${capitalize(d)}</span>`
+                },
+                {
+                    data: null,
+                    orderable: false,
+                    responsivePriority: 1,  // keep actions visible
+                    render: (d, t, r) => `
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-primary" 
+                            onclick='prepareEditModal(${JSON.stringify(r)})'>
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" 
+                            onclick="deleteEmployee(${r.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>`
+                }
             ],
             order: [[0, 'asc']],
-            responsive: true,
+            responsive: {
+                details: {
+                    display: $.fn.dataTable.Responsive.display.modal({
+                        header: function (row) {
+                            var data = row.data();
+                            return `Details for ${escapeHTML(data.first_name)} ${escapeHTML(data.last_name)}`;
+                        }
+                    }),
+                    renderer: $.fn.dataTable.Responsive.renderer.tableAll({
+                        tableClass: 'table'
+                    })
+                }
+            },
+            autoWidth: false,
+            scrollX: true
         });
 
         $('#employeeForm').on('submit', handleEmployeeFormSubmit);
         $('#createUserForm').on('submit', handleCreateUserFormSubmit);
     });
+
 
     function validateAndOpenAddModal() {
         let missing = [];
