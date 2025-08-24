@@ -6,7 +6,7 @@ require_once '../includes/functions.php';
 $response = ['success' => false, 'message' => 'An unknown error occurred.'];
 
 // Security Check: Must be a logged-in Company Admin
-if (!isLoggedIn() || !isset($_SESSION['role_id']) || $_SESSION['role_id'] !== 2) {
+if (!isLoggedIn() || !in_array($_SESSION['role_id'], [2, 3])) {
     $response['message'] = 'Unauthorized access.';
     echo json_encode($response);
     exit();

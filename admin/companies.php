@@ -25,7 +25,7 @@ require_once '../components/layout/header.php';
         <div class="card shadow-sm">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover" id="companiesTable">
+                    <table class="table table-hover table-striped table-bordered nowrap" id="companiesTable">
                         <thead class="">
                             <tr>
                                 <th>Name</th>
@@ -113,7 +113,7 @@ require_once '../components/layout/header.php';
     let companiesTable;
 
     $(function () {
-        companiesTable = $('#companiesTable').DataTable({ order: [[3, 'desc']] });
+        companiesTable = $('#companiesTable').DataTable({ order: [[3, 'desc']], responsive: true });
         companyModal = new bootstrap.Modal(document.getElementById('companyModal'));
 
         // Handle form submission with AJAX
