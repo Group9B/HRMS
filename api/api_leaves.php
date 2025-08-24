@@ -16,25 +16,52 @@ $user_id = $_SESSION['user_id'];
 $company_id = $_SESSION['company_id'];
 $is_manager = in_array($_SESSION['role_id'], [2, 3]); // Company Admin or HR Manager
 
+// A helper function to get the current user's employee ID
+function getEmployeeId($mysqli, $user_id)
+{
+    $emp_id_res = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$user_id]);
+    if ($emp_id_res['success'] && !empty($emp_id_res['data'])) {
+        return $emp_id_res['data'][0]['id'];
+    }
+    return null;
+}
+
+$employee_id = getEmployeeId($mysqli, $user_id);
+
 switch ($action) {
     case 'get_leaves':
-        // Managers see all requests from their company; employees see only their own.
         if ($is_manager) {
-            $sql = "SELECT l.*, e.first_name, e.last_name FROM leaves l JOIN employees e ON l.employee_id = e.id JOIN departments d ON e.department_id = d.id WHERE d.company_id = ? ORDER BY l.applied_at DESC";
-            $result = query($mysqli, $sql, [$company_id]);
+            // UPDATED: Managers now see all requests *except their own* in this list.
+            $sql = "SELECT l.*, e.first_name, e.last_name FROM leaves l 
+                    JOIN employees e ON l.employee_id = e.id 
+                    JOIN departments d ON e.department_id = d.id 
+                    WHERE d.company_id = ? AND l.employee_id != ? 
+                    ORDER BY l.applied_at DESC";
+            $result = query($mysqli, $sql, [$company_id, $employee_id ?? 0]);
         } else {
-            // Find the employee_id associated with the current user_id
-            $emp_id_res = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$user_id]);
-            if ($emp_id_res['success'] && !empty($emp_id_res['data'])) {
-                $employee_id = $emp_id_res['data'][0]['id'];
+            // Non-manager employees see only their own requests.
+            if ($employee_id) {
                 $sql = "SELECT * FROM leaves WHERE employee_id = ? ORDER BY applied_at DESC";
                 $result = query($mysqli, $sql, [$employee_id]);
             } else {
                 $result = ['success' => true, 'data' => []]; // No employee profile found
             }
         }
-        if ($result['success']) {
+        if (isset($result) && $result['success']) {
             $response = ['success' => true, 'data' => $result['data']];
+        }
+        break;
+
+    case 'get_my_leaves':
+        // NEW: An endpoint specifically for the "My Requests" tab to avoid conflicts.
+        if ($employee_id) {
+            $sql = "SELECT * FROM leaves WHERE employee_id = ? ORDER BY applied_at DESC";
+            $result = query($mysqli, $sql, [$employee_id]);
+            if ($result['success']) {
+                $response = ['success' => true, 'data' => $result['data']];
+            }
+        } else {
+            $response = ['success' => true, 'data' => []];
         }
         break;
 
@@ -44,12 +71,10 @@ switch ($action) {
         $leave_type = $_POST['leave_type'] ?? 'Annual';
         $reason = $_POST['reason'] ?? '';
 
-        $emp_id_res = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$user_id]);
-        if (!$emp_id_res['success'] || empty($emp_id_res['data'])) {
+        if (!$employee_id) {
             $response['message'] = 'You must have an employee profile to apply for leave.';
             break;
         }
-        $employee_id = $emp_id_res['data'][0]['id'];
 
         if (empty($start_date) || empty($end_date)) {
             $response['message'] = 'Start and end dates are required.';
@@ -62,6 +87,31 @@ switch ($action) {
             $response = ['success' => true, 'message' => 'Leave request submitted successfully!'];
         }
         break;
+
+    case 'cancel_leave':
+        // NEW: Action to allow an employee to cancel their own PENDING leave request.
+        $leave_id = isset($_POST['leave_id']) ? (int) $_POST['leave_id'] : 0;
+
+        if (!$employee_id) {
+            $response['message'] = 'Employee profile not found.';
+            break;
+        }
+        if ($leave_id <= 0) {
+            $response['message'] = 'Invalid leave ID provided.';
+            break;
+        }
+
+        // Ensure the user can only delete their own pending request
+        $sql = "DELETE FROM leaves WHERE id = ? AND employee_id = ? AND status = 'pending'";
+        $result = query($mysqli, $sql, [$leave_id, $employee_id]);
+
+        if ($result['success'] && $result['affected_rows'] > 0) {
+            $response = ['success' => true, 'message' => 'Leave request has been cancelled.'];
+        } else {
+            $response['message'] = 'Could not cancel request. It may have already been actioned or does not exist.';
+        }
+        break;
+
 
     case 'update_status':
         if (!$is_manager) {

@@ -17,59 +17,73 @@ require_once '../components/layout/header.php';
     <div class="p-3 p-md-4" style="flex: 1;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="h3 mb-0 text-gray-800"><i class="fas fa-plane-departure me-2"></i>Leave Management</h2>
-            <?php if ($_SESSION['role_id'] !== 2): ?>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#applyLeaveModal">
-                    <i class="fas fa-plus me-2"></i>Apply for Leave
-                </button>
-            <?php endif; ?>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#applyLeaveModal">
+                <i class="fas fa-plus me-2"></i>Apply for Leave
+            </button>
         </div>
 
-        <!-- Nav Tabs -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold">My Leave Summary</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <h5>Annual Leave</h5>
+                        <p class="fs-4 fw-bold" id="annual-balance">12 / 15</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Sick Leave</h5>
+                        <p class="fs-4 fw-bold" id="sick-balance">8 / 10</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Leave Policy</h5>
+                        <p><a href="#">View Company Policy</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
         <ul class="nav nav-tabs" id="leaveTabs" role="tablist">
-            <?php if (!$is_manager): ?>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="my-requests-tab" data-bs-toggle="tab" data-bs-target="#my-requests"
-                        type="button" role="tab">My Requests</button>
-                </li>
-            <?php endif; ?>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="my-requests-tab" data-bs-toggle="tab" data-bs-target="#my-requests"
+                    type="button" role="tab">My Requests</button>
+            </li>
             <?php if ($is_manager): ?>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link <?php echo $is_manager ? 'active' : ''; ?>" id="approve-requests-tab"
-                        data-bs-toggle="tab" data-bs-target="#approve-requests" type="button" role="tab">Approve
-                        Requests</button>
+                    <button class="nav-link" id="approve-requests-tab" data-bs-toggle="tab"
+                        data-bs-target="#approve-requests" type="button" role="tab">Approve Requests</button>
                 </li>
             <?php endif; ?>
         </ul>
 
-        <!-- Tab Content -->
         <div class="tab-content" id="leaveTabsContent">
-            <!-- My Requests Tab -->
-            <?php if (!$is_manager): ?>
-                <div class="tab-pane fade show active" id="my-requests" role="tabpanel">
-                    <div class="card shadow-sm mt-3">
-                        <div class="card-body">
-                            <table class="table table-hover" id="myRequestsTable" width="100%">
-                                <thead class=" ">
-                                    <tr>
-                                        <th>Type</th>
-                                        <th>Dates</th>
-                                        <th>Reason</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </div>
+            <div class="tab-pane fade show active" id="my-requests" role="tabpanel">
+                <div class="card shadow-sm mt-3">
+                    <div class="card-body">
+                        <table class="table table-hover" id="myRequestsTable" width="100%">
+                            <thead class="table">
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Dates</th>
+                                    <th>Days</th>
+                                    <th>Reason</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                        </table>
                     </div>
                 </div>
-            <?php endif; ?>
+            </div>
 
-            <!-- Approve Requests Tab (for managers) -->
             <?php if ($is_manager): ?>
-                <div class="tab-pane fade show active" id="approve-requests" role="tabpanel">
+                <div class="tab-pane fade" id="approve-requests" role="tabpanel">
                     <div class="card shadow-sm mt-3">
                         <div class="card-body">
                             <table class="table table-hover" id="approveRequestsTable" width="100%">
-                                <thead class=" ">
+                                <thead class="table">
                                     <tr>
                                         <th>Employee</th>
                                         <th>Type</th>
@@ -88,7 +102,6 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
-<!-- Apply Leave Modal -->
 <div class="modal fade" id="applyLeaveModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -125,6 +138,7 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
+
 <?php require_once '../components/layout/footer.php'; ?>
 
 <script>
@@ -134,18 +148,29 @@ require_once '../components/layout/header.php';
 
     $(function () {
         // Initialize My Requests Table
+        // UPDATED: Now calls a specific API action to get only the user's leaves.
         myRequestsTable = $('#myRequestsTable').DataTable({
-            ajax: { url: '/hrms/api/api_leaves.php?action=get_leaves', dataSrc: 'data' },
+            ajax: { url: '/hrms/api/api_leaves.php?action=get_my_leaves', dataSrc: 'data' },
             columns: [
                 { data: 'leave_type' },
                 { data: null, render: (d, t, r) => `${formatDate(r.start_date)} to ${formatDate(r.end_date)}` },
+                { data: null, render: (d, t, r) => countDays(r.start_date, r.end_date) },
                 { data: 'reason' },
-                { data: 'status', render: (d) => `<span class="badge text-bg-${getStatusClass(d)}">${capitalize(d)}</span>` }
+                { data: 'status', render: (d) => `<span class="badge text-bg-${getStatusClass(d)}">${capitalize(d)}</span>` },
+                { // NEW: Actions column for cancelling
+                    data: null, orderable: false, render: (d, t, r) => {
+                        if (r.status === 'pending') {
+                            return `<button class="btn btn-sm btn-outline-danger" onclick="cancelRequest(${r.id})">Cancel</button>`;
+                        }
+                        return '---';
+                    }
+                }
             ],
-            order: [[3, 'asc']]
+            order: [[4, 'asc']]
         });
 
         // Initialize Approve Requests Table if manager
+        // This now correctly fetches requests from other employees.
         if (isManager) {
             approveRequestsTable = $('#approveRequestsTable').DataTable({
                 ajax: { url: '/hrms/api/api_leaves.php?action=get_leaves', dataSrc: 'data' },
@@ -176,10 +201,27 @@ require_once '../components/layout/header.php';
                         showToast(data.message, 'success');
                         applyLeaveModal.hide();
                         myRequestsTable.ajax.reload();
+                        if (isManager) { approveRequestsTable.ajax.reload(); }
                     } else { showToast(data.message, 'error'); }
                 });
         });
     });
+
+    // NEW: Function to cancel a leave request
+    function cancelRequest(leaveId) {
+        if (confirm('Are you sure you want to cancel this leave request?')) {
+            const formData = new FormData();
+            formData.append('action', 'cancel_leave');
+            formData.append('leave_id', leaveId);
+            fetch('/hrms/api/api_leaves.php', { method: 'POST', body: formData })
+                .then(res => res.json()).then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        myRequestsTable.ajax.reload();
+                    } else { showToast(data.message, 'error'); }
+                });
+        }
+    }
 
     function updateStatus(leaveId, status) {
         if (confirm(`Are you sure you want to ${status} this request?`)) {
@@ -192,6 +234,7 @@ require_once '../components/layout/header.php';
                     if (data.success) {
                         showToast(data.message, 'success');
                         approveRequestsTable.ajax.reload();
+                        myRequestsTable.ajax.reload(); // Also reload my requests table
                     } else { showToast(data.message, 'error'); }
                 });
         }
@@ -208,4 +251,13 @@ require_once '../components/layout/header.php';
     }
 
     function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+
+    // NEW: Helper to count days in a leave request
+    function countDays(start, end) {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        const diffTime = Math.abs(endDate - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include the start day
+        return diffDays;
+    }
 </script>

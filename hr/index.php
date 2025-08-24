@@ -122,9 +122,12 @@ require_once '../components/layout/header.php';
           </div>
           <div class="card-body quick-actions">
             <div class="d-grid gap-2">
-              <a href="employees.php" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add Employee</a>
-              <a href="attendance.php" class="btn btn-info"><i class="fas fa-calendar-check"></i> Mark Attendance</a>
-              <a href="leaves.php" class="btn btn-success"><i class="fas fa-check-double"></i> Approve Leaves</a>
+              <a href="/hrms/company/employees.php" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add
+                Employee</a>
+              <a href="/hrms/company/attendance.php" class="btn btn-info"><i class="fas fa-calendar-check"></i> Mark
+                Attendance</a>
+              <a href="/hrms/company/leaves.php" class="btn btn-success"><i class="fas fa-check-double"></i> Approve
+                Leaves</a>
             </div>
           </div>
         </div>

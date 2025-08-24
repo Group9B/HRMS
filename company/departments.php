@@ -4,7 +4,7 @@ require_once '../includes/functions.php';
 $title = "Departments & Designations";
 
 // --- SECURITY & SESSION ---
-if (!isLoggedIn() || $_SESSION['role_id'] !== 2) {
+if (!isLoggedIn() && in_array($_SESSION['role_id'], [2, 3])) {
     redirect("/hrms/unauthorized.php");
 }
 $company_id = $_SESSION['company_id'];

@@ -65,9 +65,9 @@ switch ($_SESSION['role_id']) {
         'submenu' => []
       ],
       'Department' => [
-        'title' => 'Deparments Management',
+        'title' => 'Organization Management',
         'icon' => 'fas fa-sitemap',
-        'url' => '/hrms/company/departments.php',
+        'url' => '/hrms/company/organization.php',
         'permission' => null,
         'submenu' => []
       ],
@@ -94,7 +94,7 @@ switch ($_SESSION['role_id']) {
       ],
     ];
     break;
-  case 3:
+  case 3://HR Manager
     $navigation_menu = [
       'dashboard' => [
         'title' => 'Dashboard',
@@ -104,45 +104,46 @@ switch ($_SESSION['role_id']) {
         'submenu' => []
       ],
       'Employees' => [
-        'title' => 'Employees',
+        'title' => 'Employee Management',
         'icon' => 'fas fa-users',
         'url' => '/hrms/company/employees.php',
         'permission' => null,
         'submenu' => []
       ],
       'Departments' => [
-        'title' => 'Departments',
+        'title' => 'Organization Management',
         'icon' => 'fas fa-sitemap',
-        'url' => '/hrms/hr/departments.php',
-        'permission' => null,
-        'submenu' => []
-      ],
-      'Designations' => [
-        'title' => 'Designations',
-        'icon' => 'fas fa-id-badge',
-        'url' => '/hrms/hr/designations.php',
+        'url' => '/hrms/company/organization.php',
         'permission' => null,
         'submenu' => []
       ],
       'Attendance' => [
         'title' => 'Attendance',
         'icon' => 'fas fa-calendar-check',
-        'url' => '/hrms/hr/attendance.php',
+        'url' => '/hrms/company/attendance.php',
         'permission' => null,
         'submenu' => []
       ],
       'Leaves' => [
         'title' => 'Leave Management',
         'icon' => 'fas fa-calendar-alt',
-        'url' => '/hrms/hr/leaves.php',
+        'url' => '/hrms/company/leaves.php',
         'permission' => null,
         'submenu' => []
       ],
       /* Add more HR specific menu items here */
     ];
     break;
-  case 4:
-    redirect("/hrms/employee/");
+  case 4://Employee
+    $navigation_menu = [
+      'dashboard' => [
+        'title' => 'Dashboard',
+        'icon' => 'fas fa-tachometer-alt',
+        'url' => '/hrms/employee/index.php',
+        'permission' => null, // Available to all logged in users
+        'submenu' => []
+      ],
+    ];
     break;
   case 5:
     redirect("/hrms/auditor/");
@@ -151,114 +152,6 @@ switch ($_SESSION['role_id']) {
     http_response_code(404);
     break;
 }
-/* $navigation_menu = [
-  'dashboard' => [
-    'title' => 'Dashboard',
-    'icon' => 'fas fa-tachometer-alt',
-    'url' => '/hrms/admin/',
-    'permission' => null, // Available to all logged in users
-    'submenu' => []
-  ],
-  'admin' => [
-    'title' => 'Administration',
-    'icon' => 'fas fa-cogs',
-    'url' => '#',
-    'permission' => 'user_management',
-    'submenu' => [
-      [
-        'title' => 'User Management',
-        'url' => '/hrms/admin/user-management.php',
-        'icon' => 'fas fa-users',
-        'permission' => 'user_management'
-      ],
-      [
-        'title' => 'Company Settings',
-        'url' => '/hrms/admin/company-settings.php',
-        'icon' => 'fas fa-building',
-        'permission' => 'company_settings'
-      ],
-      [
-        'title' => 'System Settings',
-        'url' => '/hrms/admin/system-settings.php',
-        'icon' => 'fas fa-sliders-h',
-        'permission' => 'system_settings'
-      ],
-      [
-        'title' => 'Email Templates',
-        'url' => '/hrms/admin/email-templates.php',
-        'icon' => 'fas fa-envelope',
-        'permission' => 'email_templates'
-      ]
-    ]
-  ],
-  'hr' => [
-    'title' => 'Human Resources',
-    'icon' => 'fas fa-user-tie',
-    'url' => '#',
-    'permission' => 'employee_management',
-    'submenu' => [
-      [
-        'title' => 'Employees',
-        'url' => '/hrms/hr/employees.php',
-        'icon' => 'fas fa-users',
-        'permission' => 'employee_management'
-      ],
-      [
-        'title' => 'Departments',
-        'url' => '/hrms/hr/departments.php',
-        'icon' => 'fas fa-sitemap',
-        'permission' => 'employee_management'
-      ],
-      [
-        'title' => 'Designations',
-        'url' => '/hrms/hr/designations.php',
-        'icon' => 'fas fa-id-badge',
-        'permission' => 'employee_management'
-      ],
-      [
-        'title' => 'Shifts',
-        'url' => '/hrms/hr/shifts.php',
-        'icon' => 'fas fa-clock',
-        'permission' => 'employee_management'
-      ]
-    ]
-  ],
-  'attendance' => [
-    'title' => 'Attendance',
-    'icon' => 'fas fa-calendar-check',
-    'url' => '/hrms/hr/attendance.php',
-    'permission' => 'attendance_management',
-    'submenu' => []
-  ],
-  'payroll' => [
-    'title' => 'Payroll',
-    'icon' => 'fas fa-money-bill-wave',
-    'url' => '/hrms/hr/payroll.php',
-    'permission' => 'payroll_management',
-    'submenu' => []
-  ],
-  'leaves' => [
-    'title' => 'Leave Management',
-    'icon' => 'fas fa-calendar-alt',
-    'url' => '/hrms/hr/leaves.php',
-    'permission' => 'leave_management',
-    'submenu' => []
-  ],
-  'reports' => [
-    'title' => 'Reports',
-    'icon' => 'fas fa-chart-bar',
-    'url' => '/hrms/reports/',
-    'permission' => 'reports',
-    'submenu' => []
-  ],
-  'audit' => [
-    'title' => 'Audit & Logs',
-    'icon' => 'fas fa-history',
-    'url' => '/hrms/admin/audit-logs.php',
-    'permission' => 'audit_logs',
-    'submenu' => []
-  ]
-]; */
 // Function to check if menu item should be displayed
 function shouldShowMenuItem($item)
 {
