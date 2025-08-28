@@ -36,7 +36,7 @@ require_once '../components/layout/header.php';
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
             <h2 class="h3 mb-0 text-gray-800"><i class="fas fa-users me-2"></i>User Management</h2>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userModal"
                 onclick="prepareAddModal()">
@@ -46,16 +46,16 @@ require_once '../components/layout/header.php';
 
         <div class="card shadow-sm">
             <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover" id="usersTable">
+                <div class="table-responsive overflow-auto" style="max-height: 60vh;">
+                    <table class="table table-hover table-sm align-middle" id="usersTable">
                         <thead class="">
                             <tr>
                                 <th>Username</th>
-                                <th>Email</th>
-                                <th>Company</th>
-                                <th>Role</th>
+                                <th class="d-none d-md-table-cell">Email</th>
+                                <th class="d-none d-lg-table-cell">Company</th>
+                                <th class="d-none d-lg-table-cell">Role</th>
                                 <th>Status</th>
-                                <th>Joined On</th>
+                                <th class="d-none d-xl-table-cell">Joined On</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -63,16 +63,16 @@ require_once '../components/layout/header.php';
                             <?php foreach ($users as $user): ?>
                                 <tr id="user-row-<?= $user['id']; ?>">
                                     <td><strong><?= htmlspecialchars($user['username']); ?></strong></td>
-                                    <td><?= htmlspecialchars($user['email']); ?></td>
-                                    <td><?= htmlspecialchars($user['company_name'] ?? 'N/A'); ?></td>
-                                    <td><?= htmlspecialchars($user['role_name']); ?></td>
+                                    <td class="d-none d-md-table-cell"><?= htmlspecialchars($user['email']); ?></td>
+                                    <td class="d-none d-lg-table-cell"><?= htmlspecialchars($user['company_name'] ?? 'N/A'); ?></td>
+                                    <td class="d-none d-lg-table-cell"><?= htmlspecialchars($user['role_name']); ?></td>
                                     <td>
                                         <span
                                             class="badge text-bg-<?= $user['status'] === 'active' ? 'success' : 'danger'; ?>">
                                             <?= ucfirst($user['status']); ?>
                                         </span>
                                     </td>
-                                    <td><?= date('M d, Y', strtotime($user['created_at'])); ?></td>
+                                    <td class="d-none d-xl-table-cell"><?= date('M d, Y', strtotime($user['created_at'])); ?></td>
                                     <td>
                                         <div class="btn-group">
                                             <button type="button" class="btn btn-sm btn-outline-primary"
@@ -226,11 +226,11 @@ require_once '../components/layout/header.php';
         const statusClass = user.status === 'active' ? 'text-bg-success' : 'text-bg-danger';
         return `
             <td><strong>${escapeHTML(user.username)}</strong></td>
-            <td>${escapeHTML(user.email)}</td>
-            <td>${escapeHTML(user.company_name) || 'N/A'}</td>
-            <td>${escapeHTML(user.role_name)}</td>
+            <td class="d-none d-md-table-cell">${escapeHTML(user.email)}</td>
+            <td class="d-none d-lg-table-cell">${escapeHTML(user.company_name) || 'N/A'}</td>
+            <td class="d-none d-lg-table-cell">${escapeHTML(user.role_name)}</td>
             <td><span class="badge ${statusClass}">${user.status.charAt(0).toUpperCase() + user.status.slice(1)}</span></td>
-            <td>${joinedDate}</td>
+            <td class="d-none d-xl-table-cell">${joinedDate}</td>
             <td>
                 <div class="btn-group">
                     <button type="button" class="btn btn-sm btn-outline-primary" onclick='prepareEditModal(${JSON.stringify(user)})' data-bs-toggle="modal" data-bs-target="#userModal"><i class="fas fa-edit"></i></button>
@@ -246,12 +246,12 @@ require_once '../components/layout/header.php';
     }
 
     function updateUserRow(user) {
-        const rowNode = usersTable.row(`#user-row-${user.id}`);
-        if (rowNode.length) {
-            const newCells = $(createUserRowHTML(user));
-            const newCellData = newCells.map(function () { return $(this).html(); }).get();
-            rowNode.data(newCellData).draw();
-            $(rowNode.node()).addClass('table-info').delay(2000).queue(function (next) { $(this).removeClass('table-info'); next(); });
+        const row = usersTable.row(`#user-row-${user.id}`);
+        if (row.length) {
+            const node = row.node();
+            $(node).html(createUserRowHTML(user));
+            usersTable.columns.adjust().draw(false);
+            $(node).addClass('table-info').delay(2000).queue(function (next) { $(this).removeClass('table-info'); next(); });
         }
     }
 </script>
