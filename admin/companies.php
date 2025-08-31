@@ -11,22 +11,22 @@ $companies = $companies_result['success'] ? $companies_result['data'] : [];
 require_once '../components/layout/header.php';
 ?>
 
-<div class="d-flex">
+<div class="d-flex flex-column flex-md-row">
     <?php require_once '../components/layout/sidebar.php'; ?>
-    <div class="p-3 p-md-4" style="flex: 1;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="h3 mb-0 text-gray-800"><i class="fas fa-building me-2"></i>Company Management</h2>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#companyModal"
+    <div class="p-2 p-md-4 w-100">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+            <h2 class="h4 h-md-3 mb-2 mb-md-0 text-gray-800"><i class="fas fa-building me-2"></i>Company Management</h2>
+            <button class="btn btn-primary  btn-sm " data-bs-toggle="modal" data-bs-target="#companyModal"
                 onclick="prepareAddModal()">
                 <i class="fas fa-plus me-2"></i>Add Company
             </button>
         </div>
 
         <div class="card shadow-sm">
-            <div class="card-body">
+            <div class="card-body p-2 p-md-3">
                 <div class="table-responsive">
                     <table class="table table-hover table-striped table-bordered nowrap" id="companiesTable">
-                        <thead class="">
+                        <thead>
                             <tr>
                                 <th>Name</th>
                                 <th>Email</th>
@@ -113,7 +113,14 @@ require_once '../components/layout/header.php';
     let companiesTable;
 
     $(function () {
-        companiesTable = $('#companiesTable').DataTable({ order: [[3, 'desc']], responsive: true });
+        // Check if device width is less than 768px (Bootstrap's md breakpoint)
+        var isMobile = window.innerWidth < 768;
+
+        companiesTable = $('#companiesTable').DataTable({
+            order: [[3, 'desc']],
+            responsive: false,
+            scrollX: isMobile // Enable scrollX only on mobile
+        });
         companyModal = new bootstrap.Modal(document.getElementById('companyModal'));
 
         // Handle form submission with AJAX
@@ -241,3 +248,4 @@ require_once '../components/layout/header.php';
         }
     }
 </script>
+

@@ -20,7 +20,6 @@ require_once '../components/layout/header.php';
     <div class="p-3 p-md-4" style="flex: 1;">
         <h2 class="h3 mb-4 text-gray-800"><i class="fas fa-sitemap me-2"></i>Organization Structure</h2>
 
-        <!-- Nav Tabs -->
         <ul class="nav nav-tabs" id="orgTabs" role="tablist">
             <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab"
                     data-bs-target="#departments-tab" type="button">Departments</button></li>
@@ -32,9 +31,7 @@ require_once '../components/layout/header.php';
                     data-bs-target="#shifts-tab" type="button">Shifts</button></li>
         </ul>
 
-        <!-- Tab Content -->
         <div class="tab-content" id="orgTabsContent">
-            <!-- Departments Tab -->
             <div class="tab-pane fade show active" id="departments-tab" role="tabpanel">
                 <div class="card shadow-sm mt-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -42,18 +39,19 @@ require_once '../components/layout/header.php';
                             onclick="prepareAddModal('department')"><i class="fas fa-plus me-1"></i> Add</button>
                     </div>
                     <div class="card-body">
-                        <table class="table table-hover" id="departmentsTable" width="100%">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="departmentsTable" width="100%">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-            <!-- Designations Tab -->
             <div class="tab-pane fade" id="designations-tab" role="tabpanel">
                 <div class="card shadow-sm mt-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -61,19 +59,20 @@ require_once '../components/layout/header.php';
                             onclick="prepareAddModal('designation')"><i class="fas fa-plus me-1"></i> Add</button>
                     </div>
                     <div class="card-body">
-                        <table class="table table-hover" id="designationsTable" width="100%">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Department</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="designationsTable" width="100%">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Department</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-            <!-- Teams Tab -->
             <div class="tab-pane fade" id="teams-tab" role="tabpanel">
                 <div class="card shadow-sm mt-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -81,19 +80,20 @@ require_once '../components/layout/header.php';
                             onclick="prepareAddModal('team')"><i class="fas fa-plus me-1"></i> Add</button>
                     </div>
                     <div class="card-body">
-                        <table class="table table-hover" id="teamsTable" width="100%">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Members</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="teamsTable" width="100%">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Members</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-            <!-- Shifts Tab -->
             <div class="tab-pane fade" id="shifts-tab" role="tabpanel">
                 <div class="card shadow-sm mt-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -101,15 +101,17 @@ require_once '../components/layout/header.php';
                             onclick="prepareAddModal('shift')"><i class="fas fa-plus me-1"></i> Add</button>
                     </div>
                     <div class="card-body">
-                        <table class="table table-hover" id="shiftsTable" width="100%">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Time</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="shiftsTable" width="100%">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Time</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -117,7 +119,6 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
-<!-- Generic Add/Edit Modal -->
 <div class="modal fade" id="orgModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -129,8 +130,7 @@ require_once '../components/layout/header.php';
                 <div class="modal-body">
                     <input type="hidden" name="action" id="orgAction">
                     <input type="hidden" name="id" id="orgId" value="0">
-                    <div id="form-fields"></div> <!-- Fields will be injected here by JS -->
-                </div>
+                    <div id="form-fields"></div> </div>
                 <div class="modal-footer"><button type="button" class="btn btn-secondary"
                         data-bs-dismiss="modal">Cancel</button><button type="submit"
                         class="btn btn-primary">Save</button></div>
@@ -139,7 +139,6 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
-<!-- Manage Team Members Modal -->
 <div class="modal fade" id="manageMembersModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -181,6 +180,7 @@ require_once '../components/layout/header.php';
         ['department', 'designation', 'team', 'shift'].forEach(type => {
             const columns = getTableColumns(type);
             tables[type] = $(`#${type}sTable`).DataTable({
+                responsive: true,
                 ajax: { url: `/hrms/api/organization.php?action=get_${type}s`, dataSrc: 'data' },
                 columns: columns
             });
@@ -192,16 +192,35 @@ require_once '../components/layout/header.php';
 
     function getTableColumns(type) {
         const actions = (d, t, r) => `<div class="btn-group">
-        ${type === 'team' ? `<button class="btn btn-sm btn-outline-info" onclick='openManageMembersModal(${r.id}, "${escapeHTML(r.name)}")'><i class="fas fa-users"></i></button>` : ''}
-        <button class="btn btn-sm btn-outline-primary" onclick='prepareEditModal("${type}", ${JSON.stringify(r)})'><i class="fas fa-edit"></i></button>
-        <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${type}', ${r.id})"><i class="fas fa-trash"></i></button>
+        ${type === 'team' ? `<button class="btn btn-sm btn-outline-info" title="Manage Members" onclick='openManageMembersModal(${r.id}, "${escapeHTML(r.name)}")'><i class="fas fa-users"></i></button>` : ''}
+        <button class="btn btn-sm btn-outline-primary" title="Edit" onclick='prepareEditModal("${type}", ${JSON.stringify(r)})'><i class="fas fa-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger" title="Delete" onclick="deleteItem('${type}', ${r.id})"><i class="fas fa-trash"></i></button>
     </div>`;
 
         switch (type) {
-            case 'department': return [{ data: 'name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted">${escapeHTML(r.description)}</small>` }, { data: null, orderable: false, render: actions }];
-            case 'designation': return [{ data: 'name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted">${escapeHTML(r.description)}</small>` }, { data: 'department_name' }, { data: null, orderable: false, render: actions }];
-            case 'team': return [{ data: 'name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted">${escapeHTML(r.description)}</small>` }, { data: 'member_count', className: 'text-center' }, { data: null, orderable: false, render: actions }];
-            case 'shift': return [{ data: 'name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted">${escapeHTML(r.description)}</small>` }, { data: null, render: (d, t, r) => `${formatTime(r.start_time)} - ${formatTime(r.end_time)}` }, { data: null, orderable: false, render: actions }];
+            case 'department': 
+                return [
+                    { data: 'name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted d-none d-md-block">${escapeHTML(r.description || '')}</small>` }, 
+                    { data: null, orderable: false, searchable: false, className: 'text-end', render: actions }
+                ];
+            case 'designation': 
+                return [
+                    { data: 'name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted d-none d-md-block">${escapeHTML(r.description || '')}</small>` }, 
+                    { data: 'department_name', className: 'd-none d-lg-table-cell' }, 
+                    { data: null, orderable: false, searchable: false, className: 'text-end', render: actions }
+                ];
+            case 'team': 
+                return [
+                    { data: 'name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted d-none d-md-block">${escapeHTML(r.description || '')}</small>` }, 
+                    { data: 'member_count', className: 'text-center' }, 
+                    { data: null, orderable: false, searchable: false, className: 'text-end', render: actions }
+                ];
+            case 'shift': 
+                return [
+                    { data: 'name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted d-none d-md-block">${escapeHTML(r.description || '')}</small>` }, 
+                    { data: null, className: 'd-none d-md-table-cell', render: (d, t, r) => `${formatTime(r.start_time)} - ${formatTime(r.end_time)}` }, 
+                    { data: null, orderable: false, searchable: false, className: 'text-end', render: actions }
+                ];
         }
     }
 

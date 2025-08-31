@@ -221,6 +221,8 @@ require_once '../components/layout/header.php';
         }
     }
 
+    
+
     function createUserRowHTML(user) {
         const joinedDate = new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         const statusClass = user.status === 'active' ? 'text-bg-success' : 'text-bg-danger';
