@@ -7,7 +7,7 @@ if (!isLoggedIn()) {
     redirect("/hrms/auth/login.php");
 }
 
-$is_manager = in_array($_SESSION['role_id'], [2, 3]);
+$is_manager = in_array($_SESSION['role_id'], [2, 3, 4]);
 
 require_once '../components/layout/header.php';
 ?>

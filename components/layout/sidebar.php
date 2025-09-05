@@ -143,6 +143,48 @@ switch ($_SESSION['role_id']) {
         'permission' => null, // Available to all logged in users
         'submenu' => []
       ],
+      'profile' => [
+        'title' => 'My Profile',
+        'icon' => 'fas fa-user',
+        'url' => '/hrms/employee/profile.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'attendance' => [
+        'title' => 'Attendance',
+        'icon' => 'fas fa-calendar-check',
+        'url' => '/hrms/employee/attendance.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'leaves' => [
+        'title' => 'Leaves',
+        'icon' => 'fas fa-plane-departure',
+        'url' => '/hrms/company/leaves.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'payslips' => [
+        'title' => 'Payslips',
+        'icon' => 'fas fa-file-invoice-dollar',
+        'url' => '/hrms/employee/payslips.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'goals' => [
+        'title' => 'Tasks & Goals',
+        'icon' => 'fas fa-tasks',
+        'url' => '/hrms/employee/goals.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'feedback' => [
+        'title' => 'Feedback',
+        'icon' => 'fas fa-comment-dots',
+        'url' => '/hrms/employee/feedback.php',
+        'permission' => null,
+        'submenu' => []
+      ],
     ];
     break;
   case 5:

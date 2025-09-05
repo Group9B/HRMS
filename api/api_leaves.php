@@ -59,6 +59,9 @@ switch ($action) {
             $result = query($mysqli, $sql, [$employee_id]);
             if ($result['success']) {
                 $response = ['success' => true, 'data' => $result['data']];
+            } else {
+                // Add debugging for database errors
+                $response = ['success' => false, 'message' => 'Database query failed: ' . ($result['error'] ?? 'Unknown error')];
             }
         } else {
             $response = ['success' => true, 'data' => []];
