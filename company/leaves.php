@@ -7,7 +7,7 @@ if (!isLoggedIn()) {
     redirect("/hrms/auth/login.php");
 }
 
-$is_manager = in_array($_SESSION['role_id'], [2, 3, 4]);
+$is_manager = in_array($_SESSION['role_id'], [2, 3]);
 
 require_once '../components/layout/header.php';
 ?>
@@ -249,8 +249,6 @@ require_once '../components/layout/header.php';
     function formatDate(dateString) {
         return new Date(dateString + 'T00:00:00').toLocaleDateString('en-CA'); // YYYY-MM-DD format
     }
-
-    function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
 
     // NEW: Helper to count days in a leave request
     function countDays(start, end) {

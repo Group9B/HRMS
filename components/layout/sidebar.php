@@ -12,7 +12,7 @@ switch ($_SESSION['role_id']) {
         'submenu' => []
       ],
       'Companies' => [
-        'title' => 'Companies',
+        'title' => 'Company Management',
         'icon' => 'fas fa-building',
         'url' => '/hrms/admin/companies.php',
         'permission' => null,

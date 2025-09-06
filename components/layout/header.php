@@ -13,7 +13,7 @@ require_once '../includes/functions.php';
             crossorigin="anonymous" referrerpolicy="no-referrer" />
         <link rel="stylesheet" href="/hrms/assets/css/bootstrap.css">
         <link rel="stylesheet" href="/hrms/assets/css/datatable.css">
-        <!-- <link rel="stylesheet" href="/hrms/assets/css/theme.css"> -->
+        <link rel="stylesheet" href="/hrms/assets/css/datatable_bootstrap_responsive.css">
         <link rel="stylesheet" href="/hrms/assets/css/custom.css">
     </head>
 
@@ -57,7 +57,7 @@ require_once '../includes/functions.php';
                     </div>
                 </div>
                 <?php if (isLoggedIn()): ?>
-                    <?php if (false): ?>
+                    <?php if (1 === 0): ?>
                         <div class="notifications">
                             <div class="dropdown">
                                 <button class="btn dropdown-toggle" type="button" id="notificationButton"
