@@ -5,17 +5,15 @@ $title = "Super Admin Reports";
 
 // Security Check: Ensure the user is a logged-in Super Admin
 if (!isLoggedIn() || $_SESSION['role_id'] !== 1) {
-    redirect("/hrms/unauthorized.php");
+    redirect("/hrms/pages/unauthorized.php");
 }
 
 require_once '../components/layout/header.php';
 ?>
 <!-- Include Chart.js library -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
-    <div class="p-3 p-md-4" style="flex: 1;">
+    <div class="p-3 p-md-4 overflow-x-scroll" style="flex: 1;">
         <h2 class="h3 mb-4 text-gray-800"><i class="fas fa-shield-alt me-2"></i>Super Admin Analytics</h2>
 
         <!-- Company Usage & Activity Row -->

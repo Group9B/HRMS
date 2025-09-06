@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 06, 2025 at 09:23 AM
+-- Generation Time: Aug 24, 2025 at 07:50 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -37,6 +37,25 @@ CREATE TABLE `activity_logs` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `activity_logs`
+--
+
+INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `details`, `ip_address`, `user_agent`, `created_at`) VALUES
+(1, 1, 'User Login', 'Successful login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 06:05:20'),
+(2, 1, 'User Login', 'Successful login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 06:35:32'),
+(3, 1, 'User Logout', 'User logged out successfully', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 06:37:51'),
+(4, 1, 'User Login', 'Successful login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 06:37:59'),
+(5, 1, 'User Logout', 'User logged out successfully', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 06:40:17'),
+(6, 1, 'User Login', 'Successful login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 06:40:30'),
+(7, 1, 'User Logout', 'User logged out successfully', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 08:15:05'),
+(8, 1, 'User Login', 'Successful login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 08:15:14'),
+(9, 1, 'User Login', 'Successful login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 08:25:13'),
+(10, 1, 'User Login', 'Successful login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 08:50:07'),
+(11, 1, 'User Login', 'Successful login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 08:50:37'),
+(12, 1, 'User Login', 'Successful login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 08:50:52'),
+(13, 1, 'User Login', 'Successful login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 09:08:47');
+
 -- --------------------------------------------------------
 
 --
@@ -53,6 +72,37 @@ CREATE TABLE `attendance` (
   `remarks` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `attendance`
+--
+
+INSERT INTO `attendance` (`id`, `employee_id`, `date`, `check_in`, `check_out`, `status`, `remarks`, `created_at`) VALUES
+(1, 2, '2025-08-02', NULL, NULL, 'holiday', NULL, '2025-08-15 10:08:02'),
+(2, 2, '2025-07-31', NULL, NULL, 'leave', NULL, '2025-08-15 10:08:10'),
+(3, 2, '2025-07-31', NULL, NULL, 'leave', NULL, '2025-08-15 10:08:16'),
+(6, 2, '2025-08-06', NULL, NULL, 'leave', NULL, '2025-08-15 10:08:55'),
+(9, 2, '2025-08-13', NULL, NULL, 'leave', NULL, '2025-08-15 10:09:01'),
+(10, 2, '2025-08-14', NULL, NULL, 'present', NULL, '2025-08-15 10:09:04'),
+(11, 2, '2025-07-31', NULL, NULL, 'present', NULL, '2025-08-15 10:09:07'),
+(13, 2, '2025-08-18', NULL, NULL, 'absent', NULL, '2025-08-15 10:09:12'),
+(16, 2, '2025-08-08', NULL, NULL, 'absent', NULL, '2025-08-15 10:16:45'),
+(17, 2, '2025-08-01', NULL, NULL, 'holiday', NULL, '2025-08-15 10:18:04'),
+(18, 2, '2025-08-07', NULL, NULL, 'leave', NULL, '2025-08-15 10:18:21'),
+(22, 2, '2025-08-05', NULL, NULL, 'holiday', NULL, '2025-08-15 10:18:43'),
+(23, 2, '2025-08-04', NULL, NULL, 'holiday', NULL, '2025-08-15 10:18:45'),
+(24, 2, '2025-08-10', NULL, NULL, 'holiday', NULL, '2025-08-15 10:18:47'),
+(26, 2, '2025-08-11', NULL, NULL, 'holiday', NULL, '2025-08-15 10:19:26'),
+(30, 2, '2025-08-12', NULL, NULL, 'leave', NULL, '2025-08-15 10:19:38'),
+(32, 2, '2025-08-12', NULL, NULL, 'leave', NULL, '2025-08-15 10:19:42'),
+(36, 2, '2025-08-11', NULL, NULL, 'present', NULL, '2025-08-15 10:19:50'),
+(41, 3, '2025-08-08', NULL, NULL, 'absent', NULL, '2025-08-18 12:28:00'),
+(42, 2, '2025-08-11', NULL, NULL, 'absent', NULL, '2025-08-18 12:28:08'),
+(43, 2, '2025-08-15', NULL, NULL, 'present', NULL, '2025-08-18 12:28:11'),
+(44, 3, '2025-08-14', NULL, NULL, 'leave', NULL, '2025-08-22 02:55:12'),
+(45, 3, '2025-08-07', NULL, NULL, 'absent', NULL, '2025-08-22 02:55:18'),
+(46, 3, '2025-08-06', NULL, NULL, 'absent', NULL, '2025-08-22 02:55:22'),
+(47, 3, '2025-08-04', NULL, NULL, 'present', NULL, '2025-08-23 13:39:13');
 
 -- --------------------------------------------------------
 
@@ -88,7 +138,11 @@ CREATE TABLE `companies` (
 --
 
 INSERT INTO `companies` (`id`, `name`, `address`, `email`, `phone`, `created_at`) VALUES
-(1, 'Test Pvt. Ltd.', 'Test 1,Test 2 , India', 'test@mail.com', '1324567890', '2025-09-06 07:01:07');
+(1, 'Test Pvt. Ltd.', 'Jamnagar, Gujarat, India', 'test@mail.com', '6352828189', '2025-08-14 13:28:13'),
+(3, 'DUMMY 1', 'Test 1,Test 2 , India', 'te1.@mail.com', '1324657890', '2025-08-22 05:36:19'),
+(4, 'DUMMY 2', 'Test 1,Test 2 , India', 'te2@mail.com', '123456789', '2025-08-22 05:36:49'),
+(5, 'DUMMY 1', 'Test 1,Test 2 , India', 'te3@mail.com', '1234567890', '2025-08-22 05:37:15'),
+(6, 'DUMMY 3', 'Test 1,Test 2 , India', 'te4@mail.com', '1234567890', '2025-08-22 05:38:49');
 
 -- --------------------------------------------------------
 
@@ -103,6 +157,14 @@ CREATE TABLE `departments` (
   `description` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `departments`
+--
+
+INSERT INTO `departments` (`id`, `company_id`, `name`, `description`) VALUES
+(1, 1, 'Test Department 1', 'This is just a test department.'),
+(2, 1, 'Human Resource', 'Our Human Resource Department.');
+
 -- --------------------------------------------------------
 
 --
@@ -115,6 +177,15 @@ CREATE TABLE `designations` (
   `name` varchar(100) NOT NULL,
   `description` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `designations`
+--
+
+INSERT INTO `designations` (`id`, `department_id`, `name`, `description`) VALUES
+(1, 1, 'Frontend Engineer', 'Design/Develop the frontend of website.'),
+(2, 2, 'Lead HR Manager', 'Leader Of HR Manager Team.'),
+(3, 1, 'QA', 'QA refers to quality assurance.');
 
 -- --------------------------------------------------------
 
@@ -194,6 +265,16 @@ CREATE TABLE `employees` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `employees`
+--
+
+INSERT INTO `employees` (`id`, `user_id`, `employee_code`, `first_name`, `last_name`, `dob`, `gender`, `contact`, `address`, `department_id`, `designation_id`, `shift_id`, `date_of_joining`, `status`, `created_at`) VALUES
+(2, 4, NULL, 'Samkit', 'Jain', NULL, NULL, NULL, NULL, 1, 1, NULL, '2025-08-15', 'active', '2025-08-15 10:00:09'),
+(3, 3, NULL, 'Samkit', 'Jain', NULL, NULL, NULL, NULL, 2, 2, NULL, '2025-08-10', 'active', '2025-08-15 10:57:29'),
+(4, 5, NULL, 'Mann', 'Makhecha', NULL, NULL, NULL, NULL, 2, 2, NULL, '2025-08-22', 'active', '2025-08-22 04:26:11'),
+(5, 6, NULL, 'Krish', 'Jain', NULL, NULL, NULL, NULL, 1, 3, 1, '2025-08-22', 'active', '2025-08-22 04:27:50');
+
 -- --------------------------------------------------------
 
 --
@@ -205,8 +286,6 @@ CREATE TABLE `feedback` (
   `employee_id` int(11) NOT NULL,
   `submitted_by` int(11) NOT NULL,
   `message` text NOT NULL,
-  `type` enum('feedback','suggestion','complaint','appreciation') DEFAULT 'feedback',
-  `status` enum('pending','reviewed','resolved') DEFAULT 'pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -227,6 +306,13 @@ CREATE TABLE `leaves` (
   `applied_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `approved_by` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `leaves`
+--
+
+INSERT INTO `leaves` (`id`, `employee_id`, `leave_type`, `start_date`, `end_date`, `reason`, `status`, `applied_at`, `approved_by`) VALUES
+(2, 3, 'Unpaid', '2025-08-23', '2025-09-07', 'Test Leave', 'approved', '2025-08-23 13:56:21', 7);
 
 -- --------------------------------------------------------
 
@@ -298,6 +384,13 @@ CREATE TABLE `policies` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `policies`
+--
+
+INSERT INTO `policies` (`id`, `company_id`, `policy_name`, `content`, `file_path`, `created_at`) VALUES
+(1, 1, 'Leave Policy', 'All employees are entitled to 15 days of annual leave and 10 days of sick leave per year. Please apply for leave at least 2 weeks in advance.', NULL, '2025-08-23 14:10:00');
+
 -- --------------------------------------------------------
 
 --
@@ -319,8 +412,7 @@ INSERT INTO `roles` (`id`, `name`, `description`) VALUES
 (2, 'Company Admin', 'Company-level administrator'),
 (3, 'HR Manager', 'Manages HR operations'),
 (4, 'Employee', 'Regular employee'),
-(5, 'Auditor', 'Read-only access for audits'),
-(6, 'Manager', 'Department Manager');
+(5, 'Auditor', 'Read-only access for audits');
 
 -- --------------------------------------------------------
 
@@ -336,6 +428,14 @@ CREATE TABLE `shifts` (
   `end_time` time NOT NULL,
   `description` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `shifts`
+--
+
+INSERT INTO `shifts` (`id`, `company_id`, `name`, `start_time`, `end_time`, `description`) VALUES
+(1, 1, 'Normal Shift', '10:00:00', '07:00:00', 'Normal Shift for current employees'),
+(2, 1, 'Test', '09:00:00', '05:00:00', 'Test');
 
 -- --------------------------------------------------------
 
@@ -375,11 +475,11 @@ CREATE TABLE `system_settings` (
 --
 
 INSERT INTO `system_settings` (`id`, `setting_key`, `setting_value`, `description`, `updated_by`, `updated_at`, `created_at`) VALUES
-(1, 'site_name', 'StaffSync', 'Name of Our Application', 1, '2025-08-15 00:04:43', '2025-08-15 00:04:43'),
-(2, 'company_email', 'groupno9.it.@gmail.com', 'The default email for system notifications.', 1, '2025-08-15 00:04:43', '2025-08-15 00:04:43'),
-(5, 'records_per_page', '11', 'Default number of items to show in tables.', 1, '2025-08-15 00:06:37', '2025-08-15 00:06:28'),
-(6, 'maintenance_mode', '0', 'Temporarily disable access for non-admin users.', 1, '2025-08-15 00:19:12', '2025-08-15 00:19:12'),
-(7, 'Upload Size Limit', '5242880', 'Maximum File Upload Size.', NULL, '2025-08-15 00:21:14', '2025-08-15 00:21:14');
+(1, 'site_name', 'StaffSync', 'Name of Our Application', 1, '2025-08-15 05:34:43', '2025-08-15 05:34:43'),
+(2, 'company_email', 'groupno9.it.@gmail.com', 'The default email for system notifications.', 1, '2025-08-15 05:34:43', '2025-08-15 05:34:43'),
+(5, 'records_per_page', '11', 'Default number of items to show in tables.', 1, '2025-08-15 05:36:37', '2025-08-15 05:36:28'),
+(6, 'maintenance_mode', '0', 'Temporarily disable access for non-admin users.', 1, '2025-08-15 05:49:12', '2025-08-15 05:49:12'),
+(7, 'Upload Size Limit', '5242880', 'Maximum File Upload Size.', NULL, '2025-08-15 05:51:14', '2025-08-15 05:51:14');
 
 -- --------------------------------------------------------
 
@@ -415,6 +515,13 @@ CREATE TABLE `teams` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `teams`
+--
+
+INSERT INTO `teams` (`id`, `company_id`, `name`, `description`, `created_by`, `created_at`, `updated_by`, `updated_at`) VALUES
+(1, 1, 'Test Team', 'TEst the team feature\r\n', 7, '2025-08-23 14:39:11', NULL, '2025-08-23 14:39:11');
+
 -- --------------------------------------------------------
 
 --
@@ -430,6 +537,15 @@ CREATE TABLE `team_members` (
   `assigned_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `team_members`
+--
+
+INSERT INTO `team_members` (`id`, `team_id`, `employee_id`, `role_in_team`, `assigned_by`, `assigned_at`) VALUES
+(1, 1, 4, NULL, 7, '2025-08-23 14:39:19'),
+(3, 1, 3, NULL, 7, '2025-08-23 14:39:24'),
+(4, 1, 5, NULL, 7, '2025-08-23 14:39:27');
+
 -- --------------------------------------------------------
 
 --
@@ -443,6 +559,15 @@ CREATE TABLE `todo_list` (
   `is_completed` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `todo_list`
+--
+
+INSERT INTO `todo_list` (`id`, `user_id`, `task`, `is_completed`, `created_at`) VALUES
+(1, 1, 'Test', 0, '2025-08-22 05:27:25'),
+(2, 1, 'test', 0, '2025-08-22 05:28:17'),
+(3, 3, '11', 0, '2025-08-23 13:38:30');
 
 -- --------------------------------------------------------
 
@@ -466,8 +591,13 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `company_id`, `role_id`, `username`, `email`, `password`, `status`, `created_at`) VALUES
-(1, NULL, 1, 'admin', 'super_admin@mail.com', '$2y$10$4oXGSu5Ip7f2oJFXksjqA.927pO76waLG1YCGuyiQNj6QMoqrJW/W', 'active', '2025-09-06 06:34:45'),
-(8, 1, 2, 'c_admin', 'company_admin@mail.com', '$2y$10$pkSBG/PAMUf6fVcAkhchtusI6AjO3x7cIum2xrf8.zbnrxaYFVSbq', 'active', '2025-09-06 07:01:56');
+(1, NULL, 1, 'admin', 'admin@mail.com', '$2y$10$5A2qPJV4IudXj/DZikGKg.xZx90qoaP.UBD7EBf8vkkBCtklg9erm', 'active', '2025-08-08 00:00:51'),
+(2, 1, 2, 'c_admin', 'test@mail.com', '$2y$10$8jird39gv/5hDAO0K/.JaePSk1a01KmdlTWNFE/KF6sUwGLm1saYa', 'active', '2025-08-15 09:24:43'),
+(3, 1, 4, 'Samkit', 'samkitjain2809@gmail.com', '$2y$10$WwAlG2Q7LIc4GoqkUWooBeLWErP7IUuC3xETORrtUADbE8ni1Mow.', 'active', '2025-08-15 09:46:22'),
+(4, 1, 3, 'samkit_.editz', 'Jay@gmail.com', '$2y$10$6eDuYiuXDo7pNT.6NaYU5uvsNbslsbsmrAshvHMGRIvMQJyPKXu5a', 'active', '2025-08-15 09:59:42'),
+(5, 1, 4, 'Mann', 'mann@mail.com', '$2y$10$z6b4mR/uSr8BgZQw8yozVu63zzIZawHqvnn89.6RIVNUHseXAVDKu', 'active', '2025-08-22 04:25:19'),
+(6, 1, 4, 'Krish', 'krish@mail.com', '$2y$10$hkAYGh0zEkgyOTX.062tpuO1IuqiqzabdX3do3ucuEk50o7eJpOV.', 'active', '2025-08-22 04:25:36'),
+(7, 1, 3, 'HET', 'het@mail.com', '$2y$10$0yenF56YT26ZzqrH6QniJedEnXu7bowqxe5kuZ61xAa6AXnjv7dw2', 'active', '2025-08-22 06:20:11');
 
 -- --------------------------------------------------------
 
@@ -571,11 +701,7 @@ ALTER TABLE `employees`
 ALTER TABLE `feedback`
   ADD PRIMARY KEY (`id`),
   ADD KEY `employee_id` (`employee_id`),
-  ADD KEY `submitted_by` (`submitted_by`),
-  ADD KEY `idx_employee_id` (`employee_id`),
-  ADD KEY `idx_submitted_by` (`submitted_by`),
-  ADD KEY `idx_type` (`type`),
-  ADD KEY `idx_status` (`status`);
+  ADD KEY `submitted_by` (`submitted_by`);
 
 --
 -- Indexes for table `leaves`
@@ -704,13 +830,13 @@ ALTER TABLE `user_preferences`
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT for table `audit_logs`
@@ -722,19 +848,19 @@ ALTER TABLE `audit_logs`
 -- AUTO_INCREMENT for table `companies`
 --
 ALTER TABLE `companies`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `departments`
 --
 ALTER TABLE `departments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `designations`
 --
 ALTER TABLE `designations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `documents`
@@ -758,7 +884,7 @@ ALTER TABLE `email_templates`
 -- AUTO_INCREMENT for table `employees`
 --
 ALTER TABLE `employees`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `feedback`
@@ -770,7 +896,7 @@ ALTER TABLE `feedback`
 -- AUTO_INCREMENT for table `leaves`
 --
 ALTER TABLE `leaves`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -794,19 +920,19 @@ ALTER TABLE `performance`
 -- AUTO_INCREMENT for table `policies`
 --
 ALTER TABLE `policies`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `shifts`
 --
 ALTER TABLE `shifts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `support_tickets`
@@ -830,25 +956,25 @@ ALTER TABLE `tasks`
 -- AUTO_INCREMENT for table `teams`
 --
 ALTER TABLE `teams`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `team_members`
 --
 ALTER TABLE `team_members`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `todo_list`
 --
 ALTER TABLE `todo_list`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `user_preferences`

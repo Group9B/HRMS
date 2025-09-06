@@ -9,7 +9,7 @@ if (!isLoggedIn()) {
 }
 // This dashboard is for HR Managers (role_id = 3)
 if ($_SESSION['role_id'] !== 3) {
-  redirect("/hrms/unauthorized.php");
+  redirect("/hrms/pages/unauthorized.php");
 }
 $company_id = $_SESSION['company_id'];
 $user_id = $_SESSION['user_id'];

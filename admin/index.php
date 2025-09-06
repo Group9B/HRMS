@@ -123,7 +123,8 @@ require_once '../components/layout/header.php';
           <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold">Uploads Storage (5GB)</h6>
           </div>
-          <div class="card-body d-flex align-items-center justify-content-center"><canvas id="storageChart"></canvas>
+          <div class="card-body d-flex align-items-center justify-content-center"><canvas id="storageChart"
+              style="aspect-ratio: 1/1;"></canvas>
           </div>
         </div>
       </div>
@@ -161,7 +162,7 @@ require_once '../components/layout/header.php';
               hoverBackgroundColor: ['#2e59d9', '#9D6807'],
             }]
           },
-          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+          options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
         });
       }
     });

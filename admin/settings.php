@@ -5,7 +5,7 @@ $title = "System Configuration";
 
 // Security Check: Ensure the user is a logged-in Super Admin
 if (!isLoggedIn() || $_SESSION['role_id'] !== 1) {
-    redirect("/hrms/unauthorized.php");
+    redirect("/hrms/pages/unauthorized.php");
 }
 
 // Fetch all system settings from the database

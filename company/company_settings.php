@@ -5,7 +5,7 @@ $title = "Company Profile & Settings";
 
 // --- SECURITY & SESSION ---
 if (!isLoggedIn() || $_SESSION['role_id'] !== 2) {
-    redirect("/hrms/unauthorized.php");
+    redirect("/hrms/pages/unauthorized.php");
 }
 $company_id = $_SESSION['company_id'];
 

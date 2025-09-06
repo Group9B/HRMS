@@ -7,7 +7,7 @@ if (!isLoggedIn()) {
     redirect("/hrms/auth/login.php");
 }
 if ($_SESSION['role_id'] !== 4) {
-    redirect("/hrms/unauthorized.php");
+    redirect("/hrms/pages/unauthorized.php");
 }
 
 $user_id = $_SESSION['user_id'];
@@ -15,7 +15,7 @@ $user_id = $_SESSION['user_id'];
 // Get employee details
 $employee_result = query($mysqli, "SELECT id, first_name, last_name FROM employees WHERE user_id = ?", [$user_id]);
 if (!$employee_result['success'] || empty($employee_result['data'])) {
-    redirect('/hrms/unauthorized.php');
+    redirect('/hrms/pages/unauthorized.php');
 }
 $employee = $employee_result['data'][0];
 $employee_id = $employee['id'];
@@ -23,11 +23,11 @@ $employee_id = $employee['id'];
 // Handle personal todo creation
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['todo_task'])) {
     $todo_task = $_POST['todo_task'] ?? '';
-    
+
     if (!empty($todo_task)) {
         $sql = "INSERT INTO todo_list (user_id, task) VALUES (?, ?)";
         $result = query($mysqli, $sql, [$user_id, $todo_task]);
-        
+
         if ($result['success']) {
             $_SESSION['success'] = "Personal task added successfully!";
             redirect("/hrms/employee/goals.php");
@@ -39,10 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['todo_task'])) {
 
 // Handle personal todo completion
 if (isset($_GET['complete_todo'])) {
-    $todo_id = (int)$_GET['complete_todo'];
+    $todo_id = (int) $_GET['complete_todo'];
     $sql = "UPDATE todo_list SET is_completed = 1 WHERE id = ? AND user_id = ?";
     $result = query($mysqli, $sql, [$todo_id, $user_id]);
-    
+
     if ($result['success']) {
         $_SESSION['success'] = "Personal task marked as completed!";
     }
@@ -51,10 +51,10 @@ if (isset($_GET['complete_todo'])) {
 
 // Handle personal todo deletion
 if (isset($_GET['delete_todo'])) {
-    $todo_id = (int)$_GET['delete_todo'];
+    $todo_id = (int) $_GET['delete_todo'];
     $sql = "DELETE FROM todo_list WHERE id = ? AND user_id = ?";
     $result = query($mysqli, $sql, [$todo_id, $user_id]);
-    
+
     if ($result['success']) {
         $_SESSION['success'] = "Personal task deleted!";
     }
@@ -195,12 +195,14 @@ require_once '../components/layout/header.php';
                                                 <td>
                                                     <strong><?= htmlspecialchars($task['title']) ?></strong>
                                                     <?php if ($task['description']): ?>
-                                                        <br><small class="text-muted"><?= htmlspecialchars(substr($task['description'], 0, 100)) ?><?= strlen($task['description']) > 100 ? '...' : '' ?></small>
+                                                        <br><small
+                                                            class="text-muted"><?= htmlspecialchars(substr($task['description'], 0, 100)) ?><?= strlen($task['description']) > 100 ? '...' : '' ?></small>
                                                     <?php endif; ?>
                                                 </td>
                                                 <td>
                                                     <?php if ($task['due_date']): ?>
-                                                        <span class="badge text-bg-<?= $task['due_date'] < date('Y-m-d') && $task['status'] !== 'completed' ? 'danger' : 'secondary' ?>">
+                                                        <span
+                                                            class="badge text-bg-<?= $task['due_date'] < date('Y-m-d') && $task['status'] !== 'completed' ? 'danger' : 'secondary' ?>">
                                                             <?= date('M d, Y', strtotime($task['due_date'])) ?>
                                                         </span>
                                                     <?php else: ?>
@@ -208,7 +210,8 @@ require_once '../components/layout/header.php';
                                                     <?php endif; ?>
                                                 </td>
                                                 <td>
-                                                    <span class="badge text-bg-<?= $task['status'] === 'completed' ? 'success' : ($task['status'] === 'in_progress' ? 'info' : ($task['status'] === 'cancelled' ? 'danger' : 'warning')) ?>">
+                                                    <span
+                                                        class="badge text-bg-<?= $task['status'] === 'completed' ? 'success' : ($task['status'] === 'in_progress' ? 'info' : ($task['status'] === 'cancelled' ? 'danger' : 'warning')) ?>">
                                                         <?= ucfirst(str_replace('_', ' ', $task['status'])) ?>
                                                     </span>
                                                 </td>
@@ -234,8 +237,8 @@ require_once '../components/layout/header.php';
                     <div class="card-body">
                         <form method="POST" class="mb-3">
                             <div class="input-group">
-                                <input type="text" class="form-control" name="todo_task" 
-                                       placeholder="Add a personal task..." required>
+                                <input type="text" class="form-control" name="todo_task"
+                                    placeholder="Add a personal task..." required>
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-plus"></i>
                                 </button>
@@ -252,18 +255,22 @@ require_once '../components/layout/header.php';
                                 <?php foreach ($personal_todos as $todo): ?>
                                     <div class="list-group-item d-flex justify-content-between align-items-center">
                                         <div class="flex-grow-1">
-                                            <span class="<?= $todo['is_completed'] ? 'text-decoration-line-through text-muted' : '' ?>">
+                                            <span
+                                                class="<?= $todo['is_completed'] ? 'text-decoration-line-through text-muted' : '' ?>">
                                                 <?= htmlspecialchars($todo['task']) ?>
                                             </span>
-                                            <br><small class="text-muted"><?= date('M d, Y', strtotime($todo['created_at'])) ?></small>
+                                            <br><small
+                                                class="text-muted"><?= date('M d, Y', strtotime($todo['created_at'])) ?></small>
                                         </div>
                                         <div class="flex-shrink-0">
                                             <?php if (!$todo['is_completed']): ?>
-                                                <a href="?complete_todo=<?= $todo['id'] ?>" class="btn btn-sm btn-success me-1" title="Mark as completed">
+                                                <a href="?complete_todo=<?= $todo['id'] ?>" class="btn btn-sm btn-success me-1"
+                                                    title="Mark as completed">
                                                     <i class="fas fa-check"></i>
                                                 </a>
                                             <?php endif; ?>
-                                            <a href="?delete_todo=<?= $todo['id'] ?>" class="btn btn-sm btn-danger" title="Delete" onclick="return confirm('Are you sure?')">
+                                            <a href="?delete_todo=<?= $todo['id'] ?>" class="btn btn-sm btn-danger"
+                                                title="Delete" onclick="return confirm('Are you sure?')">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         </div>
@@ -281,10 +288,10 @@ require_once '../components/layout/header.php';
 <?php require_once '../components/layout/footer.php'; ?>
 
 <script>
-$(function() {
-    $('#tasksTable').DataTable({
-        responsive: true,
-        order: [[1, 'asc']]
+    $(function () {
+        $('#tasksTable').DataTable({
+            responsive: true,
+            order: [[1, 'asc']]
+        });
     });
-});
 </script>

@@ -8,7 +8,7 @@ if (!isLoggedIn()) {
 }
 
 if ($_SESSION['role_id'] !== 1) {
-    redirect("/hrms/unauthorized.php");
+    redirect("/hrms/pages/unauthorized.php");
 }
 
 // --- INITIAL DATA FETCHING ---
@@ -64,7 +64,8 @@ require_once '../components/layout/header.php';
                                 <tr id="user-row-<?= $user['id']; ?>">
                                     <td><strong><?= htmlspecialchars($user['username']); ?></strong></td>
                                     <td class="d-none d-md-table-cell"><?= htmlspecialchars($user['email']); ?></td>
-                                    <td class="d-none d-lg-table-cell"><?= htmlspecialchars($user['company_name'] ?? 'N/A'); ?></td>
+                                    <td class="d-none d-lg-table-cell">
+                                        <?= htmlspecialchars($user['company_name'] ?? 'N/A'); ?></td>
                                     <td class="d-none d-lg-table-cell"><?= htmlspecialchars($user['role_name']); ?></td>
                                     <td>
                                         <span
@@ -72,7 +73,8 @@ require_once '../components/layout/header.php';
                                             <?= ucfirst($user['status']); ?>
                                         </span>
                                     </td>
-                                    <td class="d-none d-xl-table-cell"><?= date('M d, Y', strtotime($user['created_at'])); ?></td>
+                                    <td class="d-none d-xl-table-cell">
+                                        <?= date('M d, Y', strtotime($user['created_at'])); ?></td>
                                     <td>
                                         <div class="btn-group">
                                             <button type="button" class="btn btn-sm btn-outline-primary"
@@ -221,7 +223,7 @@ require_once '../components/layout/header.php';
         }
     }
 
-    
+
 
     function createUserRowHTML(user) {
         const joinedDate = new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });

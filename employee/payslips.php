@@ -7,7 +7,7 @@ if (!isLoggedIn()) {
     redirect("/hrms/auth/login.php");
 }
 if ($_SESSION['role_id'] !== 4) {
-    redirect("/hrms/unauthorized.php");
+    redirect("/hrms/pages/unauthorized.php");
 }
 
 $user_id = $_SESSION['user_id'];
@@ -15,7 +15,7 @@ $user_id = $_SESSION['user_id'];
 // Get employee details
 $employee_result = query($mysqli, "SELECT id, first_name, last_name FROM employees WHERE user_id = ?", [$user_id]);
 if (!$employee_result['success'] || empty($employee_result['data'])) {
-    redirect('/hrms/unauthorized.php');
+    redirect('/hrms/pages/unauthorized.php');
 }
 $employee = $employee_result['data'][0];
 $employee_id = $employee['id'];

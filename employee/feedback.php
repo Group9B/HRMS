@@ -7,7 +7,7 @@ if (!isLoggedIn()) {
     redirect("/hrms/auth/login.php");
 }
 if ($_SESSION['role_id'] !== 4) {
-    redirect("/hrms/unauthorized.php");
+    redirect("/hrms/pages/unauthorized.php");
 }
 
 $user_id = $_SESSION['user_id'];
@@ -15,7 +15,7 @@ $user_id = $_SESSION['user_id'];
 // Get employee details
 $employee_result = query($mysqli, "SELECT id, first_name, last_name FROM employees WHERE user_id = ?", [$user_id]);
 if (!$employee_result['success'] || empty($employee_result['data'])) {
-    redirect('/hrms/unauthorized.php');
+    redirect('/hrms/pages/unauthorized.php');
 }
 $employee = $employee_result['data'][0];
 $employee_id = $employee['id'];
@@ -24,12 +24,12 @@ $employee_id = $employee['id'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $message = trim($_POST['message'] ?? '');
     $type = $_POST['type'] ?? 'feedback';
-    
+
     if (!empty($message)) {
         try {
             // Check if type column exists, if not use basic insert
             $check_column = query($mysqli, "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'feedback' AND COLUMN_NAME = 'type'");
-            
+
             if ($check_column['success'] && count($check_column['data']) > 0) {
                 $sql = "INSERT INTO feedback (employee_id, submitted_by, message, type) VALUES (?, ?, ?, ?)";
                 $result = query($mysqli, $sql, [$employee_id, $user_id, $message, $type]);
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $sql = "INSERT INTO feedback (employee_id, submitted_by, message) VALUES (?, ?, ?)";
                 $result = query($mysqli, $sql, [$employee_id, $user_id, $message]);
             }
-            
+
             if ($result['success']) {
                 $_SESSION['success'] = "Feedback submitted successfully!";
                 redirect("/hrms/employee/feedback.php");
@@ -82,7 +82,7 @@ require_once '../components/layout/header.php';
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
-        
+
         <?php if (isset($_GET['debug']) && $_GET['debug'] == '1'): ?>
             <div class="alert alert-info">
                 <strong>Debug Info:</strong><br>
@@ -109,14 +109,14 @@ require_once '../components/layout/header.php';
                                     <option value="appreciation">Appreciation</option>
                                 </select>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label class="form-label">Your Message <span class="text-danger">*</span></label>
-                                <textarea class="form-control" name="message" rows="5" 
-                                          placeholder="Please share your feedback, suggestions, or concerns here..." 
-                                          required></textarea>
+                                <textarea class="form-control" name="message" rows="5"
+                                    placeholder="Please share your feedback, suggestions, or concerns here..."
+                                    required></textarea>
                             </div>
-                            
+
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-paper-plane me-2"></i>Submit Feedback
                             </button>
@@ -124,7 +124,7 @@ require_once '../components/layout/header.php';
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-lg-6">
                 <div class="card shadow-sm">
                     <div class="card-header">
@@ -139,11 +139,11 @@ require_once '../components/layout/header.php';
                             <li>All feedback is reviewed by HR management</li>
                             <li>Your identity will be kept confidential</li>
                         </ul>
-                        
+
                         <div class="alert alert-info">
                             <small>
                                 <i class="fas fa-info-circle me-1"></i>
-                                You can submit feedback anonymously or with your name attached. 
+                                You can submit feedback anonymously or with your name attached.
                                 All feedback is reviewed and appropriate action is taken when necessary.
                             </small>
                         </div>
@@ -180,13 +180,14 @@ require_once '../components/layout/header.php';
                                         <?php foreach ($feedback_history as $feedback): ?>
                                             <tr>
                                                 <td>
-                                                    <span class="badge text-bg-<?= $feedback['type'] === 'suggestion' ? 'info' : ($feedback['type'] === 'complaint' ? 'danger' : ($feedback['type'] === 'appreciation' ? 'success' : 'secondary')) ?>">
+                                                    <span
+                                                        class="badge text-bg-<?= $feedback['type'] === 'suggestion' ? 'info' : ($feedback['type'] === 'complaint' ? 'danger' : ($feedback['type'] === 'appreciation' ? 'success' : 'secondary')) ?>">
                                                         <?= ucfirst($feedback['type']) ?>
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <div class="text-truncate" style="max-width: 300px;" 
-                                                         title="<?= htmlspecialchars($feedback['message']) ?>">
+                                                    <div class="text-truncate" style="max-width: 300px;"
+                                                        title="<?= htmlspecialchars($feedback['message']) ?>">
                                                         <?= htmlspecialchars($feedback['message']) ?>
                                                     </div>
                                                 </td>
@@ -212,18 +213,18 @@ require_once '../components/layout/header.php';
 <?php require_once '../components/layout/footer.php'; ?>
 
 <script>
-$(function() {
-    $('#feedbackTable').DataTable({
-        responsive: true,
-        order: [[2, 'desc']]
+    $(function () {
+        $('#feedbackTable').DataTable({
+            responsive: true,
+            order: [[2, 'desc']]
+        });
+
+        $('#feedbackForm').on('submit', function (e) {
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            this.classList.add('was-validated');
+        });
     });
-    
-    $('#feedbackForm').on('submit', function(e) {
-        if (!this.checkValidity()) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        this.classList.add('was-validated');
-    });
-});
 </script>

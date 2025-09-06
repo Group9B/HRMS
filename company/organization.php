@@ -4,7 +4,7 @@ require_once '../includes/functions.php';
 $title = "Organization Management";
 
 if (!isLoggedIn() || !in_array($_SESSION['role_id'], [2, 3])) {
-    redirect("/hrms/unauthorized.php");
+    redirect("/hrms/pages/unauthorized.php");
 }
 $company_id = $_SESSION['company_id'];
 
@@ -130,7 +130,8 @@ require_once '../components/layout/header.php';
                 <div class="modal-body">
                     <input type="hidden" name="action" id="orgAction">
                     <input type="hidden" name="id" id="orgId" value="0">
-                    <div id="form-fields"></div> </div>
+                    <div id="form-fields"></div>
+                </div>
                 <div class="modal-footer"><button type="button" class="btn btn-secondary"
                         data-bs-dismiss="modal">Cancel</button><button type="submit"
                         class="btn btn-primary">Save</button></div>
@@ -198,27 +199,27 @@ require_once '../components/layout/header.php';
     </div>`;
 
         switch (type) {
-            case 'department': 
+            case 'department':
                 return [
-                    { data: 'name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted d-none d-md-block">${escapeHTML(r.description || '')}</small>` }, 
+                    { data: 'name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted d-none d-md-block">${escapeHTML(r.description || '')}</small>` },
                     { data: null, orderable: false, searchable: false, className: 'text-end', render: actions }
                 ];
-            case 'designation': 
+            case 'designation':
                 return [
-                    { data: 'name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted d-none d-md-block">${escapeHTML(r.description || '')}</small>` }, 
-                    { data: 'department_name', className: 'd-none d-lg-table-cell' }, 
+                    { data: 'name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted d-none d-md-block">${escapeHTML(r.description || '')}</small>` },
+                    { data: 'department_name', className: 'd-none d-lg-table-cell' },
                     { data: null, orderable: false, searchable: false, className: 'text-end', render: actions }
                 ];
-            case 'team': 
+            case 'team':
                 return [
-                    { data: 'name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted d-none d-md-block">${escapeHTML(r.description || '')}</small>` }, 
-                    { data: 'member_count', className: 'text-center' }, 
+                    { data: 'name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted d-none d-md-block">${escapeHTML(r.description || '')}</small>` },
+                    { data: 'member_count', className: 'text-center' },
                     { data: null, orderable: false, searchable: false, className: 'text-end', render: actions }
                 ];
-            case 'shift': 
+            case 'shift':
                 return [
-                    { data: 'name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted d-none d-md-block">${escapeHTML(r.description || '')}</small>` }, 
-                    { data: null, className: 'd-none d-md-table-cell', render: (d, t, r) => `${formatTime(r.start_time)} - ${formatTime(r.end_time)}` }, 
+                    { data: 'name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted d-none d-md-block">${escapeHTML(r.description || '')}</small>` },
+                    { data: null, className: 'd-none d-md-table-cell', render: (d, t, r) => `${formatTime(r.start_time)} - ${formatTime(r.end_time)}` },
                     { data: null, orderable: false, searchable: false, className: 'text-end', render: actions }
                 ];
         }

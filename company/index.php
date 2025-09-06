@@ -9,7 +9,7 @@ if (!isLoggedIn()) {
 }
 // This page is for Company Admins (role_id = 2)
 if ($_SESSION['role_id'] !== 2) {
-    redirect("/hrms/unauthorized.php");
+    redirect("/hrms/pages/unauthorized.php");
 }
 // Get the company_id from the logged-in user's session
 $company_id = $_SESSION['company_id'];
