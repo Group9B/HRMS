@@ -210,20 +210,30 @@ function isActivePage($url)
   return strpos($current_page, $url) !== false;
 }
 ?>
-<div class="flex-column flex-shrink-0 p-3 bg-body border-end sidebar d-md-flex" id="backdrop"
-  style="width: 200px; min-height: 100vh;">
-  <ul class="nav nav-pills flex-column mb-auto" id="sidebar"><?php foreach ($navigation_menu as $key => $item): ?>
+<div class="flex-column flex-shrink-0 p-3 bg-body border-end sidebar d-md-flex" id="backdrop" style="">
+  <ul class="nav nav-pills flex-column mb-auto" id="sidebar">
+    <div class="logo d-md-none d-sm-block">
+      <div class="wrapper d-flex align-items-center justify-content-between">
+        <a href="index.php" class="navbar-brand d-flex align-items-center text-decoration-none">
+          <img src="/hrms/assets/img/SS.png" alt="" height="40" class="d-inline-block align-text-top pe-1">
+          <h2 class="m-0">Staff Sync</h2>
+        </a>
+        <button class="btn fs-2 d-lg-none fa-color" id="sidebarToggle" type="button">
+          <i class="fas fa-x"></i>
+        </button>
+      </div>
+      <hr>
+    </div>
+    <?php foreach ($navigation_menu as $key => $item): ?>
       <?php if (shouldShowMenuItem($item)): ?>
         <li class="nav-item mb-2">
           <?php if (empty($item['submenu'])): ?>
-            <!-- Single Menu Item -->
             <a class="nav-link d-flex align-items-center py-2 px-3 rounded <?php echo isActivePage($item['url']) ? 'active bg-primary text-white' : 'text-muted'; ?>"
               href="<?php echo htmlspecialchars($item['url']); ?>">
               <i class="<?php echo htmlspecialchars($item['icon']); ?> me-2" style="width: 20px;"></i>
               <span><?php echo htmlspecialchars($item['title']); ?></span>
             </a>
           <?php else: ?>
-            <!-- Menu Item with Submenu -->
             <div class="nav-item">
               <a class="nav-link d-flex align-items-center justify-content-between py-2 px-3 rounded text-muted" href="#"
                 data-bs-toggle="collapse" data-bs-target="#submenu-<?php echo $key; ?>"

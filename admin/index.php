@@ -123,8 +123,8 @@ require_once '../components/layout/header.php';
           <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold">Uploads Storage (5GB)</h6>
           </div>
-          <div class="card-body d-flex align-items-center justify-content-center"><canvas id="storageChart"
-              style="aspect-ratio: 1/1;"></canvas>
+          <div class="card-body d-flex align-items-center justify-content-center p-sm-0"><canvas id="storageChart"
+              class="" style="aspect-ratio: 1/1; height: 250px; width: 250px;"></canvas>
           </div>
         </div>
       </div>

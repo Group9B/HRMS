@@ -103,7 +103,7 @@ require_once '../components/layout/header.php';
 <?php require_once '../components/layout/footer.php'; ?>
 <script>
     $(function () {
-        initializeTodoList('#todo-list-container', '/hrms/api/todo.php');
+        initializeTodoList('#todoForm', '#todo-list-container');
         loadDashboardStats();
         loadAttendanceStatus();
 
@@ -112,7 +112,7 @@ require_once '../components/layout/header.php';
     });
 
     function loadDashboardStats() {
-        fetch('/hrms/api/api_employee_dashboard.php?action=get_stats')
+        fetch('/hrms/api/api_employees.php?action=get_stats')
             .then(res => res.json())
             .then(result => {
                 if (result.success) {

@@ -9,6 +9,8 @@
 
 .sidebar {
 	display: flex;
+	width: 200px;
+	min-height: 100vh;
 }
 
 /* Theme Toggle Styling */
@@ -160,8 +162,26 @@
 }
 
 @media (max-width: 991.98px) {
-	.sidebar {
-		display: none;
+	#backdrop {
+		display: block;
+		position: absolute;
+		width: 100%;
+		background-color: rgba(33, 37, 41, 0.5) !important;
+		z-index: 999;
+		top: 0;
+		left: 0;
+	}
+	#sidebar {
+		padding: 16px;
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 350px;
+		height: 100%;
+		background-color: var(--bs-body-bg);
+		box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+		transition: left 0.3s ease;
+		z-index: 1050;
 	}
 }
 
