@@ -1,5 +1,6 @@
 <?php
 require_once '../config/db.php';
+$additionalScripts = [];
 require_once '../includes\functions.php';
 ?>
 <html lang="en" data-bs-theme="light">
@@ -38,9 +39,11 @@ require_once '../includes\functions.php';
 
         <div class="hrms-header p-1 d-flex justify-content-between align-items-center border-bottom">
             <div class="wrapper d-flex align-items-center justify-content-start">
-                <button class="btn fs-2 d-lg-none fa-color" id="sidebarToggle" type="button">
-                    <i class="fas fa-bars"></i>
-                </button>
+                <?php if (isLoggedIn()): ?>
+                    <button class="btn fs-2 d-lg-none fa-color" id="sidebarToggle" type="button">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                <?php endif; ?>
                 <div class="logo">
                     <a href="index.php" class="navbar-brand d-flex align-items-center text-decoration-none">
                         <img src="/hrms/assets/img/SS.png" alt="" height="40"

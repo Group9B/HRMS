@@ -21,7 +21,8 @@ $recent_companies_result = query($mysqli, "SELECT c.id, c.name, c.created_at, (S
 $recent_companies = $recent_companies_result['success'] ? $recent_companies_result['data'] : [];
 
 require_once '../components/layout/header.php';
-?>
+$additionalScripts[] = '/hrms/assets/js/chart.js'
+  ?>
 
 <div class="d-flex">
   <?php require_once '../components/layout/sidebar.php'; ?>
@@ -157,6 +158,7 @@ require_once '../components/layout/header.php';
           data: {
             labels: ['Used Space (GB)', 'Free Space (GB)'],
             datasets: [{
+
               data: [result.data.used_gb, result.data.free_gb],
               backgroundColor: ['#4e73df', '#F6AA1C'],
               hoverBackgroundColor: ['#2e59d9', '#9D6807'],
