@@ -108,7 +108,7 @@ require_once '../components/layout/header.php';
             // Provide user feedback during submission
             saveButton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
 
-            fetch('api_settings.php', {
+            fetch('/hrms/api/api_settings.php', {
                 method: 'POST',
                 body: formData
             })

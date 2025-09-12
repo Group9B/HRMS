@@ -210,7 +210,8 @@ function isActivePage($url)
   return strpos($current_page, $url) !== false;
 }
 ?>
-<div class="flex-column flex-shrink-0 p-3 bg-body border-end sidebar d-md-flex" id="backdrop" style="">
+<div class="flex-column flex-shrink-0 p-3 bg-body-tertiary border-end sidebar d-md-flex position-fixed" id="backdrop"
+  style="">
   <ul class="nav nav-pills flex-column mb-auto" id="sidebar">
     <div class="logo d-md-none d-sm-block">
       <div class="wrapper d-flex align-items-center justify-content-between">
@@ -267,3 +268,7 @@ function isActivePage($url)
     <?php endforeach; ?>
   </ul>
 </div>
+<div class="breaker me-md-5"></div>
+<div class="breaker me-md-5"></div>
+<div class="breaker me-md-5"></div>
+<div class="breaker me-md-5"></div>

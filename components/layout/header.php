@@ -2,6 +2,12 @@
 require_once '../config/db.php';
 $additionalScripts = [];
 require_once '../includes\functions.php';
+
+$is_site_active = query($mysqli, "SELECT setting_value from system_settings WHERE setting_key = 'maintenance_mode'");
+if ($is_site_active['success'] && $is_site_active['data'][0]['setting_value'] == '1' && !isLoggedIn()) {
+    redirect("/hrms/pages/500.php");
+}
+
 ?>
 <html lang="en" data-bs-theme="light">
 
@@ -37,10 +43,11 @@ require_once '../includes\functions.php';
             </div>
         </div>
 
-        <div class="hrms-header p-1 d-flex justify-content-between align-items-center border-bottom">
+        <div
+            class="hrms-header p-1 d-flex justify-content-between align-items-center border-bottom position-fixed top-0 start-0 w-100 bg-body-tertiary">
             <div class="wrapper d-flex align-items-center justify-content-start">
                 <?php if (isLoggedIn()): ?>
-                    <button class="btn fs-2 d-lg-none fa-color" id="sidebarToggle" type="button">
+                    <button class="btn fs-2 d-sm-none fa-color" id="sidebarToggle" type="button">
                         <i class="fas fa-bars"></i>
                     </button>
                 <?php endif; ?>
@@ -99,6 +106,7 @@ require_once '../includes\functions.php';
                 <?php endif; ?>
             </div>
         </div>
+        <div class="breaker mb-5"></div>
 
         <?php if (!empty($_SESSION['toasts'])):
             ?>

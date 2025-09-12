@@ -65,7 +65,8 @@ require_once '../components/layout/header.php';
                                     <td><strong><?= htmlspecialchars($user['username']); ?></strong></td>
                                     <td class="d-none d-md-table-cell"><?= htmlspecialchars($user['email']); ?></td>
                                     <td class="d-none d-lg-table-cell">
-                                        <?= htmlspecialchars($user['company_name'] ?? 'N/A'); ?></td>
+                                        <?= htmlspecialchars($user['company_name'] ?? 'N/A'); ?>
+                                    </td>
                                     <td class="d-none d-lg-table-cell"><?= htmlspecialchars($user['role_name']); ?></td>
                                     <td>
                                         <span
@@ -74,15 +75,16 @@ require_once '../components/layout/header.php';
                                         </span>
                                     </td>
                                     <td class="d-none d-xl-table-cell">
-                                        <?= date('M d, Y', strtotime($user['created_at'])); ?></td>
+                                        <?= date('M d, Y', strtotime($user['created_at'])); ?>
+                                    </td>
                                     <td>
                                         <div class="btn-group">
-                                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                            <button type="button" class="btn btn-sm btn-primary"
                                                 onclick='prepareEditModal(<?= json_encode($user); ?>)'
                                                 data-bs-toggle="modal" data-bs-target="#userModal">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                            <button type="button" class="btn btn-sm btn-danger"
                                                 onclick="deleteUser(<?= $user['id']; ?>)">
                                                 <i class="fas fa-trash"></i>
                                             </button>

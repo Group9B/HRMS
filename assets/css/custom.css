@@ -1,13 +1,24 @@
+* {
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
 :root {
 	--bs-card-cap-bg: rgba(var(--bs-body-color-rgb), 0.03);
 }
-
+/* 
 .hrms-header,
 .sidebar {
 	background-color: var(--bs-card-cap-bg) !important;
+} */
+
+.hrms-header {
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	z-index: 100;
 }
 
 .sidebar {
+	z-index: 99;
+	top: 60px;
+	left: 0;
 	display: flex;
 	width: 200px;
 	min-height: 100vh;
@@ -176,7 +187,7 @@
 		position: fixed;
 		top: 0;
 		left: 0;
-		width: 350px;
+		width: 300px;
 		height: 100%;
 		background-color: var(--bs-body-bg);
 		box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);

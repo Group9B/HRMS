@@ -14,7 +14,8 @@ require_once '../components/layout/header.php';
 <div class="d-flex flex-column flex-md-row">
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-2 p-md-4 w-100">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+        <div
+            class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
             <h2 class="h4 h-md-3 mb-2 mb-md-0 text-gray-800"><i class="fas fa-building me-2"></i>Company Management</h2>
             <button class="btn btn-primary  btn-sm " data-bs-toggle="modal" data-bs-target="#companyModal"
                 onclick="prepareAddModal()">
@@ -44,12 +45,12 @@ require_once '../components/layout/header.php';
                                     <td><?= date('M d, Y', strtotime($company['created_at'])); ?></td>
                                     <td>
                                         <div class="btn-group">
-                                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                            <button type="button" class="btn btn-sm btn-primary"
                                                 onclick='prepareEditModal(<?= json_encode($company); ?>)'
                                                 data-bs-toggle="modal" data-bs-target="#companyModal">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                            <button type="button" class="btn btn-sm btn-danger"
                                                 onclick="deleteCompany(<?= $company['id']; ?>)">
                                                 <i class="fas fa-trash"></i>
                                             </button>
@@ -248,4 +249,3 @@ require_once '../components/layout/header.php';
         }
     }
 </script>
-

@@ -153,12 +153,12 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
     fetch('api_dashboard.php?action=get_storage_usage').then(res => res.json()).then(result => {
       if (result.success) {
         const ctx = document.getElementById('storageChart').getContext('2d');
+        console.log(result.data);
         new Chart(ctx, {
           type: 'doughnut',
           data: {
             labels: ['Used Space (GB)', 'Free Space (GB)'],
             datasets: [{
-
               data: [result.data.used_gb, result.data.free_gb],
               backgroundColor: ['#4e73df', '#F6AA1C'],
               hoverBackgroundColor: ['#2e59d9', '#9D6807'],
