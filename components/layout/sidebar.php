@@ -187,6 +187,59 @@ switch ($_SESSION['role_id']) {
       ],
     ];
     break;
+  case 6://Manager
+    $navigation_menu = [
+      'dashboard' => [
+        'title' => 'Dashboard',
+        'icon' => 'fas fa-tachometer-alt',
+        'url' => '/hrms/manager/index.php',
+        'permission' => null, // Available to all logged in users
+        'submenu' => []
+      ],
+      'team' => [
+        'title' => 'Team Management',
+        'icon' => 'fas fa-users',
+        'url' => '/hrms/manager/team_management.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'leaves' => [
+        'title' => 'Leave Approval',
+        'icon' => 'fas fa-calendar-check',
+        'url' => '/hrms/manager/leave_approval.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'tasks' => [
+        'title' => 'Task Management',
+        'icon' => 'fas fa-tasks',
+        'url' => '/hrms/manager/task_management.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'attendance' => [
+        'title' => 'Team Attendance',
+        'icon' => 'fas fa-calendar-alt',
+        'url' => '/hrms/manager/attendance.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'performance' => [
+        'title' => 'Performance',
+        'icon' => 'fas fa-chart-line',
+        'url' => '/hrms/manager/performance.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'teams' => [
+        'title' => 'Teams',
+        'icon' => 'fas fa-users-cog',
+        'url' => '/hrms/manager/teams.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+    ];
+    break;
   case 5:
     redirect("/hrms/auditor/");
     break;

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 14, 2025 at 05:05 PM
+-- Generation Time: Sep 06, 2025 at 09:23 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -103,13 +103,6 @@ CREATE TABLE `departments` (
   `description` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `departments`
---
-
-INSERT INTO `departments` (`id`, `company_id`, `name`, `description`) VALUES
-(1, 1, 'social media', '--');
-
 -- --------------------------------------------------------
 
 --
@@ -122,13 +115,6 @@ CREATE TABLE `designations` (
   `name` varchar(100) NOT NULL,
   `description` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `designations`
---
-
-INSERT INTO `designations` (`id`, `department_id`, `name`, `description`) VALUES
-(1, 1, 'content creator', '--');
 
 -- --------------------------------------------------------
 
@@ -207,14 +193,6 @@ CREATE TABLE `employees` (
   `status` enum('active','inactive') DEFAULT 'active',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `employees`
---
-
-INSERT INTO `employees` (`id`, `user_id`, `employee_code`, `first_name`, `last_name`, `dob`, `gender`, `contact`, `address`, `department_id`, `designation_id`, `shift_id`, `date_of_joining`, `status`, `created_at`) VALUES
-(1, 9, NULL, 'samkit', 'jain', NULL, NULL, NULL, NULL, 1, 1, 1, '2025-09-07', 'active', '2025-09-14 13:14:01'),
-(2, 11, 'MGR001', 'John', 'Manager', NULL, NULL, NULL, NULL, 1, 1, 1, '2025-01-01', 'active', '2025-09-14 14:39:27');
 
 -- --------------------------------------------------------
 
@@ -359,13 +337,6 @@ CREATE TABLE `shifts` (
   `description` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `shifts`
---
-
-INSERT INTO `shifts` (`id`, `company_id`, `name`, `start_time`, `end_time`, `description`) VALUES
-(1, 1, 'shift1', '12:00:00', '08:00:00', '--');
-
 -- --------------------------------------------------------
 
 --
@@ -496,10 +467,7 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `company_id`, `role_id`, `username`, `email`, `password`, `status`, `created_at`) VALUES
 (1, NULL, 1, 'admin', 'super_admin@mail.com', '$2y$10$4oXGSu5Ip7f2oJFXksjqA.927pO76waLG1YCGuyiQNj6QMoqrJW/W', 'active', '2025-09-06 06:34:45'),
-(8, 1, 2, 'c_admin', 'company_admin@mail.com', '$2y$10$pkSBG/PAMUf6fVcAkhchtusI6AjO3x7cIum2xrf8.zbnrxaYFVSbq', 'active', '2025-09-06 07:01:56'),
-(9, 1, 4, 'notsanki', 'sanki@mail.com', '$2y$10$prTss54rC5oBGJzTznCyuOlCyaKSSePhQUnycXmTpNUyCWy/kgSga', 'active', '2025-09-14 13:13:37'),
-(10, 1, 3, 'hr_manager', 'hr_manager@mail.com', '$2y$10$HHrZ/qGLppUqmVYzQkqrZuOW.EwPPaDypJVRsN4VOwOtUiYNJrDlK', 'active', '2025-09-14 13:15:29'),
-(11, 1, 6, 'manager', 'c_manager@mail.com', '$2y$10$NpYBaT4R4WpJ9CSxL.H7XuCRCuzj.B.8it1R98Jd66esRPTvPbf6K', 'active', '2025-09-14 13:27:32');
+(8, 1, 2, 'c_admin', 'company_admin@mail.com', '$2y$10$pkSBG/PAMUf6fVcAkhchtusI6AjO3x7cIum2xrf8.zbnrxaYFVSbq', 'active', '2025-09-06 07:01:56');
 
 -- --------------------------------------------------------
 
@@ -760,13 +728,13 @@ ALTER TABLE `companies`
 -- AUTO_INCREMENT for table `departments`
 --
 ALTER TABLE `departments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `designations`
 --
 ALTER TABLE `designations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `documents`
@@ -790,7 +758,7 @@ ALTER TABLE `email_templates`
 -- AUTO_INCREMENT for table `employees`
 --
 ALTER TABLE `employees`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `feedback`
@@ -838,7 +806,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `shifts`
 --
 ALTER TABLE `shifts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `support_tickets`
@@ -880,7 +848,7 @@ ALTER TABLE `todo_list`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `user_preferences`
