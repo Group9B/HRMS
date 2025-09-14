@@ -51,6 +51,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         case 5:
                             redirect("/hrms/auditor/");
                             break;
+                        case 6:
+                            redirect("/hrms/manager/");
+                            break;
                         default:
                             http_response_code(404);
                             break;

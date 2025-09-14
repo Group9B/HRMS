@@ -4,7 +4,7 @@ require_once '../includes/functions.php';
 $title = "Employee Management";
 
 // --- SECURITY & SESSION ---
-if (!isLoggedIn() || !in_array($_SESSION['role_id'], [2, 3])) { // Company Admin or HR Manager
+if (!isLoggedIn() || !in_array($_SESSION['role_id'], [2, 3,])) { // Company Admin or HR Manager
     redirect("/hrms/pages/unauthorized.php");
 }
 $company_id = $_SESSION['company_id'];
@@ -14,7 +14,7 @@ $all_users = query($mysqli, "SELECT id, username FROM users WHERE company_id = ?
 $departments = query($mysqli, "SELECT id, name FROM departments WHERE company_id = ? ORDER BY name ASC", [$company_id])['data'] ?? [];
 $designations = query($mysqli, "SELECT d.id, d.name FROM designations d JOIN departments dept ON d.department_id = dept.id WHERE dept.company_id = ? ORDER BY d.name ASC", [$company_id])['data'] ?? [];
 $shifts = query($mysqli, "SELECT id, name FROM shifts WHERE company_id = ? ORDER BY name ASC", [$company_id])['data'] ?? [];
-$assignable_roles = query($mysqli, "SELECT id, name FROM roles WHERE id IN (3, 4) ORDER BY name ASC")['data'] ?? [];
+$assignable_roles = query($mysqli, "SELECT id, name FROM roles WHERE id IN (3, 4,6) ORDER BY name ASC")['data'] ?? [];
 
 require_once '../components/layout/header.php';
 ?>
