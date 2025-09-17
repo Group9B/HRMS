@@ -112,7 +112,7 @@ require_once '../components/layout/header.php';
     });
 
     function loadDashboardStats() {
-        fetch('/hrms/api/api_employees.php?action=get_stats')
+        fetch('/hrms/api/api_emp.php?action=get_stats')
             .then(res => res.json())
             .then(result => {
                 if (result.success) {
