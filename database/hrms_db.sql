@@ -1049,6 +1049,81 @@ ALTER TABLE `users`
 --
 ALTER TABLE `user_preferences`
   ADD CONSTRAINT `user_preferences_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+-- --------------------------------------------------------
+-- Payslip templates for reusable, company-specific or global payslip layouts
+CREATE TABLE IF NOT EXISTS `payslip_templates` (
+  `id` int(11) NOT NULL,
+  `company_id` int(11) DEFAULT NULL COMMENT 'NULL = global template',
+  `name` varchar(150) NOT NULL,
+  `subject` varchar(255) DEFAULT 'Your payslip for {{period}}',
+  `body_html` mediumtext NOT NULL COMMENT 'HTML with placeholders like {{employee_name}}, {{net_salary}}',
+  `placeholders` json DEFAULT NULL COMMENT 'Optional list/metadata of placeholders',
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_by` int(11) DEFAULT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Stores generated payslips, independent of raw payroll rows for audit and templating
+CREATE TABLE IF NOT EXISTS `payslips` (
+  `id` int(11) NOT NULL,
+  `company_id` int(11) DEFAULT NULL,
+  `employee_id` int(11) NOT NULL,
+  `period` varchar(7) NOT NULL COMMENT 'YYYY-MM',
+  `currency` varchar(10) DEFAULT 'INR',
+  `earnings_json` json DEFAULT NULL,
+  `deductions_json` json DEFAULT NULL,
+  `gross_salary` decimal(12,2) NOT NULL,
+  `net_salary` decimal(12,2) NOT NULL,
+  `template_id` int(11) DEFAULT NULL,
+  `status` enum('generated','sent','cancelled') NOT NULL DEFAULT 'generated',
+  `generated_by` int(11) DEFAULT NULL,
+  `generated_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `sent_at` timestamp NULL DEFAULT NULL,
+  `pdf_path` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Indexes for the new tables
+ALTER TABLE `payslip_templates`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_company_id` (`company_id`),
+  ADD KEY `idx_is_active` (`is_active`),
+  ADD KEY `idx_created_by` (`created_by`),
+  ADD KEY `idx_updated_by` (`updated_by`);
+
+ALTER TABLE `payslips`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_company_id` (`company_id`),
+  ADD KEY `idx_employee_id` (`employee_id`),
+  ADD KEY `idx_period` (`period`),
+  ADD KEY `idx_template_id` (`template_id`),
+  ADD KEY `idx_status` (`status`);
+
+-- Auto increments
+ALTER TABLE `payslip_templates`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `payslips`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+-- Foreign keys
+ALTER TABLE `payslip_templates`
+  ADD CONSTRAINT `payslip_templates_ibfk_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `payslip_templates_ibfk_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `payslip_templates_ibfk_updated_by` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+ALTER TABLE `payslips`
+  ADD CONSTRAINT `payslips_ibfk_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `payslips_ibfk_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `payslips_ibfk_template` FOREIGN KEY (`template_id`) REFERENCES `payslip_templates` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `payslips_ibfk_generated_by` FOREIGN KEY (`generated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+-- Seed a default global payslip template
+INSERT INTO `payslip_templates` (`company_id`, `name`, `subject`, `body_html`, `placeholders`, `is_active`)
+VALUES (NULL, 'Default Payslip', 'Your payslip for {{period}}',
+  '<div style="font-family:Arial,sans-serif; padding:16px">\n  <h2>{{company_name}}</h2>\n  <h3>Payslip - {{period}}</h3>\n  <p><strong>Employee:</strong> {{employee_name}} ({{employee_code}})</p>\n  <p><strong>Department:</strong> {{department_name}} | <strong>Designation:</strong> {{designation_name}}</p>\n  <hr/>\n  <h4>Earnings</h4>\n  <table width="100%" cellspacing="0" cellpadding="6" border="1">\n    <tr><th align="left">Component</th><th align="right">Amount</th></tr>\n    {{earnings_rows}}\n  </table>\n  <h4 style="margin-top:16px">Deductions</h4>\n  <table width="100%" cellspacing="0" cellpadding="6" border="1">\n    <tr><th align="left">Component</th><th align="right">Amount</th></tr>\n    {{deductions_rows}}\n  </table>\n  <hr/>\n  <p><strong>Gross:</strong> {{currency}} {{gross_salary}} &nbsp; | &nbsp; <strong>Net Pay:</strong> {{currency}} {{net_salary}}</p>\n  <p><small>Generated on {{generated_at}}</small></p>\n</div>',
+  JSON_ARRAY('company_name','period','employee_name','employee_code','department_name','designation_name','earnings_rows','deductions_rows','gross_salary','net_salary','currency','generated_at'), 1);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

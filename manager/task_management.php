@@ -302,9 +302,13 @@ require_once '../components/layout/header.php';
                         <label for="task_employee" class="form-label">Assign To *</label>
                         <select class="form-select" id="task_employee" name="employee_id" required>
                             <option value="">Select Employee</option>
-                            <?php foreach ($team_members as $member): ?>
+                            <?php foreach ($team_members as $member): 
+                                echo(($member["id"]===$user_id));
+                                ?>
+                                
                                 <option value="<?= $member['id'] ?>"><?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?></option>
-                            <?php endforeach; ?>
+                            <?php 
+                        endforeach; ?>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -395,39 +399,6 @@ require_once '../components/layout/header.php';
 </div>
 
 <?php require_once '../components/layout/footer.php'; ?>
-
-<style>
-.avatar-circle {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    background: linear-gradient(45deg, #4e73df, #36b9cc);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 12px;
-}
-
-.stat-card .card-body {
-    display: flex;
-    align-items: center;
-}
-
-.icon-circle {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 15px;
-    color: white;
-    font-size: 20px;
-}
-</style>
-
 <script>
 $(document).ready(function() {
     // Initialize DataTable

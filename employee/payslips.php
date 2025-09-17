@@ -21,7 +21,7 @@ $employee = $employee_result['data'][0];
 $employee_id = $employee['id'];
 
 // Get payslips
-$payslips_result = query($mysqli, "SELECT * FROM payroll WHERE employee_id = ? ORDER BY year DESC, month DESC", [$employee_id]);
+$payslips_result = query($mysqli, "SELECT p.id, p.period, p.status, p.gross_salary, p.net_salary FROM payslips p WHERE p.employee_id = ? ORDER BY p.period DESC", [$employee_id]);
 $payslips = $payslips_result['success'] ? $payslips_result['data'] : [];
 
 require_once '../components/layout/header.php';
@@ -51,37 +51,24 @@ require_once '../components/layout/header.php';
                             <thead>
                                 <tr>
                                     <th>Period</th>
-                                    <th>Basic Salary</th>
-                                    <th>HRA</th>
-                                    <th>Allowances</th>
-                                    <th>Deductions</th>
-                                    <th>Net Salary</th>
+                                    <th>Gross</th>
+                                    <th>Net</th>
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($payslips as $payslip): 
-                                    $period = date('F Y', strtotime($payslip['year'] . '-' . $payslip['month'] . '-01'));
-                                ?>
+                                <?php foreach ($payslips as $payslip): ?>
                                     <tr>
-                                        <td><?= $period ?></td>
-                                        <td>₹<?= number_format($payslip['basic'], 2) ?></td>
-                                        <td>₹<?= number_format($payslip['hra'] ?? 0, 2) ?></td>
-                                        <td>₹<?= number_format($payslip['allowances'] ?? 0, 2) ?></td>
-                                        <td>₹<?= number_format($payslip['deductions'] ?? 0, 2) ?></td>
+                                        <td><?= htmlspecialchars($payslip['period']) ?></td>
+                                        <td>₹<?= number_format($payslip['gross_salary'], 2) ?></td>
                                         <td><strong>₹<?= number_format($payslip['net_salary'], 2) ?></strong></td>
                                         <td>
                                             <span class="badge text-bg-<?= $payslip['status'] === 'paid' ? 'success' : ($payslip['status'] === 'processed' ? 'info' : 'warning') ?>">
                                                 <?= ucfirst($payslip['status']) ?>
                                             </span>
                                         </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-primary" onclick="viewPayslip(<?= $payslip['id'] ?>)" 
-                                                    <?= $payslip['status'] === 'pending' ? 'disabled' : '' ?>>
-                                                <i class="fas fa-eye"></i> View
-                                            </button>
-                                        </td>
+                                        <td><button class="btn btn-sm btn-outline-primary" onclick="viewPayslip(<?= (int)$payslip['id'] ?>)"><i class="fas fa-eye"></i> View</button></td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -129,72 +116,8 @@ function viewPayslip(payslipId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const payslip = data.data;
-                const period = new Date(payslip.year + '-' + payslip.month + '-01').toLocaleDateString('en-US', { 
-                    month: 'long', 
-                    year: 'numeric' 
-                });
-                
-                const content = `
-                    <div class="payslip">
-                        <div class="text-center mb-4">
-                            <h4>Payslip</h4>
-                            <h6>${period}</h6>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <h6>Employee Details</h6>
-                                <p><strong>Name:</strong> ${payslip.employee_name}</p>
-                                <p><strong>Employee Code:</strong> ${payslip.employee_code}</p>
-                            </div>
-                            <div class="col-md-6 text-end">
-                                <h6>Payment Details</h6>
-                                <p><strong>Status:</strong> ${payslip.status}</p>
-                                <p><strong>Processed:</strong> ${new Date(payslip.processed_at).toLocaleDateString()}</p>
-                            </div>
-                        </div>
-                        
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Earnings</th>
-                                    <th class="text-end">Amount (₹)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Basic Salary</td>
-                                    <td class="text-end">${parseFloat(payslip.basic).toFixed(2)}</td>
-                                </tr>
-                                ${payslip.hra ? `<tr><td>House Rent Allowance</td><td class="text-end">${parseFloat(payslip.hra).toFixed(2)}</td></tr>` : ''}
-                                ${payslip.allowances ? `<tr><td>Allowances</td><td class="text-end">${parseFloat(payslip.allowances).toFixed(2)}</td></tr>` : ''}
-                                <tr class="table-light">
-                                    <td><strong>Total Earnings</strong></td>
-                                    <td class="text-end"><strong>${(parseFloat(payslip.basic) + parseFloat(payslip.hra || 0) + parseFloat(payslip.allowances || 0)).toFixed(2)}</strong></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Deductions</th>
-                                    <th class="text-end">Amount (₹)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${payslip.deductions ? `<tr><td>Total Deductions</td><td class="text-end">${parseFloat(payslip.deductions).toFixed(2)}</td></tr>` : '<tr><td colspan="2">No deductions</td></tr>'}
-                                <tr class="table-light">
-                                    <td><strong>Net Salary</strong></td>
-                                    <td class="text-end"><strong>${parseFloat(payslip.net_salary).toFixed(2)}</strong></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-                
-                document.getElementById('payslipContent').innerHTML = content;
+                const ps = data.data;
+                document.getElementById('payslipContent').innerHTML = ps.html;
                 $('#payslipModal').modal('show');
             } else {
                 showToast('Failed to load payslip', 'error');

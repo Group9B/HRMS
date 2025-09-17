@@ -266,7 +266,7 @@ require_once '../components/layout/header.php';
                                 <?php foreach ($recent_activities as $activity): ?>
                                     <div class="timeline-item">
                                         <div class="timeline-marker bg-<?= $activity['type'] === 'leave' ? 'warning' : 'success' ?>"></div>
-                                        <div class="timeline-content">
+                                        <div class="timeline-content bg-body">
                                             <div class="fw-bold"><?= htmlspecialchars($activity['employee_name']) ?></div>
                                             <div class="text-muted"><?= htmlspecialchars($activity['activity']) ?></div>
                                             <small class="text-muted"><?= date('M j, Y g:i A', strtotime($activity['created_at'])) ?></small>

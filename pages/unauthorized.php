@@ -6,7 +6,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 require_once '../components/layout/header.php';
 ?>
-<div class="container-md text-center my-5">
+<div class="container-md text-center my-5 pt-5">
     <h1 class="text-center">401 - Unauthorized Access</h1>
     <img src="/hrms/assets/img/401_image.png" alt="404_image" class="img-fluid mx-auto d-block" style="width: 300px;"
         loading="lazy">

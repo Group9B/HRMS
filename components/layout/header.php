@@ -1,12 +1,19 @@
 <?php
 require_once '../config/db.php';
 $additionalScripts = [];
-require_once '../includes\functions.php';
+require_once '../includes/functions.php';
 
 $is_site_active = query($mysqli, "SELECT setting_value from system_settings WHERE setting_key = 'maintenance_mode'");
-if ($is_site_active['success'] && $is_site_active['data'][0]['setting_value'] == '1' && !isLoggedIn()) {
-    redirect("/hrms/pages/500.php");
-}
+
+// if(isLoggedIn()){
+//     echo $_SESSION['role_id'];
+//     if(!$_SESSION['role_id']===1){
+//         echo 'here';
+//         if ($is_site_active['success'] && $is_site_active['data'][0]['setting_value'] == '1') {
+//             redirect("/hrms/pages/500.php");
+//         }
+//     }
+// }
 
 ?>
 <html lang="en" data-bs-theme="light">

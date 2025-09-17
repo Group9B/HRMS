@@ -85,6 +85,13 @@ switch ($_SESSION['role_id']) {
         'permission' => null,
         'submenu' => []
       ],
+      'Payslips' => [
+        'title' => 'Payslips',
+        'icon' => 'fas fa-file-invoice-dollar',
+        'url' => '/hrms/company/payslips.php',
+        'permission' => null,
+        'submenu' => []
+      ],
       'Settings' => [
         'title' => 'Settings',
         'icon' => 'fas fa-cog',
@@ -128,6 +135,13 @@ switch ($_SESSION['role_id']) {
         'title' => 'Leave Management',
         'icon' => 'fas fa-calendar-alt',
         'url' => '/hrms/company/leaves.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'Payslips' => [
+        'title' => 'Payslips',
+        'icon' => 'fas fa-file-invoice-dollar',
+        'url' => '/hrms/company/payslips.php',
         'permission' => null,
         'submenu' => []
       ],
@@ -235,6 +249,13 @@ switch ($_SESSION['role_id']) {
         'title' => 'Teams',
         'icon' => 'fas fa-users-cog',
         'url' => '/hrms/manager/teams.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'payslips' => [
+        'title' => 'Payslips',
+        'icon' => 'fas fa-file-invoice-dollar',
+        'url' => '/hrms/manager/payslips.php',
         'permission' => null,
         'submenu' => []
       ],

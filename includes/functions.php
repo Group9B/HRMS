@@ -5,6 +5,84 @@ function isLoggedIn()
     return isset($_SESSION['user_id']);
 }
 
+/**
+ * Require current user to have one of the allowed role names.
+ */
+function requireRole(array $allowedRoleNames)
+{
+    if (!isLoggedIn()) {
+        http_response_code(401);
+        die(json_encode(['success' => false, 'message' => 'Unauthorized']));
+    }
+    // Fetch role name for current user
+    global $mysqli;
+    $user = getCurrentUser($mysqli);
+    $roleName = $user['role_name'] ?? null;
+    if (!$roleName || !in_array($roleName, $allowedRoleNames, true)) {
+        http_response_code(403);
+        die(json_encode(['success' => false, 'message' => 'Forbidden']));
+    }
+}
+
+/**
+ * Simple placeholder renderer: replaces {{key}} in template with given values.
+ */
+function renderTemplateString(string $template, array $data): string
+{
+    $replacements = [];
+    foreach ($data as $key => $value) {
+        if (is_array($value) || is_object($value)) {
+            $replacements['{{' . $key . '}}'] = '';
+        } else {
+            $replacements['{{' . $key . '}}'] = (string)$value;
+        }
+    }
+    return strtr($template, $replacements);
+}
+
+/**
+ * Build HTML table rows for earnings/deductions arrays.
+ * Each array item: ['name' => string, 'amount' => number]
+ */
+function buildAmountRows(array $items): string
+{
+    $rows = '';
+    foreach ($items as $item) {
+        $name = htmlspecialchars((string)($item['name'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $amount = number_format((float)($item['amount'] ?? 0), 2);
+        $rows .= '<tr><td>' . $name . '</td><td align="right">' . $amount . '</td></tr>';
+    }
+    if ($rows === '') {
+        $rows = '<tr><td colspan="2" align="center">-</td></tr>';
+    }
+    return $rows;
+}
+
+/**
+ * Render payslip HTML using a template and structured data.
+ */
+function renderPayslipHTML(string $templateHtml, array $data): string
+{
+    $earningsRows = buildAmountRows($data['earnings'] ?? []);
+    $deductionsRows = buildAmountRows($data['deductions'] ?? []);
+    $baseData = $data;
+    $baseData['earnings_rows'] = $earningsRows;
+    $baseData['deductions_rows'] = $deductionsRows;
+    return renderTemplateString($templateHtml, $baseData);
+}
+
+/**
+ * Fetch company details by id
+ */
+function getCompanyById(mysqli $mysqli, int $companyId): ?array
+{
+    $res = query($mysqli, "SELECT * FROM companies WHERE id = ?", [$companyId]);
+    if ($res['success'] && !empty($res['data'])) {
+        return $res['data'][0];
+    }
+    return null;
+}
+
 function redirect(string $url): void
 {
     header("Location: $url");

@@ -3,7 +3,7 @@ require_once "../config/db.php";
 require_once "../includes/functions.php";
 $error = "";
 if (isLoggedIn()) {
-    redirect("/hrms/dashboard.php");
+    redirect("/hrms/includes/redirect.php");
 }
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -70,7 +70,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 require_once "../components/layout/header.php";
 ?>
-<div class="container mt-5">
+<div class="container mt-5 pt-5">
     <div class="row justify-content-center">
         <div class="col-md-4">
             <div class="card shadow-sm">

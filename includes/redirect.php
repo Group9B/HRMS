@@ -33,6 +33,9 @@ switch ($role_id) {
     case 4: // Employee
         $redirect_path = '/hrms/employee/index.php';
         break;
+    case 6:
+        $redirect_path = '/hrms/manager/index.php';
+        break;
     default:
         // If the user has an unknown role, it's safest to log them out
         // and send them back to the login page for security.
