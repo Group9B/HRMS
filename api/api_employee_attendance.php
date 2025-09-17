@@ -5,65 +5,104 @@ require_once '../includes/functions.php';
 
 $response = ['success' => false, 'message' => 'An unknown error occurred.'];
 
-// Security: Only logged-in employees can access this
 if (!isLoggedIn() || $_SESSION['role_id'] !== 4) {
     $response['message'] = 'Unauthorized access.';
     echo json_encode($response);
     exit();
 }
 
-// Find the employee_id from the user_id in the session
-$employee_id_result = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$_SESSION['user_id']]);
-if (!$employee_id_result['success'] || empty($employee_id_result['data'])) {
-    $response['message'] = 'No associated employee record found for this user.';
+$user_id = $_SESSION['user_id'];
+$today = date('Y-m-d');
+
+// Get employee_id for the current user
+$employee_result = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$user_id]);
+if (!$employee_result['success'] || empty($employee_result['data'])) {
+    $response['message'] = 'Employee profile not found.';
     echo json_encode($response);
     exit();
 }
-$employee_id = $employee_id_result['data'][0]['id'];
-$today = date('Y-m-d');
-$now = date('H:i:s');
+$employee_id = $employee_result['data'][0]['id'];
 
 $action = $_REQUEST['action'] ?? '';
 
 switch ($action) {
     case 'get_today_status':
-        $result = query($mysqli, "SELECT check_in, check_out FROM attendance WHERE employee_id = ? AND date = ?", [$employee_id, $today]);
+        $sql = "
+            SELECT 
+                a.check_in, a.check_out, a.status,
+                s.start_time, s.end_time
+            FROM employees e
+            LEFT JOIN shifts s ON e.shift_id = s.id
+            LEFT JOIN attendance a ON e.id = a.employee_id AND a.date = ?
+            WHERE e.id = ?
+        ";
+        $result = query($mysqli, $sql, [$today, $employee_id]);
+
         if ($result['success']) {
-            $response = ['success' => true, 'data' => $result['data'][0] ?? null];
+            $data = $result['data'][0] ?? null;
+            if ($data) {
+                // Add status flags based on shift timings
+                $data['check_in_status'] = '';
+                $data['check_out_status'] = '';
+                $data['duration_status'] = '';
+
+                if ($data['start_time'] && $data['check_in'] > $data['start_time']) {
+                    $data['check_in_status'] = 'Late';
+                }
+                if ($data['end_time'] && $data['check_out'] && $data['check_out'] < $data['end_time']) {
+                    $data['check_out_status'] = 'Early Out';
+                }
+
+                // Half-day validation (assuming half-day is 4 hours)
+                if ($data['status'] === 'half-day' && $data['check_in'] && $data['check_out']) {
+                    $check_in_time = new DateTime($data['check_in']);
+                    $check_out_time = new DateTime($data['check_out']);
+                    $interval = $check_in_time->diff($check_out_time);
+                    $hours_worked = $interval->h + ($interval->i / 60);
+                    if ($hours_worked < 4) {
+                        $data['duration_status'] = 'Incomplete Half Day';
+                    }
+                }
+            }
+            $response = ['success' => true, 'data' => $data];
         } else {
-            $response['message'] = 'Could not fetch attendance status.';
+            $response['message'] = 'Could not retrieve attendance status.';
         }
         break;
 
     case 'check_in':
-        $today_record = query($mysqli, "SELECT id, check_in FROM attendance WHERE employee_id = ? AND date = ?", [$employee_id, $today])['data'][0] ?? null;
-        if ($today_record && $today_record['check_in']) {
-            $response['message'] = 'You have already checked in today.';
-            break;
-        }
-        $result = query($mysqli, "INSERT INTO attendance (employee_id, date, check_in, status) VALUES (?, ?, ?, 'present')", [$employee_id, $today, $now]);
-        if ($result['success']) {
-            $response = ['success' => true, 'message' => 'Checked in successfully!', 'check_in_time' => date('h:i A', strtotime($now))];
-        } else {
-            $response['message'] = 'Failed to check in.';
-        }
-        break;
-
     case 'check_out':
-        $today_record = query($mysqli, "SELECT id, check_in, check_out FROM attendance WHERE employee_id = ? AND date = ?", [$employee_id, $today])['data'][0] ?? null;
-        if (!$today_record || !$today_record['check_in']) {
-            $response['message'] = 'You have not checked in yet today.';
-            break;
-        }
-        if ($today_record['check_out']) {
-            $response['message'] = 'You have already checked out today.';
-            break;
-        }
-        $result = query($mysqli, "UPDATE attendance SET check_out = ? WHERE id = ?", [$now, $today_record['id']]);
-        if ($result['success']) {
-            $response = ['success' => true, 'message' => 'Checked out successfully!', 'check_out_time' => date('h:i A', strtotime($now))];
+        $now = date('H:i:s');
+        $field = ($action === 'check_in') ? 'check_in' : 'check_out';
+
+        // Check if a record for today already exists
+        $existing_record = query($mysqli, "SELECT id, check_in FROM attendance WHERE employee_id = ? AND date = ?", [$employee_id, $today]);
+
+        if ($existing_record['success'] && !empty($existing_record['data'])) {
+            // Record exists, so UPDATE it
+            $record_id = $existing_record['data'][0]['id'];
+            if ($action === 'check_in' && !is_null($existing_record['data'][0]['check_in'])) {
+                $response['message'] = 'You have already checked in today.';
+                break;
+            }
+            $sql = "UPDATE attendance SET $field = ? WHERE id = ?";
+            $params = [$now, $record_id];
         } else {
-            $response['message'] = 'Failed to check out.';
+            // No record, so INSERT a new one
+            if ($action === 'check_out') {
+                $response['message'] = 'You must check in before you can check out.';
+                break;
+            }
+            $sql = "INSERT INTO attendance (employee_id, date, $field, status) VALUES (?, ?, ?, 'present')";
+            $params = [$employee_id, $today, $now];
+        }
+
+        $result = query($mysqli, $sql, $params);
+        if ($result['success']) {
+            $message = ($action === 'check_in') ? 'Successfully checked in!' : 'Successfully checked out!';
+            $response = ['success' => true, 'message' => $message];
+        } else {
+            $response['message'] = 'Database error. Could not record time.';
         }
         break;
 
