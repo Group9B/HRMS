@@ -11,6 +11,38 @@ function redirect(string $url): void
     exit();
 }
 
+function flash(string $type, string $message): void
+{
+    if (!isset($_SESSION['toasts'])) {
+        $_SESSION['toasts'] = [];
+    }
+
+    $_SESSION['toasts'][] = [
+        'type' => $type,
+        'message' => $message
+    ];
+}
+
+function getFileIcon($file_type)
+{
+    switch ($file_type) {
+        case "pdf":
+            return "pdf text-danger";
+        case "docx":
+            return "word";
+        case "pptx":
+            return "powerpoint";
+        case "txt":
+            return "alt text-warning";
+        case "jpg":
+        case "jpeg":
+        case "png":
+            return "image text-info";
+        default:
+            return "invoice";
+    }
+}
+
 /**
  * A utility function to execute mysqli prepared statements securely.
  *

@@ -3540,6 +3540,7 @@ fieldset:disabled .btn {
 .dropdown-item:focus,
 .dropdown-item:hover {
 	color: var(--bs-dropdown-link-hover-color);
+	color: var(--bs-primary);
 	background-color: var(--bs-dropdown-link-hover-bg);
 }
 .dropdown-item.active,
