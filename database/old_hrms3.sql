@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 17, 2025 at 04:01 PM
+-- Generation Time: Sep 14, 2025 at 05:05 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -53,13 +53,6 @@ CREATE TABLE `attendance` (
   `remarks` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `attendance`
---
-
-INSERT INTO `attendance` (`id`, `employee_id`, `date`, `check_in`, `check_out`, `status`, `remarks`, `created_at`) VALUES
-(1, 1, '2025-09-14', '19:11:36', NULL, 'present', NULL, '2025-09-14 17:11:36');
 
 -- --------------------------------------------------------
 
@@ -257,14 +250,6 @@ CREATE TABLE `leaves` (
   `approved_by` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `leaves`
---
-
-INSERT INTO `leaves` (`id`, `employee_id`, `leave_type`, `start_date`, `end_date`, `reason`, `status`, `applied_at`, `approved_by`) VALUES
-(1, 1, 'Sick', '2025-09-16', '2025-09-17', '', 'approved', '2025-09-15 07:28:52', 11),
-(2, 1, 'Sick', '2025-09-16', '2025-09-17', '', 'approved', '2025-09-15 07:34:05', 11);
-
 -- --------------------------------------------------------
 
 --
@@ -283,18 +268,6 @@ CREATE TABLE `notifications` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `read_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `notifications`
---
-
-INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `related_id`, `related_type`, `is_read`, `created_at`, `read_at`) VALUES
-(1, 9, 'payroll', 'Payslip', 'Your payslip for 2025-09', 1, 'payslip', 0, '2025-09-16 16:00:01', NULL),
-(2, 9, 'payroll', 'Payslip', 'Your payslip for 2025-09', 1, 'payslip', 0, '2025-09-16 16:00:23', NULL),
-(3, 9, 'payroll', 'Payslip', 'Your payslip for 2025-09', 2, 'payslip', 0, '2025-09-16 16:01:54', NULL),
-(4, 11, 'payroll', 'Payslip', 'Your payslip for 2025-09', 5, 'payslip', 0, '2025-09-16 16:09:28', NULL),
-(5, 9, 'payroll', 'Payslip', 'Your payslip for 2025-09', 6, 'payslip', 0, '2025-09-16 16:10:00', NULL),
-(6, 9, 'payroll', 'Payslip', 'Your payslip for 2025-09Your payslip for 2025-09', 7, 'payslip', 0, '2025-09-16 16:21:20', NULL);
 
 -- --------------------------------------------------------
 
@@ -319,73 +292,6 @@ CREATE TABLE `payroll` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `payslips`
---
-
-CREATE TABLE `payslips` (
-  `id` int(11) NOT NULL,
-  `company_id` int(11) DEFAULT NULL,
-  `employee_id` int(11) NOT NULL,
-  `period` varchar(7) NOT NULL COMMENT 'YYYY-MM',
-  `currency` varchar(10) DEFAULT 'INR',
-  `earnings_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`earnings_json`)),
-  `deductions_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`deductions_json`)),
-  `gross_salary` decimal(12,2) NOT NULL,
-  `net_salary` decimal(12,2) NOT NULL,
-  `template_id` int(11) DEFAULT NULL,
-  `status` enum('generated','sent','cancelled') NOT NULL DEFAULT 'generated',
-  `generated_by` int(11) DEFAULT NULL,
-  `generated_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `sent_at` timestamp NULL DEFAULT NULL,
-  `pdf_path` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `payslips`
---
-
-INSERT INTO `payslips` (`id`, `company_id`, `employee_id`, `period`, `currency`, `earnings_json`, `deductions_json`, `gross_salary`, `net_salary`, `template_id`, `status`, `generated_by`, `generated_at`, `sent_at`, `pdf_path`) VALUES
-(1, 1, 1, '2025-09', 'INR', '[{\"name\":\"Gross\",\"amount\":0.21}]', '[]', 0.21, 0.21, 1, 'sent', 8, '2025-09-16 15:59:53', '2025-09-16 16:00:23', NULL),
-(2, 1, 1, '2025-09', 'INR', '[{\"name\":\"Gross\",\"amount\":100000}]', '[]', 100000.00, 100000.00, 1, 'sent', 8, '2025-09-16 16:00:11', '2025-09-16 16:01:54', NULL),
-(3, 1, 1, '2025-09', 'INR', '[{\"name\":\"Gross\",\"amount\":100000}]', '[]', 100000.00, 100000.00, 1, 'generated', 8, '2025-09-16 16:00:12', NULL, NULL),
-(4, 1, 1, '2025-09', 'INR', '[{\"name\":\"Gross\",\"amount\":100000}]', '[]', 100000.00, 100000.00, 1, 'generated', 8, '2025-09-16 16:00:12', NULL, NULL),
-(5, 1, 2, '2025-09', 'INR', '[{\"name\":\"Gross\",\"amount\":200000}]', '[]', 200000.00, 200000.00, 1, 'sent', 8, '2025-09-16 16:09:16', '2025-09-16 16:09:28', NULL),
-(6, 1, 1, '2025-09', 'INR', '[{\"name\":\"Gross\",\"amount\":200000}]', '[]', 200000.00, 200000.00, 1, 'sent', 8, '2025-09-16 16:09:47', '2025-09-16 16:10:00', NULL),
-(7, 1, 1, '2025-09', 'INR', '[{\"name\":\"Gross\",\"amount\":200000000000}]', '[]', 9999999999.99, 9999999999.99, 4, 'sent', 8, '2025-09-16 16:21:10', '2025-09-16 16:21:20', NULL);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `payslip_templates`
---
-
-CREATE TABLE `payslip_templates` (
-  `id` int(11) NOT NULL,
-  `company_id` int(11) DEFAULT NULL COMMENT 'NULL = global template',
-  `name` varchar(150) NOT NULL,
-  `subject` varchar(255) DEFAULT 'Your payslip for {{period}}',
-  `body_html` mediumtext NOT NULL COMMENT 'HTML with placeholders like {{employee_name}}, {{net_salary}}',
-  `placeholders` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'Optional list/metadata of placeholders' CHECK (json_valid(`placeholders`)),
-  `is_active` tinyint(1) NOT NULL DEFAULT 1,
-  `created_by` int(11) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_by` int(11) DEFAULT NULL,
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `payslip_templates`
---
-
-INSERT INTO `payslip_templates` (`id`, `company_id`, `name`, `subject`, `body_html`, `placeholders`, `is_active`, `created_by`, `created_at`, `updated_by`, `updated_at`) VALUES
-(1, NULL, 'Default Payslip', 'Your payslip for {{period}}', '<div style=\"font-family:Arial,sans-serif; padding:16px\">\n  <h2>{{company_name}}</h2>\n  <h3>Payslip - {{period}}</h3>\n  <p><strong>Employee:</strong> {{employee_name}} ({{employee_code}})</p>\n  <p><strong>Department:</strong> {{department_name}} | <strong>Designation:</strong> {{designation_name}}</p>\n  <hr/>\n  <h4>Earnings</h4>\n  <table width=\"100%\" cellspacing=\"0\" cellpadding=\"6\" border=\"1\">\n    <tr><th align=\"left\">Component</th><th align=\"right\">Amount</th></tr>\n    {{earnings_rows}}\n  </table>\n  <h4 style=\"margin-top:16px\">Deductions</h4>\n  <table width=\"100%\" cellspacing=\"0\" cellpadding=\"6\" border=\"1\">\n    <tr><th align=\"left\">Component</th><th align=\"right\">Amount</th></tr>\n    {{deductions_rows}}\n  </table>\n  <hr/>\n  <p><strong>Gross:</strong> {{currency}} {{gross_salary}} &nbsp; | &nbsp; <strong>Net Pay:</strong> {{currency}} {{net_salary}}</p>\n  <p><small>Generated on {{generated_at}}</small></p>\n</div>', '[\"company_name\", \"period\", \"employee_name\", \"employee_code\", \"department_name\", \"designation_name\", \"earnings_rows\", \"deductions_rows\", \"gross_salary\", \"net_salary\", \"currency\", \"generated_at\"]', 1, NULL, '2025-09-16 15:31:56', NULL, '2025-09-16 15:31:56'),
-(2, 1, 'new', 'Your payslip for {{period}}Your payslip for {{period}}', 'Your payslip for {{period}}', '[\"company_name\",\"period\",\"employee_name\",\"employee_code\",\"department_name\",\"designation_name\",\"earnings_rows\",\"deductions_rows\",\"gross_salary\",\"net_salary\",\"currency\",\"generated_at\",\"insurance\",\"pf\",\"shares\"]', 1, 8, '2025-09-16 16:20:46', NULL, '2025-09-16 16:20:46'),
-(3, 1, 'new', 'Your payslip for {{period}}Your payslip for {{period}}', 'Your payslip for {{period}}', '[\"company_name\",\"period\",\"employee_name\",\"employee_code\",\"department_name\",\"designation_name\",\"earnings_rows\",\"deductions_rows\",\"gross_salary\",\"net_salary\",\"currency\",\"generated_at\",\"insurance\",\"pf\",\"shares\"]', 1, 8, '2025-09-16 16:20:47', NULL, '2025-09-16 16:20:47'),
-(4, 1, 'new', 'Your payslip for {{period}}Your payslip for {{period}}', 'Your payslip for {{period}}', '[\"company_name\",\"period\",\"employee_name\",\"employee_code\",\"department_name\",\"designation_name\",\"earnings_rows\",\"deductions_rows\",\"gross_salary\",\"net_salary\",\"currency\",\"generated_at\",\"insurance\",\"pf\",\"shares\"]', 1, 8, '2025-09-16 16:20:47', NULL, '2025-09-16 16:20:47');
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `performance`
 --
 
@@ -398,13 +304,6 @@ CREATE TABLE `performance` (
   `remarks` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `performance`
---
-
-INSERT INTO `performance` (`id`, `employee_id`, `evaluator_id`, `period`, `score`, `remarks`, `created_at`) VALUES
-(1, 1, 11, '2025-09', 100, 'best employee ever', '2025-09-14 17:10:42');
 
 -- --------------------------------------------------------
 
@@ -508,7 +407,7 @@ INSERT INTO `system_settings` (`id`, `setting_key`, `setting_value`, `descriptio
 (1, 'site_name', 'StaffSync', 'Name of Our Application', 1, '2025-08-15 00:04:43', '2025-08-15 00:04:43'),
 (2, 'company_email', 'groupno9.it.@gmail.com', 'The default email for system notifications.', 1, '2025-08-15 00:04:43', '2025-08-15 00:04:43'),
 (5, 'records_per_page', '11', 'Default number of items to show in tables.', 1, '2025-08-15 00:06:37', '2025-08-15 00:06:28'),
-(6, 'maintenance_mode', '1', 'Temporarily disable access for non-admin users.', 1, '2025-09-15 03:47:46', '2025-08-15 00:19:12'),
+(6, 'maintenance_mode', '0', 'Temporarily disable access for non-admin users.', 1, '2025-08-15 00:19:12', '2025-08-15 00:19:12'),
 (7, 'Upload Size Limit', '5242880', 'Maximum File Upload Size.', NULL, '2025-08-15 00:21:14', '2025-08-15 00:21:14');
 
 -- --------------------------------------------------------
@@ -528,15 +427,6 @@ CREATE TABLE `tasks` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `tasks`
---
-
-INSERT INTO `tasks` (`id`, `employee_id`, `title`, `description`, `assigned_by`, `due_date`, `status`, `created_at`) VALUES
-(1, 1, 'create ad', '--', 11, '2025-09-15', 'cancelled', '2025-09-14 17:01:13'),
-(2, 1, 'Create a reel for timepass', 'okie dokie', 11, '2025-09-15', 'pending', '2025-09-15 03:19:09'),
-(3, 1, 'create 10 reel within 1 days', 'create 10 reel wihtihn 1 day or you have to pay penalty of 1000 RS per minute delay', 11, '2025-09-16', 'pending', '2025-09-15 07:14:54');
-
 -- --------------------------------------------------------
 
 --
@@ -554,13 +444,6 @@ CREATE TABLE `teams` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `teams`
---
-
-INSERT INTO `teams` (`id`, `company_id`, `name`, `description`, `created_by`, `created_at`, `updated_by`, `updated_at`) VALUES
-(1, 1, 'social media', '--', 11, '2025-09-14 17:09:36', NULL, '2025-09-14 17:09:36');
-
 -- --------------------------------------------------------
 
 --
@@ -575,13 +458,6 @@ CREATE TABLE `team_members` (
   `assigned_by` int(11) DEFAULT NULL,
   `assigned_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `team_members`
---
-
-INSERT INTO `team_members` (`id`, `team_id`, `employee_id`, `role_in_team`, `assigned_by`, `assigned_at`) VALUES
-(1, 1, 1, NULL, 11, '2025-09-14 17:09:48');
 
 -- --------------------------------------------------------
 
@@ -757,28 +633,6 @@ ALTER TABLE `payroll`
   ADD KEY `employee_id` (`employee_id`);
 
 --
--- Indexes for table `payslips`
---
-ALTER TABLE `payslips`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_company_id` (`company_id`),
-  ADD KEY `idx_employee_id` (`employee_id`),
-  ADD KEY `idx_period` (`period`),
-  ADD KEY `idx_template_id` (`template_id`),
-  ADD KEY `idx_status` (`status`),
-  ADD KEY `payslips_ibfk_generated_by` (`generated_by`);
-
---
--- Indexes for table `payslip_templates`
---
-ALTER TABLE `payslip_templates`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_company_id` (`company_id`),
-  ADD KEY `idx_is_active` (`is_active`),
-  ADD KEY `idx_created_by` (`created_by`),
-  ADD KEY `idx_updated_by` (`updated_by`);
-
---
 -- Indexes for table `performance`
 --
 ALTER TABLE `performance`
@@ -888,7 +742,7 @@ ALTER TABLE `activity_logs`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `audit_logs`
@@ -924,7 +778,7 @@ ALTER TABLE `documents`
 -- AUTO_INCREMENT for table `email_logs`
 --
 ALTER TABLE `email_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `email_templates`
@@ -948,13 +802,13 @@ ALTER TABLE `feedback`
 -- AUTO_INCREMENT for table `leaves`
 --
 ALTER TABLE `leaves`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `payroll`
@@ -963,22 +817,10 @@ ALTER TABLE `payroll`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `payslips`
---
-ALTER TABLE `payslips`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-
---
--- AUTO_INCREMENT for table `payslip_templates`
---
-ALTER TABLE `payslip_templates`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
 -- AUTO_INCREMENT for table `performance`
 --
 ALTER TABLE `performance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `policies`
@@ -1014,19 +856,19 @@ ALTER TABLE `system_settings`
 -- AUTO_INCREMENT for table `tasks`
 --
 ALTER TABLE `tasks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `teams`
 --
 ALTER TABLE `teams`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `team_members`
 --
 ALTER TABLE `team_members`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `todo_list`
@@ -1136,23 +978,6 @@ ALTER TABLE `payroll`
   ADD CONSTRAINT `payroll_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `payslips`
---
-ALTER TABLE `payslips`
-  ADD CONSTRAINT `payslips_ibfk_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `payslips_ibfk_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `payslips_ibfk_generated_by` FOREIGN KEY (`generated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `payslips_ibfk_template` FOREIGN KEY (`template_id`) REFERENCES `payslip_templates` (`id`) ON DELETE SET NULL;
-
---
--- Constraints for table `payslip_templates`
---
-ALTER TABLE `payslip_templates`
-  ADD CONSTRAINT `payslip_templates_ibfk_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `payslip_templates_ibfk_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `payslip_templates_ibfk_updated_by` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
-
---
 -- Constraints for table `performance`
 --
 ALTER TABLE `performance`
@@ -1224,6 +1049,81 @@ ALTER TABLE `users`
 --
 ALTER TABLE `user_preferences`
   ADD CONSTRAINT `user_preferences_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+-- --------------------------------------------------------
+-- Payslip templates for reusable, company-specific or global payslip layouts
+CREATE TABLE IF NOT EXISTS `payslip_templates` (
+  `id` int(11) NOT NULL,
+  `company_id` int(11) DEFAULT NULL COMMENT 'NULL = global template',
+  `name` varchar(150) NOT NULL,
+  `subject` varchar(255) DEFAULT 'Your payslip for {{period}}',
+  `body_html` mediumtext NOT NULL COMMENT 'HTML with placeholders like {{employee_name}}, {{net_salary}}',
+  `placeholders` json DEFAULT NULL COMMENT 'Optional list/metadata of placeholders',
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_by` int(11) DEFAULT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Stores generated payslips, independent of raw payroll rows for audit and templating
+CREATE TABLE IF NOT EXISTS `payslips` (
+  `id` int(11) NOT NULL,
+  `company_id` int(11) DEFAULT NULL,
+  `employee_id` int(11) NOT NULL,
+  `period` varchar(7) NOT NULL COMMENT 'YYYY-MM',
+  `currency` varchar(10) DEFAULT 'INR',
+  `earnings_json` json DEFAULT NULL,
+  `deductions_json` json DEFAULT NULL,
+  `gross_salary` decimal(12,2) NOT NULL,
+  `net_salary` decimal(12,2) NOT NULL,
+  `template_id` int(11) DEFAULT NULL,
+  `status` enum('generated','sent','cancelled') NOT NULL DEFAULT 'generated',
+  `generated_by` int(11) DEFAULT NULL,
+  `generated_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `sent_at` timestamp NULL DEFAULT NULL,
+  `pdf_path` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Indexes for the new tables
+ALTER TABLE `payslip_templates`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_company_id` (`company_id`),
+  ADD KEY `idx_is_active` (`is_active`),
+  ADD KEY `idx_created_by` (`created_by`),
+  ADD KEY `idx_updated_by` (`updated_by`);
+
+ALTER TABLE `payslips`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_company_id` (`company_id`),
+  ADD KEY `idx_employee_id` (`employee_id`),
+  ADD KEY `idx_period` (`period`),
+  ADD KEY `idx_template_id` (`template_id`),
+  ADD KEY `idx_status` (`status`);
+
+-- Auto increments
+ALTER TABLE `payslip_templates`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `payslips`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+-- Foreign keys
+ALTER TABLE `payslip_templates`
+  ADD CONSTRAINT `payslip_templates_ibfk_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `payslip_templates_ibfk_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `payslip_templates_ibfk_updated_by` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+ALTER TABLE `payslips`
+  ADD CONSTRAINT `payslips_ibfk_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `payslips_ibfk_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `payslips_ibfk_template` FOREIGN KEY (`template_id`) REFERENCES `payslip_templates` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `payslips_ibfk_generated_by` FOREIGN KEY (`generated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+-- Seed a default global payslip template
+INSERT INTO `payslip_templates` (`company_id`, `name`, `subject`, `body_html`, `placeholders`, `is_active`)
+VALUES (NULL, 'Default Payslip', 'Your payslip for {{period}}',
+  '<div style="font-family:Arial,sans-serif; padding:16px">\n  <h2>{{company_name}}</h2>\n  <h3>Payslip - {{period}}</h3>\n  <p><strong>Employee:</strong> {{employee_name}} ({{employee_code}})</p>\n  <p><strong>Department:</strong> {{department_name}} | <strong>Designation:</strong> {{designation_name}}</p>\n  <hr/>\n  <h4>Earnings</h4>\n  <table width="100%" cellspacing="0" cellpadding="6" border="1">\n    <tr><th align="left">Component</th><th align="right">Amount</th></tr>\n    {{earnings_rows}}\n  </table>\n  <h4 style="margin-top:16px">Deductions</h4>\n  <table width="100%" cellspacing="0" cellpadding="6" border="1">\n    <tr><th align="left">Component</th><th align="right">Amount</th></tr>\n    {{deductions_rows}}\n  </table>\n  <hr/>\n  <p><strong>Gross:</strong> {{currency}} {{gross_salary}} &nbsp; | &nbsp; <strong>Net Pay:</strong> {{currency}} {{net_salary}}</p>\n  <p><small>Generated on {{generated_at}}</small></p>\n</div>',
+  JSON_ARRAY('company_name','period','employee_name','employee_code','department_name','designation_name','earnings_rows','deductions_rows','gross_salary','net_salary','currency','generated_at'), 1);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
