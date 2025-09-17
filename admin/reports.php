@@ -13,10 +13,9 @@ require_once '../components/layout/header.php';
 <!-- Include Chart.js library -->
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
-    <div class="p-3 p-md-4 overflow-x-scroll" style="flex: 1;">
+    <div class="p-3 p-md-4" style="flex: 1;">
         <h2 class="h3 mb-4 text-gray-800"><i class="fas fa-shield-alt me-2"></i>Super Admin Analytics</h2>
 
-        <!-- Company Usage & Activity Row -->
         <div class="row">
             <div class="col-xl-6 mb-4">
                 <div class="card shadow-sm h-100">
@@ -36,7 +35,6 @@ require_once '../components/layout/header.php';
             </div>
         </div>
 
-        <!-- Company Directory Report -->
         <div class="row">
             <div class="col-12">
                 <div class="card shadow-sm">

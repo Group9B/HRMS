@@ -4,11 +4,6 @@
 :root {
 	--bs-card-cap-bg: rgba(var(--bs-body-color-rgb), 0.03);
 }
-/* 
-.hrms-header,
-.sidebar {
-	background-color: var(--bs-card-cap-bg) !important;
-} */
 
 .hrms-header {
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -203,7 +198,7 @@
 	padding-top: 0;
 }
 
-@media (max-width: 991.98px) {
+@media (max-width: 768px) {
 	#backdrop {
 		display: none;
 		position: absolute;
@@ -225,6 +220,11 @@
 		transition: left 0.3s ease;
 		z-index: 1050;
 	}
+}
+
+#sidebar .nav-item:hover {
+	background-color: var(--bs-secondary-bg);
+	border-radius: var(--bs-border-radius);
 }
 
 /* Attendance Page Styles */
