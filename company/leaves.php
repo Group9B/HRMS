@@ -17,9 +17,17 @@ require_once '../components/layout/header.php';
     <div class="p-3 p-md-4" style="flex: 1;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="h3 mb-0 text-gray-800"><i class="fas fa-plane-departure me-2"></i>Leave Management</h2>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#applyLeaveModal">
-                <i class="fas fa-plus me-2"></i>Apply for Leave
-            </button>
+            <div class="wrapper">
+                <?php if ($is_manager): ?>
+                    <a class="btn btn-primary" href="/hrms/company/leave_policy.php">
+                        <i class="fas fa-plus me-2"></i>Manage Leave Policy
+                    </a>
+                <?php elseif ($_SESSION['role_id'] !== 2): ?>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#applyLeaveModal">
+                        <i class="fas fa-plus me-2"></i>Apply for Leave
+                    </button>
+                <?php endif; ?>
+            </div>
         </div>
 
         <div class="card shadow-sm mb-4">

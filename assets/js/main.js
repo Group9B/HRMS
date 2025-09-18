@@ -112,20 +112,28 @@ function initializeTodoList(formSelector, listSelector) {
 					result.data.forEach((item) => {
 						const isCompleted = parseInt(item.is_completed) === 1;
 						const li = `
-                        <li data-id="${item.id}">
-                            <input class="form-check-input" type="checkbox" ${
-								isCompleted ? "checked" : ""
-							}>
-                            <span class="task-text ${
-								isCompleted ? "completed" : ""
-							}">${escapeHTML(item.task)}</span>
-                            <button class="btn btn-sm btn-outline-danger delete-btn"><i class="fas fa-trash"></i></button>
-                        </li>`;
+                            <li class="list-group-item d-flex justify-content-between align-items-center" data-id="${
+								item.id
+							}">
+                                <span class="task-text ${
+									isCompleted
+										? "text-decoration-line-through text-muted"
+										: ""
+								}">${escapeHTML(item.task)}</span>
+                                <div class="btn-group">
+                                    ${
+										!isCompleted
+											? '<button class="btn btn-sm btn-success complete-btn"><i class="fas fa-check"></i></button>'
+											: ""
+									}
+                                    <button class="btn btn-sm btn-danger delete-btn"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </li>`;
 						todoList.append(li);
 					});
 				} else {
 					todoList.append(
-						'<li class="text-muted text-center">No tasks yet. Add one above!</li>'
+						'<li class="list-group-item text-muted text-center">No tasks yet. Add one above!</li>'
 					);
 				}
 			});
@@ -135,27 +143,27 @@ function initializeTodoList(formSelector, listSelector) {
 		e.preventDefault();
 		const formData = new FormData(this);
 		formData.append("action", "add_todo");
-		fetch("/hrms/api/todo.php", {
-			method: "POST",
-			body: formData,
-		}).then(() => {
-			this.reset();
-			loadTodos();
-		});
+		fetch("/hrms/api/todo.php", { method: "POST", body: formData }).then(
+			() => {
+				this.reset();
+				loadTodos();
+			}
+		);
 	});
 
-	todoList.on("change", ".form-check-input", function () {
+	// New handler for the complete button
+	todoList.on("click", ".complete-btn", function () {
 		const li = $(this).closest("li");
 		const formData = new FormData();
 		formData.append("action", "update_todo_status");
 		formData.append("task_id", li.data("id"));
-		formData.append("is_completed", this.checked ? 1 : 0);
-		fetch("/hrms/api/todo.php", {
-			method: "POST",
-			body: formData,
-		}).then(() => loadTodos());
+		formData.append("is_completed", 1);
+		fetch("/hrms/api/todo.php", { method: "POST", body: formData }).then(
+			() => loadTodos()
+		);
 	});
 
+	// Existing handler for the delete button
 	todoList.on("click", ".delete-btn", function () {
 		if (confirm("Delete this task?")) {
 			const li = $(this).closest("li");

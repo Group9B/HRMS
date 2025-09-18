@@ -264,21 +264,6 @@ require_once '../components/layout/header.php';
 
 <?php require_once '../components/layout/footer.php'; ?>
 
-<style>
-.avatar-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(45deg, #4e73df, #36b9cc);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-}
-</style>
-
 <script>
 $(document).ready(function() {
     // Initialize DataTable
@@ -388,7 +373,7 @@ function removeMember(employeeId) {
 
 function viewMember(employeeId) {
     // Redirect to employee profile or show modal
-    window.open(`/hrms/employee/profile.php?employee_id=${employeeId}`, '_blank');
+    window.open(`/hrms/employee/profile.php?employee_id=${employeeId}`,'_self');
 }
 
 function deleteTeam() {

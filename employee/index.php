@@ -22,7 +22,7 @@ require_once '../components/layout/header.php';
         <!-- Stat Cards Row -->
         <div class="row">
             <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
+                <div class="card stat-card shadow-sm h-100">
                     <div class="card-body">
                         <div class="icon-circle bg-primary"><i class="fas fa-calendar-alt"></i></div>
                         <div>
@@ -33,7 +33,7 @@ require_once '../components/layout/header.php';
                 </div>
             </div>
             <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
+                <div class="card stat-card shadow-sm h-100">
                     <div class="card-body">
                         <div class="icon-circle bg-warning"><i class="fas fa-clock"></i></div>
                         <div>
@@ -44,18 +44,18 @@ require_once '../components/layout/header.php';
                 </div>
             </div>
             <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
+                <div class="card stat-card shadow-sm h-100">
                     <div class="card-body">
                         <div class="icon-circle bg-info"><i class="fas fa-tasks"></i></div>
                         <div>
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Tasks</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="stat-total-tasks">--</div>
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Pending Tasks</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="stat-pending-tasks">--</div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
+                <div class="card stat-card shadow-sm h-100">
                     <div class="card-body">
                         <div class="icon-circle bg-success"><i class="fas fa-check-circle"></i></div>
                         <div>
@@ -93,7 +93,10 @@ require_once '../components/layout/header.php';
                         <h6 class="m-0 font-weight-bold">My Personal To-Do List</h6>
                     </div>
                     <div class="card-body">
-                        <div id="todo-list-container"></div>
+                        <form id="todoForm" class="d-flex mb-3"><input type="text" name="task" class="form-control me-2"
+                                placeholder="Add a new task..." required><button type="submit"
+                                class="btn btn-primary">Add</button></form>
+                        <ul class="list-group" id="todoList"></ul>
                     </div>
                 </div>
             </div>
@@ -103,7 +106,7 @@ require_once '../components/layout/header.php';
 <?php require_once '../components/layout/footer.php'; ?>
 <script>
     $(function () {
-        initializeTodoList('#todoForm', '#todo-list-container');
+        initializeTodoList('#todoForm', '#todoList');
         loadDashboardStats();
         loadAttendanceStatus();
 
@@ -112,17 +115,15 @@ require_once '../components/layout/header.php';
     });
 
     function loadDashboardStats() {
-        fetch('/hrms/api/api_employees.php?action=get_stats')
+        fetch('/hrms/api/api_emp.php?action=get_stats')
             .then(res => res.json())
             .then(result => {
                 if (result.success) {
                     const stats = result.data;
                     $('#stat-leave-balance').text(`${stats.leave_balance} Days`);
                     $('#stat-pending-leaves').text(stats.pending_leaves);
-                    $('#stat-total-tasks').text(stats.total_tasks);
+                    $('#stat-pending-tasks').text(stats.pending_tasks);
                     $('#stat-completed-tasks').text(stats.completed_tasks);
-                } else {
-                    console.error("Failed to load dashboard stats.");
                 }
             });
     }
@@ -131,35 +132,47 @@ require_once '../components/layout/header.php';
         fetch('/hrms/api/api_employee_attendance.php?action=get_today_status')
             .then(res => res.json())
             .then(result => {
+                const statusDiv = $('#attendance-status');
+                const checkInBtn = $('#checkInBtn');
+                const checkOutBtn = $('#checkOutBtn');
+
+                // Always reset buttons to default state first
+                checkInBtn.prop('disabled', false).html('<i class="fas fa-sign-in-alt me-2"></i>Check In');
+                checkOutBtn.prop('disabled', false).html('<i class="fas fa-sign-out-alt me-2"></i>Check Out');
+
                 if (result.success) {
                     const data = result.data;
-                    const statusDiv = $('#attendance-status');
-                    const checkInBtn = $('#checkInBtn');
-                    const checkOutBtn = $('#checkOutBtn');
+                    let statusHTML = '';
 
-                    // --- FIX: Always reset buttons to default state first ---
-                    checkInBtn.prop('disabled', false).html('<i class="fas fa-sign-in-alt me-2"></i>Check In');
-                    checkOutBtn.prop('disabled', false).html('<i class="fas fa-sign-out-alt me-2"></i>Check Out');
+                    if (data && data.check_in) {
+                        const checkInStatus = data.check_in_status ? `<span class="badge bg-warning text-dark ms-2">${data.check_in_status}</span>` : '';
+                        statusHTML += `Checked In: <strong>${formatTime(data.check_in)}</strong>${checkInStatus}<br>`;
 
-                    // Now, apply the logic based on current status
-                    if (data && data.check_in && data.check_out) {
-                        statusDiv.html(`Checked In: <strong>${formatTime(data.check_in)}</strong><br>Checked Out: <strong>${formatTime(data.check_out)}</strong>`);
-                        checkInBtn.prop('disabled', true);
-                        checkOutBtn.prop('disabled', true);
-                    } else if (data && data.check_in) {
-                        statusDiv.html(`Checked In: <strong>${formatTime(data.check_in)}</strong><br>Status: <strong>Present</strong>`);
-                        checkInBtn.prop('disabled', true);
-                        checkOutBtn.prop('disabled', false);
+                        if (data.check_out) {
+                            const checkOutStatus = data.check_out_status ? `<span class="badge bg-danger ms-2">${data.check_out_status}</span>` : '';
+                            const durationStatus = data.duration_status ? `<br><span class="badge bg-danger mt-1">${data.duration_status}</span>` : '';
+                            statusHTML += `Checked Out: <strong>${formatTime(data.check_out)}</strong>${checkOutStatus}${durationStatus}`;
+                            checkInBtn.prop('disabled', true);
+                            checkOutBtn.prop('disabled', true);
+                        } else {
+                            statusHTML += `Status: <strong>Present</strong>`;
+                            checkInBtn.prop('disabled', true);
+                            checkOutBtn.prop('disabled', false);
+                        }
                     } else {
-                        statusDiv.html(`You have not checked in today.`);
+                        statusHTML = `You have not checked in today.`;
                         checkInBtn.prop('disabled', false);
                         checkOutBtn.prop('disabled', true);
                     }
+                    statusDiv.html(statusHTML);
                 } else {
-                    showToast(result.message || 'Could not load attendance status.', 'error');
+                    statusDiv.html('<span class="text-danger">Could not load attendance status.</span>');
+                    checkInBtn.prop('disabled', true);
+                    checkOutBtn.prop('disabled', true);
                 }
             });
     }
+
 
     function handleAttendanceAction(action) {
         const btn = $(`#${action === 'check_in' ? 'checkInBtn' : 'checkOutBtn'}`);
@@ -173,13 +186,12 @@ require_once '../components/layout/header.php';
                     loadAttendanceStatus();
                 } else {
                     showToast(result.message, 'error');
-                    // If there's an error, we still reload the status to reset the button
-                    loadAttendanceStatus();
+                    loadAttendanceStatus(); // Reload status to reset button on error
                 }
             })
             .catch(error => {
                 showToast('A network error occurred. Please try again.', 'error');
-                loadAttendanceStatus(); // Also reload on network error
+                loadAttendanceStatus();
             });
     }
 
@@ -188,6 +200,6 @@ require_once '../components/layout/header.php';
         const [hour, minute] = timeString.split(':');
         const date = new Date();
         date.setHours(hour, minute);
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
     }
 </script>
