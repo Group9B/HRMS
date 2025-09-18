@@ -10,21 +10,12 @@ if ($roleName !== 'Manager') {
   header('Location: /hrms/pages/unauthorized.php');
   exit;
 }
+include_once '../components/layout/header.php';
 ?>
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Payslips</title>
-    <link rel="stylesheet" href="/hrms/assets/css/bootstrap.css">
-    <link rel="stylesheet" href="/hrms/assets/css/datatable.css">
-    <link rel="stylesheet" href="/hrms/assets/css/datatable_bootstrap_responsive.css">
-  </head>
-  <body>
-    <?php include_once '../components/layout/header.php'; ?>
-    <?php include_once '../components/layout/sidebar.php'; ?>
-    <main class="container-fluid" style="margin-left: 260px;">
+
+<div class="d-flex">
+    <?php require_once '../components/layout/sidebar.php'; ?>
+    <div class="p-3 p-md-4" style="flex: 1;">
       <div class="row mt-4">
         <div class="col-12">
           <h3 class="mb-3">Team Payslips</h3>
@@ -51,13 +42,9 @@ if ($roleName !== 'Manager') {
           </div>
         </div>
       </div>
-    </main>
-
-    <script src="/hrms/assets/js/jquery.js"></script>
-    <script src="/hrms/assets/js/bootstrap.js"></script>
-    <script src="/hrms/assets/js/datatable.js"></script>
-    <script src="/hrms/assets/js/main.js"></script>
-    <script src="/hrms/assets/js/datatable_bootstrap.js"></script>
+    </div>
+</div>
+      <?php require_once '../components/layout/footer.php';?>
     <script>
       $(function() {
         const $tbody = $('#payslipsTable tbody');
