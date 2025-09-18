@@ -211,7 +211,13 @@ switch ($action) {
             break;
         }
 
-        $response = ['success' => true, 'data' => ['payslip_id' => $insert['insert_id']]];
+        // Return the freshly created payslip row with joined fields for live update
+        $rowRes = query($mysqli, "SELECT p.*, e.first_name, e.last_name, e.employee_code FROM payslips p JOIN employees e ON p.employee_id = e.id WHERE p.id = ?", [$insert['insert_id']]);
+        if ($rowRes['success'] && !empty($rowRes['data'])) {
+            $response = ['success' => true, 'data' => ['payslip_id' => $insert['insert_id'], 'payslip' => $rowRes['data'][0]]];
+        } else {
+            $response = ['success' => true, 'data' => ['payslip_id' => $insert['insert_id']]];
+        }
         break;
 
     case 'send_payslip':
@@ -255,7 +261,7 @@ switch ($action) {
 
         // Determine sender
         $emailFromSetting = query($mysqli, "SELECT setting_value FROM system_settings WHERE setting_key = 'company_email' LIMIT 1");
-        $emailFrom = ($emailFromSetting['success'] && !empty($emailFromSetting['data'])) ? ($emailFromSetting['data'][0]['setting_value']) : null;
+        $emailFrom = ($emailFromSetting['success'] && !empty($emailFromSetting['data'])) ? ($emailFromSetting['data'][0]['setting_value']) : 'no-reply@localhost';
 
         // Recipients
         $recipients = [];
@@ -284,7 +290,7 @@ switch ($action) {
         foreach ($recipients as $rcpt) {
             if (empty($rcpt['email'])) { $allLogged = false; $errors[] = 'Empty email for a recipient'; continue; }
             $logRes = query($mysqli, "INSERT INTO email_logs (user_id, email_to, email_from, subject, body, template_id, status, sent_at) VALUES (?,?,?,?,?,?, 'sent', NOW())", [
-                $rcpt['user_id'], $rcpt['email'], $emailFrom, $subject, $html, $ps['template_id']
+                $rcpt['user_id'], $rcpt['email'], $emailFrom, $subject, $html, null
             ]);
             if (!$logRes['success']) { $allLogged = false; $errors[] = $logRes['error'] ?? 'log failed'; }
 
@@ -300,7 +306,9 @@ switch ($action) {
         $upd = query($mysqli, "UPDATE payslips SET status = 'sent', sent_at = NOW() WHERE id = ?", [$payslipId]);
 
         if ($allLogged && $upd['success']) {
-            $response = ['success' => true, 'message' => 'Payslip sent.'];
+            // Fetch updated row for UI without full reload
+            $rowRes = query($mysqli, "SELECT p.*, e.first_name, e.last_name, e.employee_code FROM payslips p JOIN employees e ON p.employee_id = e.id WHERE p.id = ?", [$payslipId]);
+            $response = ['success' => true, 'message' => 'Payslip sent.', 'data' => $rowRes['success'] && !empty($rowRes['data']) ? $rowRes['data'][0] : null];
         } else {
             $response = ['success' => false, 'message' => 'Failed to send payslip.', 'errors' => $errors];
         }

@@ -41,54 +41,60 @@ require_once '../components/layout/header.php';
                   <input type="number" step="0.01" id="grossInput" class="form-control" required>
                 </div>
                 <div class="col-md-2">
-                  <label class="form-label">Deductions</label>
+                  <label class="form-label">Base Deductions</label>
                   <input type="number" step="0.01" id="deductionsInput" class="form-control" value="0">
                 </div>
-                <div class="col-md-4">
-                  <label class="form-label">Template</label>
-                  <select id="templateSelect" class="form-select"></select>
+                <div class="col-12">
+                  <label class="form-label">Optional Components (select to include)</label>
+                  <div class="row g-2">
+                    <div class="col-md-2">
+                      <div class="form-check">
+                        <input class="form-check-input opt-comp" type="checkbox" id="optPf" data-type="deduction" data-label="PF" data-target="#optPfAmt">
+                        <label class="form-check-label" for="optPf">PF</label>
+                      </div>
+                      <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optPfAmt" placeholder="0.00" disabled>
+                    </div>
+                    <div class="col-md-2">
+                      <div class="form-check">
+                        <input class="form-check-input opt-comp" type="checkbox" id="optEsi" data-type="deduction" data-label="ESI" data-target="#optEsiAmt">
+                        <label class="form-check-label" for="optEsi">ESI</label>
+                      </div>
+                      <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optEsiAmt" placeholder="0.00" disabled>
+                    </div>
+                    <div class="col-md-2">
+                      <div class="form-check">
+                        <input class="form-check-input opt-comp" type="checkbox" id="optInsurance" data-type="deduction" data-label="Insurance" data-target="#optInsuranceAmt">
+                        <label class="form-check-label" for="optInsurance">Insurance</label>
+                      </div>
+                      <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optInsuranceAmt" placeholder="0.00" disabled>
+                    </div>
+                    <div class="col-md-2">
+                      <div class="form-check">
+                        <input class="form-check-input opt-comp" type="checkbox" id="optGratuity" data-type="deduction" data-label="Gratuity" data-target="#optGratuityAmt">
+                        <label class="form-check-label" for="optGratuity">Gratuity</label>
+                      </div>
+                      <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optGratuityAmt" placeholder="0.00" disabled>
+                    </div>
+                    <div class="col-md-2">
+                      <div class="form-check">
+                        <input class="form-check-input opt-comp" type="checkbox" id="optBonus" data-type="earning" data-label="Bonus" data-target="#optBonusAmt">
+                        <label class="form-check-label" for="optBonus">Bonus</label>
+                      </div>
+                      <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optBonusAmt" placeholder="0.00" disabled>
+                    </div>
+                    <div class="col-md-2">
+                      <div class="form-check">
+                        <input class="form-check-input opt-comp" type="checkbox" id="optShares" data-type="earning" data-label="Shares" data-target="#optSharesAmt">
+                        <label class="form-check-label" for="optShares">Shares</label>
+                      </div>
+                      <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optSharesAmt" placeholder="0.00" disabled>
+                    </div>
+                  </div>
+                  <small class="text-muted">Only one standard template is used; selected components will be included with their amounts.</small>
                 </div>
                 <div class="col-12 d-flex align-items-center gap-3">
                   <button type="submit" class="btn btn-primary">Generate Payslip</button>
                   <div id="generateStatus" class="text-muted"></div>
-                </div>
-              </form>
-            </div>
-          </div>
-          <div class="card mb-4">
-            <div class="card-header">Create Custom Payslip Template</div>
-            <div class="card-body">
-              <form id="templateForm" class="row g-3">
-                <div class="col-md-4">
-                  <label class="form-label">Template Name</label>
-                  <input type="text" id="tplName" class="form-control" required>
-                </div>
-                <div class="col-md-8">
-                  <label class="form-label">Email Subject</label>
-                  <input type="text" id="tplSubject" class="form-control" placeholder="Your payslip for {{period}}" value="Your payslip for {{period}}">
-                </div>
-                <div class="col-12">
-                  <label class="form-label">HTML Body (with placeholders)</label>
-                  <textarea id="tplBody" class="form-control" rows="8" placeholder="Use placeholders like {{company_name}}, {{employee_name}}, {{earnings_rows}}, {{deductions_rows}}, {{gross_salary}}, {{net_salary}}"></textarea>
-                </div>
-                <div class="col-12">
-                  <label class="form-label">Optional Components</label>
-                  <div class="row">
-                    <div class="col-md-2"><div class="form-check"><input class="form-check-input tpl-comp" type="checkbox" value="insurance" id="compInsurance"><label class="form-check-label" for="compInsurance">Insurance</label></div></div>
-                    <div class="col-md-2"><div class="form-check"><input class="form-check-input tpl-comp" type="checkbox" value="pf" id="compPf"><label class="form-check-label" for="compPf">PF</label></div></div>
-                    <div class="col-md-2"><div class="form-check"><input class="form-check-input tpl-comp" type="checkbox" value="esi" id="compEsi"><label class="form-check-label" for="compEsi">ESI</label></div></div>
-                    <div class="col-md-2"><div class="form-check"><input class="form-check-input tpl-comp" type="checkbox" value="gratuity" id="compGratuity"><label class="form-check-label" for="compGratuity">Gratuity</label></div></div>
-                    <div class="col-md-2"><div class="form-check"><input class="form-check-input tpl-comp" type="checkbox" value="shares" id="compShares"><label class="form-check-label" for="compShares">Shares</label></div></div>
-                    <div class="col-md-2"><div class="form-check"><input class="form-check-input tpl-comp" type="checkbox" value="bonus" id="compBonus"><label class="form-check-label" for="compBonus">Bonus</label></div></div>
-                  </div>
-                </div>
-                <div class="col-12 d-flex align-items-center gap-3">
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="tplActive" checked>
-                    <label class="form-check-label" for="tplActive">Active</label>
-                  </div>
-                  <button type="submit" class="btn btn-success">Create Template</button>
-                  <div id="tplStatus" class="text-muted"></div>
                 </div>
               </form>
             </div>
@@ -127,8 +133,7 @@ require_once '../components/layout/header.php';
         const $templateSelect = $('#templateSelect');
         const $generateForm = $('#generateForm');
         const $generateStatus = $('#generateStatus');
-        const $templateForm = $('#templateForm');
-        const $tplStatus = $('#tplStatus');
+        // removed template creation controls
 
         function loadPayslips() {
           $.getJSON('/hrms/api/api_payroll.php?action=get_company_payslips', function(res) {
@@ -190,6 +195,30 @@ require_once '../components/layout/header.php';
           });
         }
 
+        function collectSelectedComponents() {
+          const earnings = [];
+          const deductions = [];
+          $('.opt-comp').each(function(){
+            const $cb = $(this);
+            const target = $($cb.data('target'));
+            const label = $cb.data('label');
+            const type = $cb.data('type');
+            if ($cb.is(':checked')) {
+              const amt = parseFloat(target.val()||'0') || 0;
+              if (amt > 0) {
+                if (type === 'earning') earnings.push({ name: label, amount: amt });
+                if (type === 'deduction') deductions.push({ name: label, amount: amt });
+              }
+            }
+          });
+          return { earnings, deductions };
+        }
+
+        $('.opt-comp').on('change input', function(){
+          const targetSel = $(this).data('target');
+          $(targetSel).prop('disabled', !$(this).is(':checked'));
+        });
+
         $generateForm.on('submit', function(e){
           e.preventDefault();
           const employee_id = parseInt($employeeSelect.val()||'0',10);
@@ -206,15 +235,39 @@ require_once '../components/layout/header.php';
           form.append('period', period);
           form.append('currency', currency);
           if (template_id) form.append('template_id', template_id);
-          const earnings = [{ name: 'Gross', amount: gross }];
-          const deductionsArr = deductions ? [{ name: 'Deductions', amount: deductions }] : [];
+          const selected = collectSelectedComponents();
+          const earnings = [{ name: 'Gross', amount: gross }, ...selected.earnings];
+          const deductionsArr = (deductions ? [{ name: 'Base Deductions', amount: deductions }] : []).concat(selected.deductions);
           form.append('earnings', JSON.stringify(earnings));
           form.append('deductions', JSON.stringify(deductionsArr));
           fetch('/hrms/api/api_payroll.php', { method: 'POST', body: form })
             .then(r=>r.json()).then(function(res){
               if (res && res.success) {
                 $generateStatus.text('Generated payslip #'+res.data.payslip_id);
-                loadPayslips();
+                // Optimistically update table without full reload if data returned
+                if (res.data && res.data.payslip) {
+                  const p = res.data.payslip;
+                  const empName = (p.first_name || '') + ' ' + (p.last_name || '');
+                  const row = '<tr>'+
+                    '<td>' + p.id + '</td>'+
+                    '<td>' + empName + '</td>'+
+                    '<td>' + (p.employee_code || '') + '</td>'+
+                    '<td>' + (p.period || '') + '</td>'+
+                    '<td>' + (parseFloat(p.gross_salary).toFixed(2)) + '</td>'+
+                    '<td>' + (parseFloat(p.net_salary).toFixed(2)) + '</td>'+
+                    '<td>' + (p.status || '') + '</td>'+
+                    '<td>' + (p.generated_at || '') + '</td>'+
+                    '<td><button class="btn btn-sm btn-outline-primary send-btn" data-id="'+p.id+'">Send</button></td>'+
+                  '</tr>';
+                  if ($.fn.DataTable.isDataTable('#payslipsTable')) {
+                    const dt = $('#payslipsTable').DataTable();
+                    dt.row.add($(row)).draw(false);
+                  } else {
+                    $tbody.prepend(row);
+                  }
+                } else {
+                  loadPayslips();
+                }
               } else {
                 $generateStatus.text('Failed to generate');
               }
@@ -234,43 +287,33 @@ require_once '../components/layout/header.php';
             .then(r=>r.json()).then(function(res){
               if (res && res.success) {
                 alert('Payslip sent');
-                loadPayslips();
+                // Update status cell in place if row returned
+                if (res.data && res.data.id) {
+                  const id = res.data.id;
+                  $('#payslipsTable tbody tr').each(function(){
+                    const $tr = $(this);
+                    const rowId = parseInt($tr.find('td').eq(0).text(),10);
+                    if (rowId === id) {
+                      $tr.find('td').eq(6).text(res.data.status || 'sent');
+                      $tr.find('td').eq(7).text(res.data.generated_at || '');
+                    }
+                  });
+                } else {
+                  loadPayslips();
+                }
               } else {
                 alert('Failed to send');
               }
             }).catch(function(){ alert('Error sending'); });
         });
 
+        // removed "Send to Mail" ad-hoc button
+
         loadPayslips();
         loadEmployees();
         loadTemplates();
 
-        $templateForm.on('submit', function(e){
-          e.preventDefault();
-          const name = $('#tplName').val().trim();
-          const subject = $('#tplSubject').val().trim() || 'Your payslip for {{period}}';
-          const body = $('#tplBody').val().trim();
-          const is_active = $('#tplActive').is(':checked') ? 1 : 0;
-          const components = $('.tpl-comp:checked').map(function(){ return $(this).val(); }).get();
-          if (!name || !body) { $tplStatus.text('Name and body required'); return; }
-          const form = new FormData();
-          form.append('action','create_template');
-          form.append('name', name);
-          form.append('subject', subject);
-          form.append('body_html', body);
-          form.append('components', JSON.stringify(components));
-          form.append('is_active', is_active);
-          $tplStatus.text('Creating...');
-          fetch('/hrms/api/api_payroll.php', { method:'POST', body: form })
-            .then(r=>r.json()).then(function(res){
-              if (res && res.success) {
-                $tplStatus.text('Template created');
-                loadTemplates();
-              } else {
-                $tplStatus.text('Failed to create template');
-              }
-            }).catch(function(){ $tplStatus.text('Error creating template'); });
-        });
+        // template creation removed
       });
     </script>
 
