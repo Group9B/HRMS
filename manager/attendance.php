@@ -428,21 +428,39 @@ require_once '../components/layout/header.php';
     font-size: 14px;
 }
 
+.stat-card {
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+}
 .stat-card .card-body {
     display: flex;
     align-items: center;
+    gap: 14px;
+    padding-top: 14px;
+    padding-bottom: 14px;
 }
 
 .icon-circle {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 15px;
+    margin-right: 6px;
     color: white;
     font-size: 20px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+.stat-card .text-xs {
+    letter-spacing: .03em;
+    opacity: .9;
+}
+
+.stat-card .h5 {
+    margin: 0;
 }
 </style>
 
@@ -487,8 +505,24 @@ function markAttendance() {
 }
 
 function editAttendance(attendanceId) {
-    // Redirect to edit page or show edit modal
-    window.location.href = `/hrms/manager/edit_attendance.php?id=${attendanceId}`;
+    // Load details and prefill the existing Mark Attendance modal for inline editing
+    fetch(`/hrms/api/api_manager.php?action=get_attendance_details&attendance_id=${attendanceId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const a = data.data;
+                $('#attendance_employee').val(a.employee_id);
+                $('#attendance_date').val(a.date);
+                $('#check_in_time').val(a.check_in || '');
+                $('#check_out_time').val(a.check_out || '');
+                $('#attendance_status').val(a.status);
+                $('#attendance_remarks').val(a.remarks || '');
+                $('#markAttendanceModal').modal('show');
+            } else {
+                showToast(data.message || 'Failed to load attendance details', 'error');
+            }
+        })
+        .catch(() => showToast('Failed to load attendance details', 'error'));
 }
 
 function viewAttendanceDetails(attendanceId) {

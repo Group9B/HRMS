@@ -266,21 +266,39 @@ require_once '../components/layout/header.php';
     font-size: 14px;
 }
 
+.stat-card {
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+}
 .stat-card .card-body {
     display: flex;
     align-items: center;
+    gap: 14px;
+    padding-top: 14px;
+    padding-bottom: 14px;
 }
 
 .icon-circle {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 15px;
+    margin-right: 6px;
     color: white;
     font-size: 20px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+.stat-card .text-xs {
+    letter-spacing: .03em;
+    opacity: .9;
+}
+
+.stat-card .h5 {
+    margin: 0;
 }
 </style>
 
@@ -318,8 +336,8 @@ function loadTeamStats() {
 }
 
 function viewEmployee(employeeId) {
-    // Redirect to employee details page or show modal
-    window.open(`/hrms/employee/profile.php?employee_id=${employeeId}`, '_blank');
+    // Open employee profile in same tab; managers are allowed via updated employee/profile.php
+    window.location.href = `/hrms/employee/profile.php?employee_id=${employeeId}`;
 }
 
 function assignTask(employeeId) {
