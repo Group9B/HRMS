@@ -1,13 +1,15 @@
 // --- Theme Toggle (from your original file) ---
-document.getElementById("toggleThemeBtn").addEventListener("click", () => {
-	const html = document.documentElement;
-	const currentTheme = html.getAttribute("data-bs-theme");
-	const newTheme = currentTheme === "dark" ? "light" : "dark";
-	html.style.transition = "background-color 0.3s ease";
-	html.setAttribute("data-bs-theme", newTheme);
-	localStorage.setItem("theme", newTheme);
-});
-
+const themeToggleBtn = document.getElementById("toggleThemeBtn");
+if (themeToggleBtn) {
+	themeToggleBtn.addEventListener("click", () => {
+		const html = document.documentElement;
+		const currentTheme = html.getAttribute("data-bs-theme");
+		const newTheme = currentTheme === "dark" ? "light" : "dark";
+		html.style.transition = "background-color 0.3s ease";
+		html.setAttribute("data-bs-theme", newTheme);
+		localStorage.setItem("theme", newTheme);
+	});
+}
 document.addEventListener("DOMContentLoaded", () => {
 	const savedTheme = localStorage.getItem("theme");
 	if (savedTheme) {

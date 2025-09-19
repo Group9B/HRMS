@@ -62,18 +62,12 @@ $is_site_active = query($mysqli, "SELECT setting_value from system_settings WHER
                     <a href="index.php" class="navbar-brand d-flex align-items-center text-decoration-none">
                         <img src="/hrms/assets/img/SS.png" alt="" height="40"
                             class="d-inline-block align-text-top pe-1">
-                        <h2 class="m-0 d-none d-md-block">Staff Sync</h2>
-                        <h2 class="m-0 d-block d-md-none">SS</h2>
+                        <h2 class="m-0 d-none d-md-block h4 fw-medium">Staff Sync</h2>
+                        <h2 class="m-0 d-block d-md-none h4">SS</h2>
                     </a>
                 </div>
             </div>
             <div class="wrapper d-flex align-items-center justify-content-end gap-3">
-                <!-- theme toggle -->
-                <div class="theme-toggle-wrapper">
-                    <div id="toggleThemeBtn" class="theme-toggle">
-                        <div class="toggle-circle"></div>
-                    </div>
-                </div>
                 <?php if (isLoggedIn()): ?>
                     <?php if (1 === 0): ?>
                         <div class="notifications">
@@ -103,6 +97,16 @@ $is_site_active = query($mysqli, "SELECT setting_value from system_settings WHER
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="userMenuButton">
                                 <li><a class="dropdown-item" href="ok.php">Profile</a></li>
                                 <li><a class="dropdown-item" href="#">Settings</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li>
+                                    <div class="theme-toggle-wrapper">
+                                        <div id="toggleThemeBtn" class="theme-toggle">
+                                            <div class="toggle-circle"></div>
+                                        </div>
+                                    </div>
+                                </li>
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>
