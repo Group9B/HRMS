@@ -71,6 +71,13 @@ switch ($_SESSION['role_id']) {
         'permission' => null,
         'submenu' => []
       ],
+      'Recruitment' => [
+        'title' => 'Recruitment Management',
+        'icon' => 'fas fa-user-plus',
+        'url' => '/hrms/company/recruitment.php',
+        'permission' => null,
+        'submenu' => []
+      ],
       'Attendence' => [
         'title' => 'Attendence Management',
         'icon' => 'fas fa-calendar-check',
