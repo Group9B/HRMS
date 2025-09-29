@@ -25,10 +25,10 @@ switch ($role_id) {
         $redirect_path = '/hrms/admin/index.php';
         break;
     case 2: // Company Admin
-        $redirect_path = '/hrms/admin/index.php';
+        $redirect_path = '/hrms/company/index.php';
         break;
     case 3: // HR Manager
-        $redirect_path = '/hrms/admin/index.php';
+        $redirect_path = '/hrms/company/index.php';
         break;
     case 4: // Employee
         $redirect_path = '/hrms/employee/index.php';
@@ -37,8 +37,6 @@ switch ($role_id) {
         $redirect_path = '/hrms/manager/index.php';
         break;
     default:
-        // If the user has an unknown role, it's safest to log them out
-        // and send them back to the login page for security.
         session_destroy();
         redirect('/hrms/auth/login.php?error=invalid_role');
         exit();

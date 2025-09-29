@@ -86,7 +86,6 @@ require_once '../components/layout/header.php';
 
     <!-- Main Content Row -->
     <div class="row">
-      <!-- Pending Leave Requests -->
       <div class="col-lg-8 mb-4">
         <div class="card shadow-sm h-100">
           <div class="card-header d-flex justify-content-between align-items-center">
@@ -113,8 +112,6 @@ require_once '../components/layout/header.php';
           </div>
         </div>
       </div>
-
-      <!-- Quick Actions -->
       <div class="col-lg-4 mb-4">
         <div class="card shadow-sm h-100">
           <div class="card-header">
@@ -135,7 +132,6 @@ require_once '../components/layout/header.php';
     </div>
 
     <div class="row">
-      <!-- Recent Hires -->
       <div class="col-lg-6 mb-4">
         <div class="card shadow-sm h-100">
           <div class="card-header">

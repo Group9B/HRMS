@@ -2,7 +2,7 @@
 require_once '../config/db.php';
 require_once '../includes/functions.php';
 $title = "Company Dashboard";
-
+$page_name = "Company Dashboard";
 // --- SECURITY & SESSION ---
 if (!isLoggedIn()) {
     redirect("/hrms/auth/login.php");
@@ -18,7 +18,7 @@ $company_id = $_SESSION['company_id'];
 // --- DATA FETCHING (Scoped to the Company Admin's Company) ---
 
 // Stat Card: Total Employees in the company
-$employees_result = query($mysqli, "SELECT COUNT(e.id) as count FROM employees e JOIN departments d ON e.department_id = d.id WHERE d.company_id = ?", [$company_id]);
+$employees_result = query($mysqli, "SELECT COUNT(e.id) as count FROM employees e JOIN departments d ON e.department_id = d.id WHERE d.company_id = ? and e.status = 'active'", [$company_id]);
 $total_employees = $employees_result['success'] ? $employees_result['data'][0]['count'] : 0;
 
 // Stat Card: Total Users in the company
@@ -61,19 +61,15 @@ require_once '../components/layout/header.php';
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
-
-        <!-- Page Heading -->
-        <h2 class="h3 mb-4 text-gray-800"><i class="fas fa-tachometer-alt me-2"></i>Company Dashboard</h2>
-
-        <!-- Stat Cards Row -->
         <div class="row">
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-primary"><i class="fas fa-users-cog"></i></div>
+                        <div class="icon-circle bg-primary-subtle"><i
+                                class="fas fa-users-line text-primary-emphasis"></i></div>
                         <div>
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Employees</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $total_employees ?></div>
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Total Employees</div>
+                            <div class="h5 mb-0 font-weight-bold text-muted"><?= $total_employees ?></div>
                         </div>
                     </div>
                 </div>
@@ -81,10 +77,11 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-success"><i class="fas fa-user-check"></i></div>
+                        <div class="icon-circle bg-success-subtle"><i
+                                class="fas fa-user-check text-success-emphasis"></i></div>
                         <div>
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Users</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $total_users ?></div>
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Total Users</div>
+                            <div class="h5 mb-0 font-weight-bold text-muted"><?= $total_users ?></div>
                         </div>
                     </div>
                 </div>
@@ -92,10 +89,11 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-info"><i class="fas fa-sitemap"></i></div>
+                        <div class="icon-circle bg-info-subtle"><i class="fas text-info-emphasis fa-sitemap"></i></div>
                         <div>
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Departments</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $total_departments ?></div>
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Departments
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-muted"><?= $total_departments ?></div>
                         </div>
                     </div>
                 </div>
@@ -103,20 +101,18 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-warning"><i class="fas fa-user-clock"></i></div>
+                        <div class="icon-circle bg-warning-subtle"><i
+                                class="fas fa-user-clock text-warning-emphasis"></i></div>
                         <div>
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">On Leave Today</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $on_leave_today ?></div>
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">On Leave Today</div>
+                            <div class="h5 mb-0 font-weight-bold text-muted"><?= $on_leave_today ?></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Main Content Row -->
         <div class="row">
-
-            <!-- Recent Hires Column -->
             <div class="col-lg-8 mb-4">
                 <div class="card main-content-card shadow-sm">
                     <div class="card-header py-3">
@@ -139,6 +135,7 @@ require_once '../components/layout/header.php';
                                             Hired on <?= date('F j, Y', strtotime($hire['date_of_joining'])); ?>
                                         </div>
                                     </div>
+
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <div class="text-center text-muted p-4">No recent hires to display.</div>
@@ -148,7 +145,6 @@ require_once '../components/layout/header.php';
                 </div>
             </div>
 
-            <!-- Quick Actions Column -->
             <div class="col-lg-4 mb-4">
                 <div class="card main-content-card shadow-sm">
                     <div class="card-header py-3">
@@ -156,13 +152,15 @@ require_once '../components/layout/header.php';
                     </div>
                     <div class="card-body quick-actions">
                         <div class="d-grid gap-2">
-                            <a href="employees.php" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add New
+                            <a href="employees.php" class="btn bg-dark-subtle"><i class="fas fa-user-plus"></i>
+                                Add New
                                 Employee</a>
-                            <a href="departments.php" class="btn btn-success"><i class="fas fa-sitemap"></i> Manage
+                            <a href="organization.php" class="btn bg-dark-subtle"><i class="fas fa-sitemap"></i> Manage
                                 Departments</a>
-                            <a href="attendance.php" class="btn btn-info"><i class="fas fa-calendar-check"></i> View
+                            <a href="attendance.php" class="btn bg-dark-subtle"><i class="fas fa-calendar-check"></i>
+                                View
                                 Attendance</a>
-                            <a href="#" class="btn btn-warning text-dark"
+                            <a href="#" class="btn bg-dark-subtle"
                                 onclick="alert('This Feature will be Available soon..!');"><i
                                     class="fas fa-chart-bar"></i>
                                 View Reports</a>

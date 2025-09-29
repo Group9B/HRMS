@@ -56,6 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             break;
                         default:
                             http_response_code(404);
+                            redirect("/hrms/pages/404.php");
                             break;
                     }
                     exit();

@@ -18,8 +18,6 @@ require_once '../components/layout/header.php';
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
-        <h2 class="h3 mb-4 text-gray-800"><i class="fas fa-sitemap me-2"></i>Organization Structure</h2>
-
         <ul class="nav nav-tabs" id="orgTabs" role="tablist">
             <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab"
                     data-bs-target="#departments-tab" type="button">Departments</button></li>

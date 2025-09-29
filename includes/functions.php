@@ -24,6 +24,30 @@ function requireRole(array $allowedRoleNames)
     }
 }
 
+function render_setting_field($setting)
+{
+    $key = htmlspecialchars($setting['setting_key']);
+    $value = htmlspecialchars($setting['setting_value']);
+    $label = ucwords(str_replace('_', ' ', $key));
+    $description = htmlspecialchars($setting['description']);
+
+    $html = "<div class='mb-3'>";
+    $html .= "<label for='$key' class='form-label'>$label</label>";
+
+    if ($key === 'maintenance_mode') {
+        $html .= "<select class='form-select' id='$key' name='$key'>";
+        $html .= "<option value='0'" . ($value == '0' ? ' selected' : '') . ">Off</option>";
+        $html .= "<option value='1'" . ($value == '1' ? ' selected' : '') . ">On</option>";
+        $html .= "</select>";
+    } else {
+        $html .= "<input type='text' class='form-control' id='$key' name='$key' value='$value'>";
+    }
+
+    $html .= "<div class='form-text'>$description</div></div>";
+
+    return $html;
+}
+
 /**
  * Simple placeholder renderer: replaces {{key}} in template with given values.
  */
@@ -34,7 +58,7 @@ function renderTemplateString(string $template, array $data): string
         if (is_array($value) || is_object($value)) {
             $replacements['{{' . $key . '}}'] = '';
         } else {
-            $replacements['{{' . $key . '}}'] = (string)$value;
+            $replacements['{{' . $key . '}}'] = (string) $value;
         }
     }
     return strtr($template, $replacements);
@@ -48,8 +72,8 @@ function buildAmountRows(array $items): string
 {
     $rows = '';
     foreach ($items as $item) {
-        $name = htmlspecialchars((string)($item['name'] ?? ''), ENT_QUOTES, 'UTF-8');
-        $amount = number_format((float)($item['amount'] ?? 0), 2);
+        $name = htmlspecialchars((string) ($item['name'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $amount = number_format((float) ($item['amount'] ?? 0), 2);
         $rows .= '<tr><td>' . $name . '</td><td align="right">' . $amount . '</td></tr>';
     }
     if ($rows === '') {

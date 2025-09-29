@@ -99,7 +99,8 @@ require_once '../components/layout/header.php';
                 <div class="row">
                     <div class="col-md-8">
                         <h5 class="card-title"><?= htmlspecialchars($team['name']) ?></h5>
-                        <p class="card-text text-muted"><?= htmlspecialchars($team['description'] ?: 'No description provided') ?></p>
+                        <p class="card-text text-muted">
+                            <?= htmlspecialchars($team['description'] ?: 'No description provided') ?></p>
                         <div class="d-flex gap-4">
                             <div>
                                 <small class="text-muted">Created:</small>
@@ -153,8 +154,11 @@ require_once '../components/layout/header.php';
                                                     <?= strtoupper(substr($member['first_name'], 0, 1) . substr($member['last_name'], 0, 1)) ?>
                                                 </div>
                                                 <div>
-                                                    <div class="fw-bold"><?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?></div>
-                                                    <small class="text-muted"><?= htmlspecialchars($member['employee_code'] ?? 'N/A') ?></small>
+                                                    <div class="fw-bold">
+                                                        <?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?>
+                                                    </div>
+                                                    <small
+                                                        class="text-muted"><?= htmlspecialchars($member['employee_code'] ?? 'N/A') ?></small>
                                                 </div>
                                             </div>
                                         </td>
@@ -164,10 +168,13 @@ require_once '../components/layout/header.php';
                                         <td><?= date('M j, Y', strtotime($member['assigned_at'])) ?></td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-info" onclick="viewMember(<?= $member['employee_id'] ?>)" title="View Details">
+                                                <button class="btn btn-outline-info"
+                                                    onclick="viewMember(<?= $member['employee_id'] ?>)" title="View Details">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <button class="btn btn-outline-danger" onclick="removeMember(<?= $member['employee_id'] ?>)" title="Remove from Team">
+                                                <button class="btn btn-outline-danger"
+                                                    onclick="removeMember(<?= $member['employee_id'] ?>)"
+                                                    title="Remove from Team">
                                                     <i class="fas fa-user-minus"></i>
                                                 </button>
                                             </div>
@@ -192,7 +199,6 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
-<!-- Add Members Modal -->
 <div class="modal fade" id="addMembersModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -208,10 +214,14 @@ require_once '../components/layout/header.php';
                             <?php foreach ($available_employees as $employee): ?>
                                 <div class="col-md-6 col-lg-4">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="employee_ids[]" value="<?= $employee['id'] ?>" id="add_emp_<?= $employee['id'] ?>">
+                                        <input class="form-check-input" type="checkbox" name="employee_ids[]"
+                                            value="<?= $employee['id'] ?>" id="add_emp_<?= $employee['id'] ?>">
                                         <label class="form-check-label" for="add_emp_<?= $employee['id'] ?>">
-                                            <div class="fw-bold"><?= htmlspecialchars($employee['first_name'] . ' ' . $employee['last_name']) ?></div>
-                                            <small class="text-muted"><?= htmlspecialchars($employee['designation_name'] ?? 'N/A') ?></small>
+                                            <div class="fw-bold">
+                                                <?= htmlspecialchars($employee['first_name'] . ' ' . $employee['last_name']) ?>
+                                            </div>
+                                            <small
+                                                class="text-muted"><?= htmlspecialchars($employee['designation_name'] ?? 'N/A') ?></small>
                                         </label>
                                     </div>
                                 </div>
@@ -246,11 +256,13 @@ require_once '../components/layout/header.php';
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="edit_team_name" class="form-label">Team Name *</label>
-                        <input type="text" class="form-control" id="edit_team_name" name="name" value="<?= htmlspecialchars($team['name']) ?>" required>
+                        <input type="text" class="form-control" id="edit_team_name" name="name"
+                            value="<?= htmlspecialchars($team['name']) ?>" required>
                     </div>
                     <div class="mb-3">
                         <label for="edit_team_description" class="form-label">Description</label>
-                        <textarea class="form-control" id="edit_team_description" name="description" rows="3"><?= htmlspecialchars($team['description']) ?></textarea>
+                        <textarea class="form-control" id="edit_team_description" name="description"
+                            rows="3"><?= htmlspecialchars($team['description']) ?></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -265,139 +277,139 @@ require_once '../components/layout/header.php';
 <?php require_once '../components/layout/footer.php'; ?>
 
 <script>
-$(document).ready(function() {
-    // Initialize DataTable
-    $('#membersTable').DataTable({
-        responsive: true,
-        pageLength: 10,
-        order: [[4, 'desc']] // Sort by joined date
+    $(document).ready(function () {
+        // Initialize DataTable
+        $('#membersTable').DataTable({
+            responsive: true,
+            pageLength: 10,
+            order: [[4, 'desc']] // Sort by joined date
+        });
+
+        // Handle add members form submission
+        $('#addMembersForm').on('submit', function (e) {
+            e.preventDefault();
+            addMembers();
+        });
+
+        // Handle edit team form submission
+        $('#editTeamForm').on('submit', function (e) {
+            e.preventDefault();
+            editTeam();
+        });
     });
 
-    // Handle add members form submission
-    $('#addMembersForm').on('submit', function(e) {
-        e.preventDefault();
-        addMembers();
-    });
-
-    // Handle edit team form submission
-    $('#editTeamForm').on('submit', function(e) {
-        e.preventDefault();
-        editTeam();
-    });
-});
-
-function addMembers() {
-    const formData = new FormData(document.getElementById('addMembersForm'));
-    formData.append('action', 'assign_team_members');
-    formData.append('team_id', <?= $team_id ?>);
-
-    // Check if at least one employee is selected
-    const selectedEmployees = $('input[name="employee_ids[]"]:checked');
-    if (selectedEmployees.length === 0) {
-        showToast('Please select at least one employee.', 'error');
-        return;
-    }
-
-    fetch('/hrms/api/api_manager.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message, 'success');
-            $('#addMembersModal').modal('hide');
-            location.reload();
-        } else {
-            showToast(data.message, 'error');
-        }
-    })
-    .catch(error => {
-        showToast('An error occurred. Please try again.', 'error');
-    });
-}
-
-function editTeamInfo() {
-    $('#editTeamModal').modal('show');
-}
-
-function editTeam() {
-    const formData = new FormData(document.getElementById('editTeamForm'));
-    formData.append('action', 'update_team');
-    formData.append('team_id', <?= $team_id ?>);
-
-    fetch('/hrms/api/api_manager.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message, 'success');
-            $('#editTeamModal').modal('hide');
-            location.reload();
-        } else {
-            showToast(data.message, 'error');
-        }
-    })
-    .catch(error => {
-        showToast('An error occurred. Please try again.', 'error');
-    });
-}
-
-function removeMember(employeeId) {
-    if (confirm('Are you sure you want to remove this member from the team?')) {
-        const formData = new FormData();
-        formData.append('action', 'remove_team_member');
+    function addMembers() {
+        const formData = new FormData(document.getElementById('addMembersForm'));
+        formData.append('action', 'assign_team_members');
         formData.append('team_id', <?= $team_id ?>);
-        formData.append('employee_id', employeeId);
+
+        // Check if at least one employee is selected
+        const selectedEmployees = $('input[name="employee_ids[]"]:checked');
+        if (selectedEmployees.length === 0) {
+            showToast('Please select at least one employee.', 'error');
+            return;
+        }
 
         fetch('/hrms/api/api_manager.php', {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast(data.message, 'success');
-                location.reload();
-            } else {
-                showToast(data.message, 'error');
-            }
-        })
-        .catch(error => {
-            showToast('An error occurred. Please try again.', 'error');
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    $('#addMembersModal').modal('hide');
+                    location.reload();
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred. Please try again.', 'error');
+            });
     }
-}
 
-function viewMember(employeeId) {
-    // Redirect to employee profile or show modal
-    window.open(`/hrms/employee/profile.php?employee_id=${employeeId}`,'_self');
-}
+    function editTeamInfo() {
+        $('#editTeamModal').modal('show');
+    }
 
-function deleteTeam() {
-    if (confirm('Are you sure you want to delete this team? This action cannot be undone and will remove all team members.')) {
-        const formData = new FormData();
-        formData.append('action', 'delete_team');
+    function editTeam() {
+        const formData = new FormData(document.getElementById('editTeamForm'));
+        formData.append('action', 'update_team');
         formData.append('team_id', <?= $team_id ?>);
 
         fetch('/hrms/api/api_manager.php', {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast(data.message, 'success');
-                window.location.href = '/hrms/manager/teams.php';
-            } else {
-                showToast(data.message, 'error');
-            }
-        })
-        .catch(error => {
-            showToast('An error occurred. Please try again.', 'error');
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    $('#editTeamModal').modal('hide');
+                    location.reload();
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred. Please try again.', 'error');
+            });
     }
-}
+
+    function removeMember(employeeId) {
+        if (confirm('Are you sure you want to remove this member from the team?')) {
+            const formData = new FormData();
+            formData.append('action', 'remove_team_member');
+            formData.append('team_id', <?= $team_id ?>);
+            formData.append('employee_id', employeeId);
+
+            fetch('/hrms/api/api_manager.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        location.reload();
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showToast('An error occurred. Please try again.', 'error');
+                });
+        }
+    }
+
+    function viewMember(employeeId) {
+        // Redirect to employee profile or show modal
+        window.open(`/hrms/employee/profile.php?employee_id=${employeeId}`, '_self');
+    }
+
+    function deleteTeam() {
+        if (confirm('Are you sure you want to delete this team? This action cannot be undone and will remove all team members.')) {
+            const formData = new FormData();
+            formData.append('action', 'delete_team');
+            formData.append('team_id', <?= $team_id ?>);
+
+            fetch('/hrms/api/api_manager.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        window.location.href = '/hrms/manager/teams.php';
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showToast('An error occurred. Please try again.', 'error');
+                });
+        }
+    }
 </script>

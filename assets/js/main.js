@@ -30,6 +30,84 @@ window.addEventListener("load", () => {
 	}
 });
 
+/**
+ * Generates a deterministic background color from a number (like a user ID).
+ * Uses HSL color space for more pleasing, consistent colors.
+ * @param {number} id - The user's unique ID.
+ * @returns {string} - An HSL color string (e.g., 'hsl(145, 65%, 40%)').
+ */
+function generateColorFromId(id) {
+	// A simple hashing function to create more variance from the ID
+	let hash = 0;
+	const idStr = String(id);
+	for (let i = 0; i < idStr.length; i++) {
+		hash = idStr.charCodeAt(i) + ((hash << 5) - hash);
+		hash = hash & hash; // Keep it a 32bit integer
+	}
+
+	const hue = Math.abs(hash) % 360; // Hue (0-360)
+	const saturation = 70; // Saturation (0-100)
+	const lightness = 26; // Lightness (0-100)
+
+	return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+}
+
+/**
+ * Intelligently extracts initials from a username string.
+ * It handles various formats like 'john_doe', 'JohnDoe', 'johndoe', and emails.
+ * @param {string} username - The user's username.
+ * @returns {string} - The extracted initials (1 or 2 characters).
+ */
+function getInitialsFromUsername(username) {
+	if (!username) {
+		return "?";
+	}
+
+	// Use the part before an @ if it's an email
+	const namePart = username.split("@")[0];
+
+	// Replace common separators with a space
+	const cleanedName = namePart.replace(/[._-]/g, " ");
+
+	// Split into words
+	const parts = cleanedName.split(" ").filter((part) => part.length > 0);
+
+	if (parts.length > 1) {
+		// For "john doe" or "john_doe", returns "JD"
+		const firstInitial = parts[0][0];
+		const lastInitial = parts[parts.length - 1][0];
+		return `${firstInitial}${lastInitial}`.toUpperCase();
+	} else if (parts.length === 1 && parts[0].length > 0) {
+		// For "johndoe" or "coder123", returns the first two letters, e.g., "JO"
+		return parts[0].substring(0, 2).toUpperCase();
+	} else {
+		// Fallback for empty or unusual usernames
+		return username.substring(0, 1).toUpperCase();
+	}
+}
+
+/**
+ * Main function to generate avatar data for a user object.
+ * @param {object} user - A user object matching your schema { id, username, ... }.
+ * @returns {{initials: string, color: string}}
+ */
+function generateAvatarData(user) {
+	return {
+		initials: getInitialsFromUsername(user.username),
+		color: generateColorFromId(user.id),
+	};
+}
+
+function createAvatar(user) {
+	console.log("Creating avatar for user:", user);
+	const avatar = document.querySelector(".avatar");
+	let userData = generateAvatarData(user);
+	avatar.style.backgroundColor = userData.color;
+	avatar.textContent = userData.initials;
+	console.log(user);
+	return true;
+}
+
 function initializeSidebarToggle(sidebarId, toggleBtnId, backdropId) {
 	const sidebar = document.getElementById(sidebarId);
 	const toggleBtn = document.getElementById(toggleBtnId);

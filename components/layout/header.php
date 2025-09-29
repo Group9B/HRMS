@@ -5,15 +5,13 @@ require_once '../includes/functions.php';
 
 $is_site_active = query($mysqli, "SELECT setting_value from system_settings WHERE setting_key = 'maintenance_mode'");
 
-// if(isLoggedIn()){
-//     echo $_SESSION['role_id'];
-//     if(!$_SESSION['role_id']===1){
-//         echo 'here';
-//         if ($is_site_active['success'] && $is_site_active['data'][0]['setting_value'] == '1') {
-//             redirect("/hrms/pages/500.php");
-//         }
-//     }
-// }
+if (isLoggedIn()) {
+    if ($_SESSION['role_id'] !== 1) {
+        if ($is_site_active['success'] && $is_site_active['data'][0]['setting_value'] == '1') {
+            redirect("/hrms/pages/500.php");
+        }
+    }
+}
 
 ?>
 <html lang="en" data-bs-theme="light">
@@ -90,9 +88,9 @@ $is_site_active = query($mysqli, "SELECT setting_value from system_settings WHER
                     <?php endif; ?>
                     <div class="user-menu">
                         <div class="dropdown">
-                            <button class="btn dropdown-toggle" type="button" id="userMenuButton" data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                                <i class="fas fa-user svg"></i>
+                            <button class="btn dropdown-toggle d-flex justify-content-between align-items-center"
+                                type="button" id="userMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="avatar"></div>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="userMenuButton">
                                 <li><a class="dropdown-item" href="ok.php">Profile</a></li>

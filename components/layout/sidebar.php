@@ -291,9 +291,8 @@ function isActivePage($url)
   return strpos($current_page, $url) !== false;
 }
 ?>
-<div class="flex-column flex-shrink-0 p-3 bg-body-tertiary border-end sidebar d-md-flex position-fixed" id="backdrop"
-  style="">
-  <ul class="nav nav-pills flex-column mb-auto" id="sidebar">
+<div class="flex-column flex-shrink-0 p-3 bg-body-tertiary border-end sidebar d-md-flex position-fixed" id="backdrop">
+  <ul class="nav nav-pills flex-column" id="sidebar">
     <div class="logo d-md-none d-sm-block">
       <div class="wrapper d-flex align-items-center justify-content-between">
         <a href="index.php" class="navbar-brand d-flex align-items-center text-decoration-none">
@@ -347,6 +346,15 @@ function isActivePage($url)
         </li>
       <?php endif; ?>
     <?php endforeach; ?>
+    <!-- <div class="wrapper flex-end mt-auto">
+      <hr>
+      <li>
+        <a class="nav-link d-flex align-items-center py-2 px-3 rounded text-danger" href="/hrms/logout.php">
+          <i class="fas fa-sign-out-alt me-2" style="width: 20px;"></i>
+          <span>Logout</span>
+        </a>
+      </li>
+    </div> -->
   </ul>
 </div>
 <div class="breaker me-md-5"></div>

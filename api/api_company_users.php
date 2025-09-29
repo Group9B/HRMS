@@ -24,7 +24,7 @@ switch ($action) {
         $role_id = isset($_POST['role_id']) ? (int) $_POST['role_id'] : 4;
 
         // --- Security Check ---
-        // A Company Admin can ONLY create HR Managers (3) or Employees (4).
+        // A Company Admin can ONLY create HR Managers (3) , Employees (4) and Manager (6).
         if (!in_array($role_id, [3, 4, 6])) {
             $response['message'] = 'You do not have permission to create a user with this role.';
             break;

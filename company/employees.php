@@ -8,6 +8,7 @@ if (!isLoggedIn() || !in_array($_SESSION['role_id'], [2, 3,])) { // Company Admi
     redirect("/hrms/pages/unauthorized.php");
 }
 $company_id = $_SESSION['company_id'];
+$is_c_admin = $_SESSION['role_id'] === 2;
 
 // --- INITIAL DATA FETCHING for MODAL DROPDOWNS ---
 $all_users = query($mysqli, "SELECT id, username FROM users WHERE company_id = ? ORDER BY username ASC", [$company_id])['data'] ?? [];
@@ -22,20 +23,17 @@ require_once '../components/layout/header.php';
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="h3 mb-0 text-gray-800"><i class="fas fa-users-cog me-2"></i>Employee Management</h2>
-            <button class="btn btn-primary" onclick="validateAndOpenAddModal()">
-                <i class="fas fa-plus me-2"></i>Add Employee
-            </button>
-        </div>
-
         <div class="card shadow-sm">
-            <div class="card-header py-3">
+            <div class="card-header justify-content-between d-flex align-items-center">
                 <h6 class="m-0 font-weight-bold">All Employees</h6>
+                <button class="btn btn-sm btn-primary" onclick="validateAndOpenAddModal()">
+                    <i class="fas fa-plus me-2"></i>Add Employee
+                </button>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover dtr-inline nowrap" id="employeesTable" style="width:100%">
+                    <table class="table table-hover table-bordered dtr-inline nowrap" id="employeesTable"
+                        style="width:100%">
                         <thead>
                             <tr>
                                 <th>Name</th>
@@ -54,7 +52,6 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
-<!-- Employee Modal -->
 <div class="modal fade" id="employeeModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -120,7 +117,6 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
-<!-- Create User Modal -->
 <div class="modal fade" id="createUserModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -175,8 +171,13 @@ require_once '../components/layout/header.php';
                 { data: null, render: (d, t, r) => `<strong>${escapeHTML(r.first_name)} ${escapeHTML(r.last_name)}</strong>` },
                 { data: 'department_name' }, { data: 'designation_name', defaultContent: 'N/A' },
                 { data: 'shift_name', defaultContent: 'N/A' },
-                { data: 'status', render: (d) => `<span class="badge text-bg-${d === 'active' ? 'success' : 'danger'}">${capitalize(d)}</span>` },
-                { data: null, orderable: false, render: (d, t, r) => `<div class="btn-group"><button class="btn btn-sm btn-outline-primary" onclick='prepareEditModal(${JSON.stringify(r)})'><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-outline-danger" onclick="deleteEmployee(${r.id})"><i class="fas fa-trash"></i></button></div>` }
+                { data: 'status', render: (d) => `<span class="badge bg-${d === 'active' ? 'success-subtle text-success-emphasis' : 'danger-subtle text-danger-emphasis'}">${capitalize(d)}</span>` },
+                {
+                    data: null, orderable: false, render: (d, t, r) => `<div class="btn-group"><button class="btn btn-sm btn-outline-primary" onclick='prepareEditModal(${JSON.stringify(r)})'><i class="fas fa-edit"></i></button>
+                    <?php if ($is_c_admin): ?>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteEmployee(${r.id})"><i class="fas fa-trash"></i></button></div>
+                    <?php endif; ?>
+                    ` }
             ],
             order: [[0, 'asc']]
         });
@@ -225,6 +226,7 @@ require_once '../components/layout/header.php';
                 if (data.success) {
                     showToast(data.message, 'success');
                     createUserModal.hide();
+                    employeeModal.show();
                     this.reset();
                     const newUser = data.user;
                     allUsers.push(newUser);
