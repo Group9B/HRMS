@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 29, 2025 at 04:03 PM
+-- Generation Time: Sep 18, 2025 at 03:49 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -59,36 +59,7 @@ CREATE TABLE `attendance` (
 --
 
 INSERT INTO `attendance` (`id`, `employee_id`, `date`, `check_in`, `check_out`, `status`, `remarks`, `created_at`) VALUES
-(1, 1, '2025-09-14', '19:11:36', NULL, 'present', NULL, '2025-09-14 17:11:36'),
-(2, 3, '2025-09-23', '15:42:42', '15:56:03', 'present', NULL, '2025-09-23 13:42:42'),
-(3, 5, '2025-09-23', '15:50:53', NULL, 'present', NULL, '2025-09-23 13:50:53'),
-(4, 4, '2025-09-23', '15:53:34', NULL, 'present', NULL, '2025-09-23 13:53:34'),
-(5, 3, '2025-09-01', NULL, NULL, 'absent', NULL, '2025-09-23 16:27:23'),
-(6, 3, '2025-09-02', NULL, NULL, 'present', NULL, '2025-09-23 16:27:25'),
-(7, 3, '2025-09-03', NULL, NULL, 'present', NULL, '2025-09-23 16:27:27'),
-(8, 3, '2025-09-04', NULL, NULL, 'present', NULL, '2025-09-23 16:27:30'),
-(9, 3, '2025-09-05', NULL, NULL, 'present', NULL, '2025-09-23 16:27:32'),
-(10, 6, '2025-09-24', '05:12:30', NULL, 'present', NULL, '2025-09-24 03:12:30'),
-(11, 6, '2025-09-01', NULL, NULL, 'present', NULL, '2025-09-24 03:41:05'),
-(12, 1, '2025-09-01', NULL, NULL, 'absent', NULL, '2025-09-24 03:41:13'),
-(13, 1, '2025-09-02', NULL, NULL, 'absent', NULL, '2025-09-24 03:41:21'),
-(14, 1, '2025-09-03', NULL, NULL, 'absent', NULL, '2025-09-24 03:41:25'),
-(15, 1, '2025-09-04', NULL, NULL, 'absent', NULL, '2025-09-24 03:41:29'),
-(16, 1, '2025-09-05', NULL, NULL, 'absent', NULL, '2025-09-24 03:41:33'),
-(17, 1, '2025-09-08', NULL, NULL, 'leave', NULL, '2025-09-24 03:41:38'),
-(18, 1, '2025-09-09', NULL, NULL, 'leave', NULL, '2025-09-24 03:41:42'),
-(19, 1, '2025-09-10', NULL, NULL, 'leave', NULL, '2025-09-24 03:41:46'),
-(20, 1, '2025-09-11', NULL, NULL, 'leave', NULL, '2025-09-24 03:42:05'),
-(21, 1, '2025-09-12', NULL, NULL, 'leave', NULL, '2025-09-24 03:42:09'),
-(22, 1, '2025-09-15', NULL, NULL, 'present', NULL, '2025-09-24 03:42:13'),
-(23, 1, '2025-09-16', NULL, NULL, 'present', NULL, '2025-09-24 03:42:17'),
-(24, 1, '2025-09-17', NULL, NULL, 'present', NULL, '2025-09-24 03:42:20'),
-(25, 1, '2025-09-18', NULL, NULL, 'present', NULL, '2025-09-24 03:42:24'),
-(26, 1, '2025-09-19', NULL, NULL, 'present', NULL, '2025-09-24 03:42:27'),
-(27, 1, '2025-09-22', NULL, NULL, 'holiday', NULL, '2025-09-24 03:42:31'),
-(28, 1, '2025-09-23', NULL, NULL, 'holiday', NULL, '2025-09-24 03:42:34'),
-(29, 1, '2025-09-24', NULL, NULL, 'holiday', NULL, '2025-09-24 03:42:38'),
-(30, 1, '2025-09-25', '17:46:00', '17:49:00', 'half-day', '', '2025-09-25 12:16:13');
+(1, 1, '2025-09-14', '19:11:36', NULL, 'present', NULL, '2025-09-14 17:11:36');
 
 -- --------------------------------------------------------
 
@@ -144,8 +115,7 @@ CREATE TABLE `companies` (
 --
 
 INSERT INTO `companies` (`id`, `name`, `address`, `email`, `phone`, `created_at`) VALUES
-(1, 'Rathod Software', 'Shivalik business park, Iskcon, Ahmedabad', 'rathodsoftware@gmail.com', '9104646885', '2025-09-06 07:01:07'),
-(2, 'Sphatik Private Limited', 'Sphatik Business park, Thaltej, Ahmedabad ', 'support.sphatik@gmail.com', '8961930669', '2025-09-23 15:51:01');
+(1, 'Test Pvt. Ltd.', 'Test 1,Test 2 , India', 'test@mail.com', '1324567890', '2025-09-06 07:01:07');
 
 -- --------------------------------------------------------
 
@@ -165,9 +135,7 @@ CREATE TABLE `departments` (
 --
 
 INSERT INTO `departments` (`id`, `company_id`, `name`, `description`) VALUES
-(1, 1, 'social media', '--'),
-(2, 1, 'Web development(Frontend)', 'A department for developing frontend of website.\r\n\r\n'),
-(3, 1, 'Web development(Backend)', 'A department for developing backend of website.');
+(1, 1, 'social media', '--');
 
 -- --------------------------------------------------------
 
@@ -187,12 +155,7 @@ CREATE TABLE `designations` (
 --
 
 INSERT INTO `designations` (`id`, `department_id`, `name`, `description`) VALUES
-(1, 1, 'content creator', '--'),
-(2, 2, 'designer', 'Designs the website'),
-(3, 2, 'Frontend Developer', 'Builds the frontend of the website'),
-(4, 3, 'Debugger', 'Debug the website'),
-(5, 3, 'Backend Developer', 'develops the backend'),
-(6, 3, 'Database designer', 'design the database');
+(1, 1, 'content creator', '--');
 
 -- --------------------------------------------------------
 
@@ -233,14 +196,6 @@ CREATE TABLE `email_logs` (
   `sent_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `email_logs`
---
-
-INSERT INTO `email_logs` (`id`, `user_id`, `email_to`, `email_from`, `subject`, `body`, `template_id`, `status`, `error_message`, `sent_at`, `created_at`) VALUES
-(7, 14, 'hetmalvaniya@gmail.com', 'groupno9.it.@gmail.com', 'Your payslip for 2025-09', '<div style=\"font-family:Arial,sans-serif; padding:16px\">\n  <h2>Test Pvt. Ltd.</h2>\n  <h3>Payslip - 2025-09</h3>\n  <p><strong>Employee:</strong> Het  Malvaniya ()</p>\n  <p><strong>Department:</strong> Web development(Backend) | <strong>Designation:</strong> Backend Developer</p>\n  <hr/>\n  <h4>Earnings</h4>\n  <table width=\"100%\" cellspacing=\"0\" cellpadding=\"6\" border=\"1\">\n    <tr><th align=\"left\">Component</th><th align=\"right\">Amount</th></tr>\n    <tr><td>Gross</td><td align=\"right\">1,000,000.00</td></tr><tr><td>Bonus</td><td align=\"right\">500,000.00</td></tr>\n  </table>\n  <h4 style=\"margin-top:16px\">Deductions</h4>\n  <table width=\"100%\" cellspacing=\"0\" cellpadding=\"6\" border=\"1\">\n    <tr><th align=\"left\">Component</th><th align=\"right\">Amount</th></tr>\n    <tr><td>PF</td><td align=\"right\">200,000.00</td></tr><tr><td>Insurance</td><td align=\"right\">100,000.00</td></tr>\n  </table>\n  <hr/>\n  <p><strong>Gross:</strong> INR 1,500,000.00 &nbsp; | &nbsp; <strong>Net Pay:</strong> INR 1,200,000.00</p>\n  <p><small>Generated on 2025-09-24 08:40:44</small></p>\n</div>', NULL, 'sent', NULL, '2025-09-24 03:10:50', '2025-09-24 03:10:50'),
-(8, 17, 'takshil@gmail.com', 'groupno9.it.@gmail.com', 'Your payslip for 2025-08', '<div style=\"font-family:Arial,sans-serif; padding:16px\">\n  <h2>Rathod Software</h2>\n  <h3>Payslip - 2025-08</h3>\n  <p><strong>Employee:</strong> Takshil Patel (RS-2024-001)</p>\n  <p><strong>Department:</strong> social media | <strong>Designation:</strong> content creator</p>\n  <hr/>\n  <h4>Earnings</h4>\n  <table width=\"100%\" cellspacing=\"0\" cellpadding=\"6\" border=\"1\">\n    <tr><th align=\"left\">Component</th><th align=\"right\">Amount</th></tr>\n    <tr><td>Gross</td><td align=\"right\">43,000.00</td></tr>\n  </table>\n  <h4 style=\"margin-top:16px\">Deductions</h4>\n  <table width=\"100%\" cellspacing=\"0\" cellpadding=\"6\" border=\"1\">\n    <tr><th align=\"left\">Component</th><th align=\"right\">Amount</th></tr>\n    <tr><td>Base Deductions</td><td align=\"right\">500.00</td></tr><tr><td>PF</td><td align=\"right\">3,005.00</td></tr>\n  </table>\n  <hr/>\n  <p><strong>Gross:</strong> INR 43,000.00 &nbsp; | &nbsp; <strong>Net Pay:</strong> INR 39,495.00</p>\n  <p><small>Generated on 2025-09-24 09:01:41</small></p>\n</div>', NULL, 'sent', NULL, '2025-09-24 03:32:15', '2025-09-24 03:32:15');
 
 -- --------------------------------------------------------
 
@@ -291,12 +246,7 @@ CREATE TABLE `employees` (
 
 INSERT INTO `employees` (`id`, `user_id`, `employee_code`, `first_name`, `last_name`, `dob`, `gender`, `contact`, `address`, `department_id`, `designation_id`, `shift_id`, `date_of_joining`, `status`, `created_at`) VALUES
 (1, 9, NULL, 'samkit', 'jain', NULL, NULL, NULL, NULL, 1, 1, 1, '2025-09-07', 'active', '2025-09-14 13:14:01'),
-(2, 11, 'MGR001', 'John', 'Manager', NULL, NULL, NULL, NULL, 1, 1, 1, '2025-01-01', 'active', '2025-09-14 14:39:27'),
-(3, 12, NULL, 'Chirag', 'Gupta', NULL, NULL, NULL, NULL, 1, 1, 1, '2025-09-23', 'active', '2025-09-23 13:34:56'),
-(4, 15, NULL, 'Dhiraj ', 'Jagwani', NULL, NULL, NULL, NULL, 2, 2, 1, '2025-09-01', 'active', '2025-09-23 13:40:43'),
-(5, 13, NULL, 'Krish', 'Jain', NULL, NULL, NULL, NULL, 2, 3, 1, '2025-09-10', 'active', '2025-09-23 13:41:07'),
-(6, 14, NULL, 'Het ', 'Malvaniya', NULL, NULL, NULL, NULL, 3, 5, 1, '2025-09-23', 'active', '2025-09-23 13:41:37'),
-(7, 17, 'RS-2024-001', 'Takshil', 'Patel', NULL, NULL, NULL, NULL, 1, 1, 1, '2024-12-31', 'active', '2025-09-24 03:29:11');
+(2, 11, 'MGR001', 'John', 'Manager', NULL, NULL, NULL, NULL, 1, 1, 1, '2025-01-01', 'active', '2025-09-14 14:39:27');
 
 -- --------------------------------------------------------
 
@@ -376,13 +326,6 @@ CREATE TABLE `jobs` (
   `status` enum('open','closed') DEFAULT 'open'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `jobs`
---
-
-INSERT INTO `jobs` (`id`, `company_id`, `department_id`, `title`, `description`, `employment_type`, `location`, `openings`, `posted_at`, `status`) VALUES
-(1, 1, 3, 'Backend developer', 'Want a backend developer, fresher can also apply', 'full-time', 'Sphatik Business Park, Thaltej, Ahmedabad', 1, '2025-09-23 15:56:40', 'open');
-
 -- --------------------------------------------------------
 
 --
@@ -421,28 +364,7 @@ CREATE TABLE `leaves` (
 
 INSERT INTO `leaves` (`id`, `employee_id`, `leave_type`, `start_date`, `end_date`, `reason`, `status`, `applied_at`, `approved_by`) VALUES
 (1, 1, 'Sick', '2025-09-16', '2025-09-17', '', 'approved', '2025-09-15 07:28:52', 11),
-(2, 1, 'Sick', '2025-09-16', '2025-09-17', '', 'approved', '2025-09-15 07:34:05', 11),
-(3, 3, 'Annual', '2025-09-23', '2025-09-24', 'casual leave', 'approved', '2025-09-23 13:44:59', 10),
-(4, 5, 'Annual', '2025-09-27', '2025-09-30', 'want to go on Holiday with Family', 'approved', '2025-09-23 13:51:46', 10),
-(5, 4, 'Annual', '2025-10-01', '2025-10-10', 'Casual leave', 'rejected', '2025-09-23 13:54:11', 10),
-(6, 4, 'Annual', '2025-10-01', '2025-10-10', 'Casual leave', 'rejected', '2025-09-23 13:55:12', 10),
-(7, 5, 'Sick', '2025-09-24', '2025-09-25', 'sick leave', 'approved', '2025-09-23 13:55:46', 10),
-(8, 3, 'Annual', '2025-09-25', '2025-10-06', 'casual leave for holiday', 'pending', '2025-09-23 13:56:23', NULL);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `leave_balances`
---
-
-CREATE TABLE `leave_balances` (
-  `id` int(11) NOT NULL,
-  `employee_id` int(11) NOT NULL,
-  `leave_policy_id` int(11) NOT NULL,
-  `year` year(4) NOT NULL,
-  `accrued_days` decimal(4,1) NOT NULL DEFAULT 0.0,
-  `used_days` decimal(4,1) NOT NULL DEFAULT 0.0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+(2, 1, 'Sick', '2025-09-16', '2025-09-17', '', 'approved', '2025-09-15 07:34:05', 11);
 
 -- --------------------------------------------------------
 
@@ -487,9 +409,7 @@ INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `relat
 (3, 9, 'payroll', 'Payslip', 'Your payslip for 2025-09', 2, 'payslip', 0, '2025-09-16 16:01:54', NULL),
 (4, 11, 'payroll', 'Payslip', 'Your payslip for 2025-09', 5, 'payslip', 0, '2025-09-16 16:09:28', NULL),
 (5, 9, 'payroll', 'Payslip', 'Your payslip for 2025-09', 6, 'payslip', 0, '2025-09-16 16:10:00', NULL),
-(6, 9, 'payroll', 'Payslip', 'Your payslip for 2025-09Your payslip for 2025-09', 7, 'payslip', 0, '2025-09-16 16:21:20', NULL),
-(7, 14, 'payroll', 'Payslip', 'Your payslip for 2025-09', 8, 'payslip', 0, '2025-09-24 03:10:50', NULL),
-(8, 17, 'payroll', 'Payslip', 'Your payslip for 2025-08', 9, 'payslip', 0, '2025-09-24 03:32:15', NULL);
+(6, 9, 'payroll', 'Payslip', 'Your payslip for 2025-09Your payslip for 2025-09', 7, 'payslip', 0, '2025-09-16 16:21:20', NULL);
 
 -- --------------------------------------------------------
 
@@ -546,11 +466,7 @@ INSERT INTO `payslips` (`id`, `company_id`, `employee_id`, `period`, `currency`,
 (4, 1, 1, '2025-09', 'INR', '[{\"name\":\"Gross\",\"amount\":100000}]', '[]', 100000.00, 100000.00, 1, 'generated', 8, '2025-09-16 16:00:12', NULL, NULL),
 (5, 1, 2, '2025-09', 'INR', '[{\"name\":\"Gross\",\"amount\":200000}]', '[]', 200000.00, 200000.00, 1, 'sent', 8, '2025-09-16 16:09:16', '2025-09-16 16:09:28', NULL),
 (6, 1, 1, '2025-09', 'INR', '[{\"name\":\"Gross\",\"amount\":200000}]', '[]', 200000.00, 200000.00, 1, 'sent', 8, '2025-09-16 16:09:47', '2025-09-16 16:10:00', NULL),
-(7, 1, 1, '2025-09', 'INR', '[{\"name\":\"Gross\",\"amount\":200000000000}]', '[]', 9999999999.99, 9999999999.99, 4, 'sent', 8, '2025-09-16 16:21:10', '2025-09-16 16:21:20', NULL),
-(8, 1, 6, '2025-09', 'INR', '[{\"name\":\"Gross\",\"amount\":1000000},{\"name\":\"Bonus\",\"amount\":500000}]', '[{\"name\":\"PF\",\"amount\":200000},{\"name\":\"Insurance\",\"amount\":100000}]', 1500000.00, 1200000.00, 1, 'sent', 10, '2025-09-24 03:10:44', '2025-09-24 03:10:50', NULL),
-(9, 1, 7, '2025-08', 'INR', '[{\"name\":\"Gross\",\"amount\":43000}]', '[{\"name\":\"Base Deductions\",\"amount\":500},{\"name\":\"PF\",\"amount\":3005}]', 43000.00, 39495.00, 1, 'sent', 10, '2025-09-24 03:31:41', '2025-09-24 03:32:15', NULL),
-(10, 1, 5, '2025-08', 'INR', '[{\"name\":\"Gross\",\"amount\":50000}]', '[{\"name\":\"Base Deductions\",\"amount\":500},{\"name\":\"PF\",\"amount\":3005}]', 50000.00, 46495.00, 1, 'generated', 10, '2025-09-24 03:37:58', NULL, NULL),
-(11, 1, 4, '2025-08', 'INR', '[{\"name\":\"Gross\",\"amount\":40000}]', '[{\"name\":\"Base Deductions\",\"amount\":500},{\"name\":\"PF\",\"amount\":3005}]', 40000.00, 36495.00, 1, 'generated', 10, '2025-09-24 03:38:08', NULL, NULL);
+(7, 1, 1, '2025-09', 'INR', '[{\"name\":\"Gross\",\"amount\":200000000000}]', '[]', 9999999999.99, 9999999999.99, 4, 'sent', 8, '2025-09-16 16:21:10', '2025-09-16 16:21:20', NULL);
 
 -- --------------------------------------------------------
 
@@ -603,8 +519,7 @@ CREATE TABLE `performance` (
 --
 
 INSERT INTO `performance` (`id`, `employee_id`, `evaluator_id`, `period`, `score`, `remarks`, `created_at`) VALUES
-(1, 1, 11, '2025-09', 10, 'best employee ever', '2025-09-14 17:10:42'),
-(2, 3, 11, '2025-09', 90, '', '2025-09-23 16:22:38');
+(1, 1, 11, '2025-09', 100, 'best employee ever', '2025-09-14 17:10:42');
 
 -- --------------------------------------------------------
 
@@ -673,6 +588,7 @@ INSERT INTO `shifts` (`id`, `company_id`, `name`, `start_time`, `end_time`, `des
 -- Table structure for table `support_tickets`
 --
 
+
 CREATE TABLE `support_tickets` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
@@ -683,13 +599,6 @@ CREATE TABLE `support_tickets` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `support_tickets`
---
-
-INSERT INTO `support_tickets` (`id`, `user_id`, `subject`, `message`, `priority`, `status`, `created_at`, `updated_at`) VALUES
-(1, 1, 'test', 'test', 'high', 'open', '2025-09-24 03:46:18', '2025-09-24 03:46:18');
 
 -- --------------------------------------------------------
 
@@ -766,8 +675,7 @@ CREATE TABLE `teams` (
 --
 
 INSERT INTO `teams` (`id`, `company_id`, `name`, `description`, `created_by`, `created_at`, `updated_by`, `updated_at`) VALUES
-(1, 1, 'social media', '--', 11, '2025-09-14 17:09:36', NULL, '2025-09-14 17:09:36'),
-(2, 1, 'Web Devs', 'A team developing Websites.', 10, '2025-09-24 03:08:56', NULL, '2025-09-24 03:08:56');
+(1, 1, 'social media', '--', 11, '2025-09-14 17:09:36', NULL, '2025-09-14 17:09:36');
 
 -- --------------------------------------------------------
 
@@ -789,10 +697,7 @@ CREATE TABLE `team_members` (
 --
 
 INSERT INTO `team_members` (`id`, `team_id`, `employee_id`, `role_in_team`, `assigned_by`, `assigned_at`) VALUES
-(1, 1, 1, NULL, 11, '2025-09-14 17:09:48'),
-(2, 2, 4, NULL, 10, '2025-09-24 03:09:06'),
-(3, 2, 6, NULL, 10, '2025-09-24 03:09:11'),
-(4, 2, 5, NULL, 10, '2025-09-24 03:09:34');
+(1, 1, 1, NULL, 11, '2025-09-14 17:09:48');
 
 -- --------------------------------------------------------
 
@@ -807,15 +712,6 @@ CREATE TABLE `todo_list` (
   `is_completed` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `todo_list`
---
-
-INSERT INTO `todo_list` (`id`, `user_id`, `task`, `is_completed`, `created_at`) VALUES
-(1, 10, 'Assign Task to current team.', 1, '2025-09-23 13:43:01'),
-(2, 10, 'Create a new Team', 0, '2025-09-23 13:43:15'),
-(3, 10, 'Managing the current Queries', 0, '2025-09-23 13:43:58');
 
 -- --------------------------------------------------------
 
@@ -843,13 +739,7 @@ INSERT INTO `users` (`id`, `company_id`, `role_id`, `username`, `email`, `passwo
 (8, 1, 2, 'c_admin', 'company_admin@mail.com', '$2y$10$pkSBG/PAMUf6fVcAkhchtusI6AjO3x7cIum2xrf8.zbnrxaYFVSbq', 'active', '2025-09-06 07:01:56'),
 (9, 1, 4, 'notsanki', 'sanki@mail.com', '$2y$10$prTss54rC5oBGJzTznCyuOlCyaKSSePhQUnycXmTpNUyCWy/kgSga', 'active', '2025-09-14 13:13:37'),
 (10, 1, 3, 'hr_manager', 'hr_manager@mail.com', '$2y$10$HHrZ/qGLppUqmVYzQkqrZuOW.EwPPaDypJVRsN4VOwOtUiYNJrDlK', 'active', '2025-09-14 13:15:29'),
-(11, 1, 6, 'manager', 'c_manager@mail.com', '$2y$10$NpYBaT4R4WpJ9CSxL.H7XuCRCuzj.B.8it1R98Jd66esRPTvPbf6K', 'active', '2025-09-14 13:27:32'),
-(12, 1, 4, 'chirag', 'chirag01@gmail.com', '$2y$10$JBpk5NBBHp7iLnsTpacnRerTPi7.kCs9ozz3HCvBXXZONR2N6Yq86', 'active', '2025-09-23 13:32:33'),
-(13, 1, 4, 'krishjain', 'jainkrish02@gmail.com', '$2y$10$LMGz9Zb4j3PdDSgR/r2NROtYCu.uQVx9r2w6d4u/iKw6M5WuxlSY6', 'active', '2025-09-23 13:33:31'),
-(14, 1, 4, 'het03', 'hetmalvaniya@gmail.com', '$2y$10$/c5zelKqBSGlFuWj1GYHReuoO1KMDp31Q8mkerLFYoZiyhcw051Cq', 'active', '2025-09-23 13:33:50'),
-(15, 1, 4, 'dhirajjagwani', 'jagwanidhiraj@gmail.com', '$2y$10$uMx5yShAYSQgwTagiMAtDevOVRodL9qeel1lOO03wakjoPvY3EOsy', 'active', '2025-09-23 13:34:26'),
-(16, 2, 2, 'sphatik_admin', 'sphatikadmin@gmail.com', '$2y$10$Rue81elzqQlTQRiTj6/eo.n.gj4AquiRKhMqtk198FqL/2Cyh7vAu', 'active', '2025-09-23 16:32:48'),
-(17, 1, 4, 'Takshil Patel', 'takshil@gmail.com', '$2y$10$FP2cRXei3.EJcdfN2.GU6Oq/UMrrXh0hDv152XxOeFz6qguhRUpwe', 'active', '2025-09-24 03:28:44');
+(11, 1, 6, 'manager', 'c_manager@mail.com', '$2y$10$NpYBaT4R4WpJ9CSxL.H7XuCRCuzj.B.8it1R98Jd66esRPTvPbf6K', 'active', '2025-09-14 13:27:32');
 
 -- --------------------------------------------------------
 
@@ -1013,14 +903,6 @@ ALTER TABLE `leaves`
   ADD KEY `approved_by` (`approved_by`);
 
 --
--- Indexes for table `leave_balances`
---
-ALTER TABLE `leave_balances`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unique_employee_policy_year` (`employee_id`,`leave_policy_id`,`year`),
-  ADD KEY `leave_policy_id` (`leave_policy_id`);
-
---
 -- Indexes for table `leave_policies`
 --
 ALTER TABLE `leave_policies`
@@ -1174,7 +1056,7 @@ ALTER TABLE `activity_logs`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `audit_logs`
@@ -1192,19 +1074,19 @@ ALTER TABLE `candidates`
 -- AUTO_INCREMENT for table `companies`
 --
 ALTER TABLE `companies`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `departments`
 --
 ALTER TABLE `departments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `designations`
 --
 ALTER TABLE `designations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `documents`
@@ -1216,7 +1098,7 @@ ALTER TABLE `documents`
 -- AUTO_INCREMENT for table `email_logs`
 --
 ALTER TABLE `email_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `email_templates`
@@ -1228,7 +1110,7 @@ ALTER TABLE `email_templates`
 -- AUTO_INCREMENT for table `employees`
 --
 ALTER TABLE `employees`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `feedback`
@@ -1258,7 +1140,7 @@ ALTER TABLE `interviews`
 -- AUTO_INCREMENT for table `jobs`
 --
 ALTER TABLE `jobs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `job_applications`
@@ -1270,13 +1152,7 @@ ALTER TABLE `job_applications`
 -- AUTO_INCREMENT for table `leaves`
 --
 ALTER TABLE `leaves`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
-
---
--- AUTO_INCREMENT for table `leave_balances`
---
-ALTER TABLE `leave_balances`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `leave_policies`
@@ -1288,7 +1164,7 @@ ALTER TABLE `leave_policies`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `payroll`
@@ -1300,7 +1176,7 @@ ALTER TABLE `payroll`
 -- AUTO_INCREMENT for table `payslips`
 --
 ALTER TABLE `payslips`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `payslip_templates`
@@ -1312,7 +1188,7 @@ ALTER TABLE `payslip_templates`
 -- AUTO_INCREMENT for table `performance`
 --
 ALTER TABLE `performance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `policies`
@@ -1336,7 +1212,7 @@ ALTER TABLE `shifts`
 -- AUTO_INCREMENT for table `support_tickets`
 --
 ALTER TABLE `support_tickets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `system_settings`
@@ -1354,25 +1230,25 @@ ALTER TABLE `tasks`
 -- AUTO_INCREMENT for table `teams`
 --
 ALTER TABLE `teams`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `team_members`
 --
 ALTER TABLE `team_members`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `todo_list`
 --
 ALTER TABLE `todo_list`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `user_preferences`
@@ -1486,13 +1362,6 @@ ALTER TABLE `leaves`
   ADD CONSTRAINT `leaves_ibfk_2` FOREIGN KEY (`approved_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
--- Constraints for table `leave_balances`
---
-ALTER TABLE `leave_balances`
-  ADD CONSTRAINT `leave_balances_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `leave_balances_ibfk_2` FOREIGN KEY (`leave_policy_id`) REFERENCES `leave_policies` (`id`) ON DELETE CASCADE;
-
---
 -- Constraints for table `leave_policies`
 --
 ALTER TABLE `leave_policies`
@@ -1597,6 +1466,19 @@ ALTER TABLE `users`
 --
 -- Constraints for table `user_preferences`
 --
+
+CREATE TABLE `leave_balances` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `employee_id` int(11) NOT NULL,
+  `leave_policy_id` int(11) NOT NULL,
+  `year` year(4) NOT NULL,
+  `accrued_days` decimal(4,1) NOT NULL DEFAULT 0.0,
+  `used_days` decimal(4,1) NOT NULL DEFAULT 0.0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_employee_policy_year` (`employee_id`, `leave_policy_id`, `year`),
+  FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`leave_policy_id`) REFERENCES `leave_policies` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 ALTER TABLE `user_preferences`
   ADD CONSTRAINT `user_preferences_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
