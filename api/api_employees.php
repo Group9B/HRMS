@@ -37,36 +37,51 @@ switch ($action) {
         break;
 
     case 'add_edit':
-        $employee_id = isset($_POST['employee_id']) ? (int) $_POST['employee_id'] : 0;
-        $user_id = isset($_POST['user_id']) ? (int) $_POST['user_id'] : 0;
-        $first_name = $_POST['first_name'] ?? '';
-        $last_name = $_POST['last_name'] ?? '';
-        $department_id = $_POST['department_id'] ?? null;
-        $designation_id = $_POST['designation_id'] ?? null;
-        $shift_id = $_POST['shift_id'] ?? null; // Added shift_id
-        $date_of_joining = $_POST['date_of_joining'] ?? null;
-        $status = $_POST['status'] ?? 'active';
+    $employee_id = isset($_POST['employee_id']) ? (int) $_POST['employee_id'] : 0;
+    $user_id = isset($_POST['user_id']) ? (int) $_POST['user_id'] : 0;
+    $first_name = $_POST['first_name'] ?? '';
+    $last_name = $_POST['last_name'] ?? '';
+    $department_id = $_POST['department_id'] ?? null;
+    $designation_id = $_POST['designation_id'] ?? null;
+    $shift_id = $_POST['shift_id'] ?? null;
+    $date_of_joining = $_POST['date_of_joining'] ?? date('Y-m-d'); 
+    $status = $_POST['status'] ?? 'active';
 
-        if (empty($first_name) || empty($last_name) || empty($user_id) || empty($department_id)) {
-            $response['message'] = 'Please fill in all required fields.' . $user_id . $department_id;
+    if (empty($first_name) || empty($last_name) || empty($user_id) || empty($department_id)) {
+        $response['message'] = 'Please fill in all required fields.';
+        break;
+    }
+
+    if ($employee_id === 0) { // Add new employee
+        // Call the revised function to generate a unique employee code
+        $employee_code = generateEmployeeCode($mysqli, $company_id, $date_of_joining);
+
+        if ($employee_code === null) {
+            $response['message'] = 'Error: Could not generate a unique employee code.';
             break;
         }
 
-        if ($employee_id === 0) { // Add new employee
-            $sql = "INSERT INTO employees (user_id, first_name, last_name, department_id, designation_id, shift_id, date_of_joining, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-            $params = [$user_id, $first_name, $last_name, $department_id, $designation_id, $shift_id, $date_of_joining, $status];
-        } else { // Edit existing employee
-            $sql = "UPDATE employees SET user_id = ?, first_name = ?, last_name = ?, department_id = ?, designation_id = ?, shift_id = ?, date_of_joining = ?, status = ? WHERE id = ? AND user_id IN (SELECT id FROM users WHERE company_id = ?)";
-            $params = [$user_id, $first_name, $last_name, $department_id, $designation_id, $shift_id, $date_of_joining, $status, $employee_id, $company_id];
-        }
+        // Add 'employee_code' to the INSERT statement
+        $sql = "INSERT INTO employees (employee_code, user_id, first_name, last_name, department_id, designation_id, shift_id, date_of_joining, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $params = [$employee_code, $user_id, $first_name, $last_name, $department_id, $designation_id, $shift_id, $date_of_joining, $status];
 
-        $result = query($mysqli, $sql, $params);
-        if ($result['success']) {
-            $response = ['success' => true, 'message' => 'Employee saved successfully!'];
+    } else { // Edit existing employee
+        // The employee_code is not updated. It's a permanent identifier.
+        $sql = "UPDATE employees SET user_id = ?, first_name = ?, last_name = ?, department_id = ?, designation_id = ?, shift_id = ?, date_of_joining = ?, status = ? WHERE id = ? AND user_id IN (SELECT id FROM users WHERE company_id = ?)";
+        $params = [$user_id, $first_name, $last_name, $department_id, $designation_id, $shift_id, $date_of_joining, $status, $employee_id, $company_id];
+    }
+
+    $result = query($mysqli, $sql, $params);
+    if ($result['success']) {
+        $response = ['success' => true, 'message' => 'Employee saved successfully!'];
+    } else {
+        if ($mysqli->errno == 1062) { 
+             $response['message'] = 'Database Error: A duplicate entry was detected. The employee code may already exist.';
         } else {
-            $response['message'] = 'Database error: ' . $result['error'];
+             $response['message'] = 'Database error: ' . $result['error'];
         }
-        break;
+    }
+    break;
 
     case 'delete':
         $employee_id = isset($_POST['employee_id']) ? (int) $_POST['employee_id'] : 0;
