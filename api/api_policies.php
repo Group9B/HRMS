@@ -126,7 +126,13 @@ switch ($action) {
 
     // Document Actions
     case 'get_documents':
-        $result = query($mysqli, "SELECT id, document_name, file_path, uploaded_at FROM policy_documents WHERE company_id = ?", [$company_id]);
+        // UPDATED: Querying the new generic 'documents' table
+        $sql = "SELECT id, doc_name as document_name, file_path, uploaded_at 
+                FROM documents 
+                WHERE related_id = ? AND related_type = 'policy'
+                ORDER BY uploaded_at DESC";
+        $result = query($mysqli, $sql, [$company_id]);
+        // Frontend expects 'document_name', so we alias 'doc_name'
         $response = ['success' => true, 'data' => $result['data'] ?? []];
         break;
 
@@ -161,7 +167,7 @@ switch ($action) {
             break;
         }
 
-        $upload_dir = '../../uploads/policies/';
+        $upload_dir = '../uploads/policies/';
         if (!is_dir($upload_dir)) {
             mkdir($upload_dir, 0755, true);
         }
@@ -172,7 +178,12 @@ switch ($action) {
 
         if (move_uploaded_file($file['tmp_name'], $destination)) {
             $db_path = "/hrms/uploads/policies/" . $unique_filename;
-            $result = query($mysqli, "INSERT INTO policy_documents (company_id, document_name, file_path) VALUES (?, ?, ?)", [$company_id, $doc_name, $db_path]);
+
+            // UPDATED: Inserting into the new generic 'documents' table
+            $sql = "INSERT INTO documents (related_id, related_type, doc_name, doc_type, file_path, doc_size, mime_type) VALUES (?, 'policy', ?, 'policy', ?, ?, ?)";
+            $params = [$company_id, $doc_name, $db_path, $file['size'], $mime_type];
+            $result = query($mysqli, $sql, $params);
+
             $response = ['success' => $result['success'], 'message' => $result['success'] ? 'Document uploaded.' : 'Failed to save document record.'];
         } else {
             $response['message'] = 'Failed to move uploaded file.';
@@ -181,14 +192,19 @@ switch ($action) {
 
     case 'delete_document':
         $id = (int) ($_POST['id'] ?? 0);
-        $doc_result = query($mysqli, "SELECT file_path FROM policy_documents WHERE id = ? AND company_id = ?", [$id, $company_id]);
+
+        // UPDATED: Select from the 'documents' table to get the file path
+        $doc_result = query($mysqli, "SELECT file_path FROM documents WHERE id = ? AND related_id = ? AND related_type = 'policy'", [$id, $company_id]);
+
         if ($doc_result['success'] && !empty($doc_result['data'])) {
             $relative_path = str_replace("/hrms", "../..", $doc_result['data'][0]['file_path']);
             if (file_exists($relative_path)) {
-                unlink($relative_path);
+                @unlink($relative_path);
             }
         }
-        $result = query($mysqli, "DELETE FROM policy_documents WHERE id = ? AND company_id = ?", [$id, $company_id]);
+
+        // UPDATED: Delete from the 'documents' table
+        $result = query($mysqli, "DELETE FROM documents WHERE id = ? AND related_id = ? AND related_type = 'policy'", [$id, $company_id]);
         $response = ['success' => $result['success'], 'message' => $result['success'] ? 'Document deleted.' : 'Failed to delete document.'];
         break;
 
@@ -198,6 +214,5 @@ switch ($action) {
 }
 
 echo json_encode($response);
-
 exit();
-?>
+

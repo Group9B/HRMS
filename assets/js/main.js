@@ -1,4 +1,3 @@
-// --- Theme Toggle (from your original file) ---
 const themeToggleBtn = document.getElementById("toggleThemeBtn");
 if (themeToggleBtn) {
 	themeToggleBtn.addEventListener("click", () => {
@@ -260,7 +259,98 @@ function initializeTodoList(formSelector, listSelector) {
 	loadTodos(); // Initial load
 }
 
+/**
+ * Escapes HTML special characters in a string to prevent XSS.
+ * @param {string} str The string to escape.
+ * @returns {string} The escaped string.
+ */
+function escapeHTML(str) {
+	if (str === null || str === undefined) return "";
+	return String(str).replace(
+		/[&<>"']/g,
+		(m) =>
+			({
+				"&": "&amp;",
+				"<": "&lt;",
+				">": "&gt;",
+				'"': "&quot;",
+				"'": "&#039;",
+			}[m])
+	);
+}
+
+/**
+ * Capitalizes the first letter of a string.
+ * @param {string} str The string to capitalize.
+ * @returns {string}
+ */
 function capitalize(str) {
 	if (!str) return "";
 	return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// --- DOMAIN-SPECIFIC UTILITY FUNCTIONS ---
+
+/**
+ * Returns a Bootstrap color class based on a status string.
+ * @param {string} status The status string (e.g., 'approved', 'pending', 'rejected').
+ * @returns {string} A Bootstrap class name.
+ */
+function getStatusClass(status) {
+	switch (status) {
+		case "approved":
+		case "active":
+			return "success";
+		case "rejected":
+		case "cancelled":
+		case "inactive":
+			return "danger";
+		case "pending":
+			return "warning";
+		default:
+			return "secondary";
+	}
+}
+
+/**
+ * Formats a date string into a more readable format.
+ * @param {string} dateStr The date string (e.g., '2025-09-30').
+ * @param {boolean} longFormat Whether to use a long format (e.g., 'September 30, 2025').
+ * @returns {string} The formatted date.
+ */
+function formatDate(dateStr, longFormat = false) {
+	if (!dateStr) return "N/A";
+	const date = new Date(dateStr + "T00:00:00");
+	if (longFormat) {
+		return date.toLocaleDateString("en-US", {
+			month: "long",
+			day: "numeric",
+			year: "numeric",
+		});
+	}
+	return date.toLocaleDateString("en-CA"); // YYYY-MM-DD
+}
+
+/**
+ * Calculates the number of days between two dates, inclusive.
+ * @param {string} start The start date string.
+ * @param {string} end The end date string.
+ * @returns {number} The number of days.
+ */
+function countDays(start, end) {
+	if (!start || !end) return 0;
+	const diffTime = Math.abs(new Date(end) - new Date(start));
+	return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+}
+
+/**
+ * Returns a Bootstrap color class based on a performance score.
+ * @param {number} score The score (0-100).
+ * @returns {string} A Bootstrap class name.
+ */
+function getScoreColor(score) {
+	if (score >= 80) return "success";
+	if (score >= 60) return "warning";
+	if (score >= 40) return "info";
+	return "danger";
 }
