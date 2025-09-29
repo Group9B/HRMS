@@ -72,6 +72,80 @@ function renderPayslipHTML(string $templateHtml, array $data): string
 }
 
 /**
+ * Generates a unique, sequential employee code for a given company.
+ * The format is [DynamicPrefix]-[JoiningYear]-[PaddedSequentialNumber].
+ * Example: TPL-2025-001 for "Test Pvt. Ltd."
+ *
+ * @param mysqli $mysqli The database connection object.
+ * @param int $company_id The ID of the company for which to generate the code.
+ * @param string $date_of_joining The employee's date of joining (e.g., '2025-09-24').
+ * @return string|null The newly generated employee code, or null on error.
+ */
+function generateEmployeeCode($mysqli, $company_id, $date_of_joining)
+{
+    // Step 1: Get the company's full name from the database.
+    $name_sql = "SELECT name FROM companies WHERE id = ? LIMIT 1";
+    $name_result = query($mysqli, $name_sql, [$company_id]);
+
+    $company_prefix = 'EMP'; // Default fallback prefix
+
+    if ($name_result['success'] && !empty($name_result['data'])) {
+        $company_name = $name_result['data'][0]['name'];
+
+        // --- NEW LOGIC TO DYNAMICALLY CREATE A PREFIX ---
+        $words = preg_split("/[\s,.-]+/", $company_name); // Split by spaces, commas, dots, hyphens
+        $prefix = "";
+        if (count($words) > 1) {
+            // Use the first letter of each major word
+            foreach ($words as $word) {
+                if (strlen($word) > 0) {
+                    $prefix .= strtoupper(substr($word, 0, 1));
+                }
+            }
+        } else {
+            // For single-word names, use the first 3 letters
+            $prefix = strtoupper(substr($company_name, 0, 3));
+        }
+        
+        // Use the generated prefix if it's valid
+        if(!empty($prefix)){
+            $company_prefix = preg_replace('/[^A-Z0-9]/', '', $prefix); // Sanitize
+        }
+    }
+
+    // Step 2: Extract the year from the joining date.
+    $joining_year = date('Y', strtotime($date_of_joining));
+
+    // Step 3: Find the highest existing employee code for the same company and year.
+    $code_pattern = $company_prefix . '-' . $joining_year . '-%';
+    
+    $last_code_sql = "
+        SELECT e.employee_code
+        FROM employees e
+        INNER JOIN departments d ON e.department_id = d.id
+        WHERE d.company_id = ? AND e.employee_code LIKE ?
+        ORDER BY e.id DESC
+        LIMIT 1";
+    
+    $last_code_result = query($mysqli, $last_code_sql, [$company_id, $code_pattern]);
+
+    $next_sequence_num = 1; 
+    if ($last_code_result['success'] && !empty($last_code_result['data'])) {
+        $last_code = $last_code_result['data'][0]['employee_code'];
+        $last_sequence_part = substr($last_code, strrpos($last_code, '-') + 1);
+        if (is_numeric($last_sequence_part)) {
+            $next_sequence_num = (int)$last_sequence_part + 1;
+        }
+    }
+
+    // Step 4: Format the next sequence number with 3 leading zeros.
+    $padded_sequence = str_pad($next_sequence_num, 3, '0', STR_PAD_LEFT);
+
+    // Step 5: Assemble and return the final, unique employee code.
+    return "{$company_prefix}-{$joining_year}-{$padded_sequence}";
+}
+
+/**
  * Fetch company details by id
  */
 function getCompanyById(mysqli $mysqli, int $companyId): ?array

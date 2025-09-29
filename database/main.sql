@@ -588,18 +588,6 @@ INSERT INTO `shifts` (`id`, `company_id`, `name`, `start_time`, `end_time`, `des
 -- Table structure for table `support_tickets`
 --
 
-CREATE TABLE `leave_balances` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `employee_id` int(11) NOT NULL,
-  `leave_policy_id` int(11) NOT NULL,
-  `year` year(4) NOT NULL,
-  `accrued_days` decimal(4,1) NOT NULL DEFAULT 0.0,
-  `used_days` decimal(4,1) NOT NULL DEFAULT 0.0,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_employee_policy_year` (`employee_id`, `leave_policy_id`, `year`),
-  FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`leave_policy_id`) REFERENCES `leave_policies` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `support_tickets` (
   `id` int(11) NOT NULL,
@@ -1478,6 +1466,19 @@ ALTER TABLE `users`
 --
 -- Constraints for table `user_preferences`
 --
+
+CREATE TABLE `leave_balances` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `employee_id` int(11) NOT NULL,
+  `leave_policy_id` int(11) NOT NULL,
+  `year` year(4) NOT NULL,
+  `accrued_days` decimal(4,1) NOT NULL DEFAULT 0.0,
+  `used_days` decimal(4,1) NOT NULL DEFAULT 0.0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_employee_policy_year` (`employee_id`, `leave_policy_id`, `year`),
+  FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`leave_policy_id`) REFERENCES `leave_policies` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 ALTER TABLE `user_preferences`
   ADD CONSTRAINT `user_preferences_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
