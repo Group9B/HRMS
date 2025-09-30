@@ -173,9 +173,9 @@ require_once '../components/layout/header.php';
                 { data: 'shift_name', defaultContent: 'N/A' },
                 { data: 'status', render: (d) => `<span class="badge bg-${d === 'active' ? 'success-subtle text-success-emphasis' : 'danger-subtle text-danger-emphasis'}">${capitalize(d)}</span>` },
                 {
-                    data: null, orderable: false, render: (d, t, r) => `<div class="btn-group"><button class="btn btn-sm btn-outline-primary" onclick='prepareEditModal(${JSON.stringify(r)})'><i class="fas fa-edit"></i></button>
+                    data: null, orderable: false, render: (d, t, r) => `<div class="btn-group"><button class="btn btn-sm bg-dark-subtle" onclick='prepareEditModal(${JSON.stringify(r)})'><i class="fas fa-edit"></i></button>
                     <?php if ($is_c_admin): ?>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteEmployee(${r.id})"><i class="fas fa-trash"></i></button></div>
+                    <button class="btn btn-sm bg-dark-subtle" onclick="deleteEmployee(${r.id})"><i class="fas fa-trash"></i></button></div>
                     <?php endif; ?>
                     ` }
             ],

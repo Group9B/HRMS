@@ -346,15 +346,6 @@ function isActivePage($url)
         </li>
       <?php endif; ?>
     <?php endforeach; ?>
-    <!-- <div class="wrapper flex-end mt-auto">
-      <hr>
-      <li>
-        <a class="nav-link d-flex align-items-center py-2 px-3 rounded text-danger" href="/hrms/logout.php">
-          <i class="fas fa-sign-out-alt me-2" style="width: 20px;"></i>
-          <span>Logout</span>
-        </a>
-      </li>
-    </div> -->
   </ul>
 </div>
 <div class="breaker me-md-5"></div>

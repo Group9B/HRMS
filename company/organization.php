@@ -38,8 +38,8 @@ require_once '../components/layout/header.php';
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover" id="departmentsTable" width="100%">
-                                <thead class="table-dark">
+                            <table class="table table-bordered table-hover" id="departmentsTable" width="100%">
+                                <thead class="">
                                     <tr>
                                         <th>Name</th>
                                         <th>Actions</th>
@@ -58,8 +58,8 @@ require_once '../components/layout/header.php';
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover" id="designationsTable" width="100%">
-                                <thead class="table-dark">
+                            <table class="table table-bordered table-hover" id="designationsTable" width="100%">
+                                <thead class="">
                                     <tr>
                                         <th>Name</th>
                                         <th>Department</th>
@@ -79,8 +79,8 @@ require_once '../components/layout/header.php';
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover" id="teamsTable" width="100%">
-                                <thead class="table-dark">
+                            <table class="table table-bordered table-hover" id="teamsTable" width="100%">
+                                <thead class="">
                                     <tr>
                                         <th>Name</th>
                                         <th>Members</th>
@@ -100,8 +100,8 @@ require_once '../components/layout/header.php';
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover" id="shiftsTable" width="100%">
-                                <thead class="table-dark">
+                            <table class="table table-bordered table-hover" id="shiftsTable" width="100%">
+                                <thead class="">
                                     <tr>
                                         <th>Name</th>
                                         <th>Time</th>

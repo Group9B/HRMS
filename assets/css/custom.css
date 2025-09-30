@@ -238,28 +238,39 @@
 
 /* THEME FRIENDLY: These colors adapt to the current theme */
 .day-square.status-present {
-	background-color: var(--bs-success);
+	background-color: var(--bs-success-border-subtle);
+	color: var(--bs-success-text-emphasis);
 }
 
 .day-square.status-absent {
-	background-color: var(--bs-danger);
+	background-color: var(--bs-danger-border-subtle);
+	color: var(--bs-danger-text-emphasis);
 }
 
 .day-square.status-leave {
-	background-color: var(--bs-warning);
-	color: var(--bs-dark);
+	background-color: var(--bs-warning-border-subtle);
+	color: var(--bs-warning-text-emphasis);
+	font-weight: bold;
+}
+
+.day-square.status-half-day {
+	background-color: var(--bs-primary-border-subtle);
+	color: var(--bs-primary-text-emphasis);
+	font-weight: bold;
 }
 
 .day-square.status-holiday {
-	background-color: var(--bs-info);
-	color: var(--bs-dark);
+	background-color: var(--bs-info-border-subtle);
+	color: var(--bs-info-text-emphasis);
 }
 
 .day-square.status-weekend {
 	background-color: var(--bs-secondary);
 }
 
-.day-square.status-future {
+.day-square.status-future,
+.day-square.status-disabled,
+.day-square.status-sunday {
 	background-color: var(--bs-tertiary-bg);
 	color: var(--bs-secondary-color);
 	border: 1px dashed var(--bs-border-color-translucent);

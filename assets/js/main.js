@@ -98,12 +98,10 @@ function generateAvatarData(user) {
 }
 
 function createAvatar(user) {
-	console.log("Creating avatar for user:", user);
 	const avatar = document.querySelector(".avatar");
 	let userData = generateAvatarData(user);
 	avatar.style.backgroundColor = userData.color;
 	avatar.textContent = userData.initials;
-	console.log(user);
 	return true;
 }
 
