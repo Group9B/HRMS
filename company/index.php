@@ -17,19 +17,20 @@ $company_id = $_SESSION['company_id'];
 
 // --- DATA FETCHING (Scoped to the Company Admin's Company) ---
 
-// Stat Card: Total Employees in the company
-$employees_result = query($mysqli, "SELECT COUNT(e.id) as count FROM employees e JOIN departments d ON e.department_id = d.id WHERE d.company_id = ? and e.status = 'active'", [$company_id]);
+// Stat Card: Total Employees
+$employees_result = query($mysqli, "SELECT COUNT(e.id) as count FROM employees e JOIN departments d ON e.department_id = d.id WHERE d.company_id = ? AND e.status = 'active'", [$company_id]);
 $total_employees = $employees_result['success'] ? $employees_result['data'][0]['count'] : 0;
 
-// Stat Card: Total Users in the company
-$users_result = query($mysqli, "SELECT COUNT(id) as count FROM users WHERE company_id = ?", [$company_id]);
-$total_users = $users_result['success'] ? $users_result['data'][0]['count'] : 0;
-
-// Stat Card: Total Departments in the company
+// Stat Card: Total Departments
 $departments_result = query($mysqli, "SELECT COUNT(id) as count FROM departments WHERE company_id = ?", [$company_id]);
 $total_departments = $departments_result['success'] ? $departments_result['data'][0]['count'] : 0;
 
-// Stat Card: Employees on Leave Today in the company
+// Stat Card: Pending Leave Requests
+$pending_leaves_result = query($mysqli, "SELECT COUNT(l.id) as count FROM leaves l JOIN employees e ON l.employee_id = e.id JOIN departments d ON e.department_id = d.id WHERE d.company_id = ? AND l.status = 'pending'", [$company_id]);
+$pending_leaves = $pending_leaves_result['success'] ? $pending_leaves_result['data'][0]['count'] : 0;
+
+
+// Stat Card: Employees on Leave Today
 $today = date('Y-m-d');
 $on_leave_query = "
     SELECT COUNT(a.id) as count 
@@ -54,6 +55,44 @@ $recent_hires_query = "
 $recent_hires_result = query($mysqli, $recent_hires_query, [$company_id]);
 $recent_hires = $recent_hires_result['success'] ? $recent_hires_result['data'] : [];
 
+// Chart Data: New hires in the last 3 months
+$hires_chart_query = "
+    SELECT DATE_FORMAT(e.date_of_joining, '%b %Y') AS month, COUNT(e.id) AS hires_count
+    FROM employees e
+    JOIN departments d ON e.department_id = d.id
+    WHERE d.company_id = ? AND e.date_of_joining >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
+    GROUP BY month
+    ORDER BY e.date_of_joining ASC
+";
+$hires_chart_result = query($mysqli, $hires_chart_query, [$company_id]);
+$chart_labels = [];
+$chart_data = [];
+if ($hires_chart_result['success']) {
+    foreach ($hires_chart_result['data'] as $row) {
+        $chart_labels[] = $row['month'];
+        $chart_data[] = $row['hires_count'];
+    }
+}
+
+
+// --- UI Component Data ---
+
+// Define the stat cards
+$stat_cards = [
+    ['title' => 'Active Employees', 'value' => $total_employees, 'icon' => 'fas fa-users-line', 'color' => 'primary'],
+    ['title' => 'Departments', 'value' => $total_departments, 'icon' => 'fas fa-sitemap', 'color' => 'info'],
+    ['title' => 'Pending Leaves', 'value' => $pending_leaves, 'icon' => 'fas fa-hourglass-half', 'color' => 'danger'],
+    ['title' => 'On Leave Today', 'value' => $on_leave_today, 'icon' => 'fas fa-user-clock', 'color' => 'warning']
+];
+
+// Define the quick actions
+$quick_actions = [
+    ['title' => 'Add New Employee', 'url' => 'employees.php', 'icon' => 'fas fa-user-plus'],
+    ['title' => 'Manage Departments', 'url' => 'organization.php', 'icon' => 'fas fa-sitemap'],
+    ['title' => 'Approve Leaves', 'url' => 'leaves.php', 'icon' => 'fas fa-calendar-check'],
+    ['title' => 'View Reports', 'url' => '#', 'icon' => 'fas fa-chart-bar', 'onclick' => "alert('This Feature will be Available soon..!');"]
+];
+
 
 require_once '../components/layout/header.php';
 ?>
@@ -61,71 +100,35 @@ require_once '../components/layout/header.php';
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
+
+        <!-- Render Stat Cards -->
         <div class="row">
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-primary-subtle"><i
-                                class="fas fa-users-line text-primary-emphasis"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">Total Employees</div>
-                            <div class="h5 mb-0 font-weight-bold text-muted"><?= $total_employees ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-success-subtle"><i
-                                class="fas fa-user-check text-success-emphasis"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">Total Users</div>
-                            <div class="h5 mb-0 font-weight-bold text-muted"><?= $total_users ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-info-subtle"><i class="fas text-info-emphasis fa-sitemap"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">Departments
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-muted"><?= $total_departments ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-warning-subtle"><i
-                                class="fas fa-user-clock text-warning-emphasis"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">On Leave Today</div>
-                            <div class="h5 mb-0 font-weight-bold text-muted"><?= $on_leave_today ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <?php
+            foreach ($stat_cards as $card) {
+                echo render_stat_card($card['title'], $card['value'], $card['icon'], $card['color']);
+            }
+            ?>
         </div>
 
         <div class="row">
-            <div class="col-lg-8 mb-4">
-                <div class="card main-content-card shadow-sm">
+            <!-- Recent Hires and Trend Chart -->
+            <div class="col-lg-7 mb-4">
+                <div class="card main-content-card shadow-sm h-100">
                     <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold">Recent Hires</h6>
+                        <h6 class="m-0 font-weight-bold">Recent Hires & Trends (Last 3 Months)</h6>
                     </div>
                     <div class="card-body">
+                        <div class="mb-4" style="position: relative; height:250px">
+                            <canvas id="hiresChart"></canvas>
+                        </div>
+                        <hr>
                         <div class="recent-companies-list">
                             <?php if (!empty($recent_hires)): ?>
                                 <?php foreach ($recent_hires as $hire): ?>
                                     <div class="list-item">
                                         <div>
                                             <div class="company-name">
-                                                <?= htmlspecialchars($hire['first_name'] . ' ' . $hire['last_name']); ?>
+                                                <?= htmlspecialchars(ucwords($hire['first_name'] . ' ' . $hire['last_name'])); ?>
                                             </div>
                                             <div class="user-count text-muted">
                                                 <?= htmlspecialchars($hire['designation_name'] ?? 'N/A'); ?>
@@ -135,7 +138,6 @@ require_once '../components/layout/header.php';
                                             Hired on <?= date('F j, Y', strtotime($hire['date_of_joining'])); ?>
                                         </div>
                                     </div>
-
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <div class="text-center text-muted p-4">No recent hires to display.</div>
@@ -145,32 +147,60 @@ require_once '../components/layout/header.php';
                 </div>
             </div>
 
-            <div class="col-lg-4 mb-4">
-                <div class="card main-content-card shadow-sm">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold">Quick Actions</h6>
-                    </div>
-                    <div class="card-body quick-actions">
-                        <div class="d-grid gap-2">
-                            <a href="employees.php" class="btn bg-dark-subtle"><i class="fas fa-user-plus"></i>
-                                Add New
-                                Employee</a>
-                            <a href="organization.php" class="btn bg-dark-subtle"><i class="fas fa-sitemap"></i> Manage
-                                Departments</a>
-                            <a href="attendance.php" class="btn bg-dark-subtle"><i class="fas fa-calendar-check"></i>
-                                View
-                                Attendance</a>
-                            <a href="#" class="btn bg-dark-subtle"
-                                onclick="alert('This Feature will be Available soon..!');"><i
-                                    class="fas fa-chart-bar"></i>
-                                View Reports</a>
-                        </div>
-                    </div>
-                </div>
+            <!-- Right Column Widgets -->
+            <div class="col-lg-5 mb-4">
+                <!-- Quick Actions -->
+                <?php echo render_quick_actions($quick_actions); ?>
+
+                <!-- To-Do List -->
+                <?php echo render_todo_list_widget('My To-Do List'); ?>
             </div>
-
         </div>
-
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize To-Do List
+        initializeTodoList('#todo-form', '#todo-list');
+
+        // Initialize Hires Chart
+        const ctx = document.getElementById('hiresChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: <?= json_encode($chart_labels) ?>,
+                    datasets: [{
+                        label: 'New Hires',
+                        data: <?= json_encode($chart_data) ?>,
+                        fill: true,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false // Hides the legend
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                precision: 0 // Ensures integer values on the axis
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+
 <?php require_once '../components/layout/footer.php'; ?>

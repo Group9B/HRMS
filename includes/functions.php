@@ -130,9 +130,9 @@ function generateEmployeeCode($mysqli, $company_id, $date_of_joining)
             // For single-word names, use the first 3 letters
             $prefix = strtoupper(substr($company_name, 0, 3));
         }
-        
+
         // Use the generated prefix if it's valid
-        if(!empty($prefix)){
+        if (!empty($prefix)) {
             $company_prefix = preg_replace('/[^A-Z0-9]/', '', $prefix); // Sanitize
         }
     }
@@ -142,7 +142,7 @@ function generateEmployeeCode($mysqli, $company_id, $date_of_joining)
 
     // Step 3: Find the highest existing employee code for the same company and year.
     $code_pattern = $company_prefix . '-' . $joining_year . '-%';
-    
+
     $last_code_sql = "
         SELECT e.employee_code
         FROM employees e
@@ -150,15 +150,15 @@ function generateEmployeeCode($mysqli, $company_id, $date_of_joining)
         WHERE d.company_id = ? AND e.employee_code LIKE ?
         ORDER BY e.id DESC
         LIMIT 1";
-    
+
     $last_code_result = query($mysqli, $last_code_sql, [$company_id, $code_pattern]);
 
-    $next_sequence_num = 1; 
+    $next_sequence_num = 1;
     if ($last_code_result['success'] && !empty($last_code_result['data'])) {
         $last_code = $last_code_result['data'][0]['employee_code'];
         $last_sequence_part = substr($last_code, strrpos($last_code, '-') + 1);
         if (is_numeric($last_sequence_part)) {
-            $next_sequence_num = (int)$last_sequence_part + 1;
+            $next_sequence_num = (int) $last_sequence_part + 1;
         }
     }
 
@@ -497,6 +497,90 @@ function requireCSRFToken()
             die('CSRF token validation failed');
         }
     }
+}
+
+function render_stat_card(string $title, $value, string $icon, string $color): string
+{
+    $title_safe = htmlspecialchars($title);
+    $value_safe = htmlspecialchars($value);
+    $icon_safe = htmlspecialchars($icon);
+    $color_safe = htmlspecialchars($color);
+
+    return <<<HTML
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card shadow-sm bg-{$color_safe}-subtle">
+            <div class="card-body">
+                <div class="icon-circle bg-{$color_safe}"><i class="{$icon_safe} text-white"></i></div>
+                <div>
+                    <div class="text-xs font-weight-bold text-uppercase mb-1">{$title_safe}</div>
+                    <div class="h5 mb-0 font-weight-bold text-muted">{$value_safe}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+HTML;
+}
+
+/**
+ * Renders a "Quick Actions" panel with a list of links.
+ *
+ * @param array $actions An array of actions, where each action is an associative array
+ * with keys 'title', 'url', 'icon', and optional 'onclick'.
+ * @param string $card_title The title for the quick actions card.
+ * @return string The HTML for the quick actions panel.
+ */
+function render_quick_actions(array $actions, string $card_title = 'Quick Actions'): string
+{
+    $card_title_safe = htmlspecialchars($card_title);
+    $links_html = '';
+
+    foreach ($actions as $action) {
+        $title = htmlspecialchars($action['title'] ?? '');
+        $url = htmlspecialchars($action['url'] ?? '#');
+        $icon = htmlspecialchars($action['icon'] ?? '');
+        $onclick = isset($action['onclick']) ? 'onclick="' . htmlspecialchars($action['onclick']) . '"' : '';
+
+        $links_html .= <<<HTML
+        <a href="{$url}" class="btn btn-secondary" {$onclick}><i class="{$icon}"></i> {$title}</a>
+HTML;
+    }
+
+    return <<<HTML
+    <div class="col-lg-12 mb-4">
+        <div class="card main-content-card shadow-sm">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold">{$card_title_safe}</h6>
+            </div>
+            <div class="card-body quick-actions">
+                <div class="d-grid gap-2">
+                    {$links_html}
+                </div>
+            </div>
+        </div>
+    </div>
+HTML;
+}
+
+function render_todo_list_widget(string $card_title = 'My To-Do List'): string
+{
+    $card_title_safe = htmlspecialchars($card_title);
+
+    return <<<HTML
+    <div class="card main-content-card shadow-sm">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold">{$card_title_safe}</h6>
+        </div>
+        <div class="card-body">
+            <form id="todo-form" class="mb-3 d-flex gap-2">
+                <input type="text" name="task" class="form-control" placeholder="Add a new task..." required>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i></button>
+            </form>
+            <ul id="todo-list" class="list-group list-group-flush">
+                <!-- Tasks will be loaded here by JavaScript -->
+            </ul>
+        </div>
+    </div>
+HTML;
 }
 
 ?>

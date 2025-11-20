@@ -71,39 +71,52 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 require_once "../components/layout/header.php";
 ?>
-<div class="container mt-5 pt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-header text-center bg-primary text-white">
-                    <h4>HRMS Login</h4>
-                </div>
-                <div class="card-body">
-                    <?php if (!empty($error)): ?>
-                        <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
-                    <?php endif; ?>
+<div class="body d-flex justify-content-center align-items-center vh-100">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-4">
+                <div class="card login-card shadow-sm">
+                    <div class="card-body">
 
-                    <form method="POST" action="">
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email address</label>
-                            <input type="email" class="form-control" name="email" id="email" required>
-                        </div>
+                        <h5 class="text-center mb-3 border-bottom pb-2 border-2 border-primary-subtle">Welcome Back..!
+                        </h5>
 
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" name="password" id="passwordInput" required>
-                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                    <i class="fas fa-eye"></i>
-                                </button>
+                        <?php if (!empty($error)): ?>
+                            <div class="alert alert-danger py-2"><?php echo htmlspecialchars($error); ?></div>
+                        <?php endif; ?>
+
+                        <form method="POST" action="">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" id="basic-addon1">@</span>
+
+                                    <input type="email" class="form-control" name="email" id="email"
+                                        placeholder="Enter your email" required>
+                                </div>
                             </div>
-                        </div>
 
-                        <button type="submit" class="btn btn-primary w-100">Login</button>
-                    </form>
-                </div>
-                <div class="card-footer text-center small">
-                    &copy; <?php echo date("Y"); ?> HRMS System
+                            <div class="mb-3">
+                                <label for="passwordInput" class="form-label">Password</label>
+                                <div class="input-group">
+
+                                    <span class="input-group-text" id="basic-addon1">⚿</span>
+                                    <input type="password" class="form-control" name="password" id="passwordInput"
+                                        placeholder="Enter password" style="border-right: none;" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword"
+                                        style="border-left: none;">
+                                        <i class="fas fa-eye" id="icon"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">Login</button>
+                        </form>
+                    </div>
+
+                    <div class="card-footer text-center footer-text text-muted">
+                        &copy; <?php echo date("Y"); ?> StaffSync HRMS
+                    </div>
                 </div>
             </div>
         </div>

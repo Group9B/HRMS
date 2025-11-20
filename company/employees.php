@@ -164,6 +164,8 @@ require_once '../components/layout/header.php';
         createUserModal = new bootstrap.Modal('#createUserModal');
 
         employeesTable = $('#employeesTable').DataTable({
+            bautoWidth: false,
+
             responsive: true,
             processing: true,
             ajax: { url: '/hrms/api/api_employees.php?action=get_employees', dataSrc: 'data' },

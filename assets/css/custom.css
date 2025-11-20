@@ -3,6 +3,7 @@
 }
 :root {
 	--bs-card-cap-bg: rgba(var(--bs-body-color-rgb), 0.03);
+	--bs-toast-bg: var(--bs-body-bg);
 }
 
 .hrms-header {
@@ -275,6 +276,11 @@
 	color: var(--bs-secondary-color);
 	border: 1px dashed var(--bs-border-color-translucent);
 	cursor: not-allowed;
+}
+
+.toast-bg {
+	background-color: var(--bs-taost-bg);
+	color: var(--bs-toast-color);
 }
 
 /* Todo List Styles */

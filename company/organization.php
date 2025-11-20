@@ -180,6 +180,7 @@ require_once '../components/layout/header.php';
             const columns = getTableColumns(type);
             tables[type] = $(`#${type}sTable`).DataTable({
                 responsive: true,
+                bautoWidth: false,
                 ajax: { url: `/hrms/api/organization.php?action=get_${type}s`, dataSrc: 'data' },
                 columns: columns
             });
@@ -334,7 +335,6 @@ require_once '../components/layout/header.php';
         }
     }
 
-    function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
     function formatTime(timeStr) {
         if (!timeStr) return '';
         const [h, m] = timeStr.split(':');

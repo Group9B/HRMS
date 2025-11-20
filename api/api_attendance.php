@@ -64,7 +64,6 @@ switch ($action) {
             $sql_params[] = $single_employee_id;
         }
 
-        // FATAL ERROR FIX: The parameters for the JOIN's BETWEEN clause must come first.
         $final_params = array_merge([$start_date, $end_date], $sql_params);
 
         $sql = "SELECT e.id as employee_id, e.first_name, e.last_name, e.date_of_joining, des.name as designation, a.date, a.status

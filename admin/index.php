@@ -9,7 +9,7 @@ if (!isLoggedIn()) {
 if ($_SESSION['role_id'] !== 1) {
   redirect("/hrms/unauthorized.php");
 }
-
+flash("warning", "You do not have permission to access that page.");
 // --- CORRECTED DATA FETCHING for Super Admin ---
 $active_companies = query($mysqli, "SELECT COUNT(*) as count FROM companies")['data'][0]['count'] ?? 0;
 $total_employees = query($mysqli, "SELECT COUNT(*) as count FROM employees")['data'][0]['count'] ?? 0;
