@@ -5,14 +5,12 @@ $error = "";
 if (isLoggedIn()) {
     redirect("/hrms/includes/redirect.php");
 }
-// Handle form submission
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email = trim($_POST["email"]) ?? '';
     $password = trim($_POST["password"]) ?? '';
     if (empty($email) || empty($password)) {
         $error = "Please fill in all fields.";
     } else {
-        // Prepare statement
         $stmt = $mysqli->prepare("SELECT id, company_id, role_id, username, email, password, status 
                                   FROM users WHERE email = ?");
         if (!$stmt) {
@@ -28,13 +26,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 if ($user['status'] !== 'active') {
                     $error = "Your account is inactive. Please contact admin.";
                 } elseif (password_verify($password, $user['password'])) {
-                    // Store session data
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['username'] = $user['username'];
                     $_SESSION['role_id'] = $user['role_id'];
                     $_SESSION['company_id'] = $user['company_id'];
 
-                    // Redirect based on role
                     switch ($user['role_id']) {
                         case 1:
                             redirect("/hrms/admin/");
@@ -78,7 +74,8 @@ require_once "../components/layout/header.php";
                 <div class="card login-card shadow-sm">
                     <div class="card-body">
 
-                        <h5 class="text-center mb-3 border-bottom pb-2 border-2 border-primary-subtle">Welcome Back..!
+                        <h5 class="text-center mb-3 border-bottom pb-2 border-2 border-primary-subtle h3">Welcome
+                            Back..!
                         </h5>
 
                         <?php if (!empty($error)): ?>
@@ -102,9 +99,8 @@ require_once "../components/layout/header.php";
 
                                     <span class="input-group-text" id="basic-addon1">⚿</span>
                                     <input type="password" class="form-control" name="password" id="passwordInput"
-                                        placeholder="Enter password" style="border-right: none;" required>
-                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword"
-                                        style="border-left: none;">
+                                        placeholder="Enter password" required>
+                                    <button class="btn btn-default" type="button" id="togglePassword">
                                         <i class="fas fa-eye" id="icon"></i>
                                     </button>
                                 </div>
