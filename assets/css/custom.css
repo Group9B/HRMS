@@ -1,24 +1,9 @@
-@import url("../../node_modules/@tabler/core/dist/css/tabler.min.css");
-@import url("../../node_modules/@tabler/core/dist/css/tabler-themes.min.css");
-@import url("../../node_modules/@tabler/core/dist/css/tabler-vendors.min.css");
-@import url("../../node_modules/@tabler/icons-webfont/dist/tabler-icons.min.css");
-.modal-backdrop {
-	background-color: #000;
-}
-body.modal-open {
-	overflow: hidden !important;
-}
-
 * {
 	font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 :root {
 	--bs-card-cap-bg: rgba(var(--bs-body-color-rgb), 0.03);
 	--bs-toast-bg: var(--bs-body-bg);
-}
-
-html {
-	margin: 0 !important;
 }
 
 .hrms-header {

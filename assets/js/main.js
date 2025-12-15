@@ -9,16 +9,13 @@ if (themeToggleBtn) {
 		localStorage.setItem("theme", newTheme);
 	});
 }
-
 document.addEventListener("DOMContentLoaded", () => {
 	const savedTheme = localStorage.getItem("theme");
 	if (savedTheme) {
 		document.documentElement.setAttribute("data-bs-theme", savedTheme);
 	}
 	initializePasswordToggle("passwordInput", "togglePassword");
-	// Sidebar toggle is now handled largely by Tabler's CSS/Bootstrap,
-	// but we keep this if you have custom backdrop logic.
-	initializeSidebarToggle("navbar-menu", "sidebarToggle", "backdrop");
+	initializeSidebarToggle("sidebar", "sidebarToggle", "backdrop");
 });
 
 window.addEventListener("load", () => {
@@ -33,38 +30,66 @@ window.addEventListener("load", () => {
 });
 
 /**
- * Generates a deterministic background color from a number.
+ * Generates a deterministic background color from a number (like a user ID).
+ * Uses HSL color space for more pleasing, consistent colors.
+ * @param {number} id - The user's unique ID.
+ * @returns {string} - An HSL color string (e.g., 'hsl(145, 65%, 40%)').
  */
 function generateColorFromId(id) {
+	// A simple hashing function to create more variance from the ID
 	let hash = 0;
 	const idStr = String(id);
 	for (let i = 0; i < idStr.length; i++) {
 		hash = idStr.charCodeAt(i) + ((hash << 5) - hash);
-		hash = hash & hash;
+		hash = hash & hash; // Keep it a 32bit integer
 	}
-	const hue = Math.abs(hash) % 360;
-	const saturation = 70;
-	const lightness = 26;
+
+	const hue = Math.abs(hash) % 360; // Hue (0-360)
+	const saturation = 70; // Saturation (0-100)
+	const lightness = 26; // Lightness (0-100)
+
 	return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
+/**
+ * Intelligently extracts initials from a username string.
+ * It handles various formats like 'john_doe', 'JohnDoe', 'johndoe', and emails.
+ * @param {string} username - The user's username.
+ * @returns {string} - The extracted initials (1 or 2 characters).
+ */
 function getInitialsFromUsername(username) {
-	if (!username) return "?";
+	if (!username) {
+		return "?";
+	}
+
+	// Use the part before an @ if it's an email
 	const namePart = username.split("@")[0];
+
+	// Replace common separators with a space
 	const cleanedName = namePart.replace(/[._-]/g, " ");
+
+	// Split into words
 	const parts = cleanedName.split(" ").filter((part) => part.length > 0);
 
 	if (parts.length > 1) {
+		// For "john doe" or "john_doe", returns "JD"
 		const firstInitial = parts[0][0];
 		const lastInitial = parts[parts.length - 1][0];
 		return `${firstInitial}${lastInitial}`.toUpperCase();
 	} else if (parts.length === 1 && parts[0].length > 0) {
+		// For "johndoe" or "coder123", returns the first two letters, e.g., "JO"
 		return parts[0].substring(0, 2).toUpperCase();
 	} else {
+		// Fallback for empty or unusual usernames
 		return username.substring(0, 1).toUpperCase();
 	}
 }
 
+/**
+ * Main function to generate avatar data for a user object.
+ * @param {object} user - A user object matching your schema { id, username, ... }.
+ * @returns {{initials: string, color: string}}
+ */
 function generateAvatarData(user) {
 	return {
 		initials: getInitialsFromUsername(user.username),
@@ -74,35 +99,26 @@ function generateAvatarData(user) {
 
 function createAvatar(user) {
 	const avatar = document.querySelector(".avatar");
-	if (avatar) {
-		let userData = generateAvatarData(user);
-		avatar.style.backgroundColor = userData.color;
-		avatar.textContent = userData.initials;
-		return true;
-	}
-	return false;
+	let userData = generateAvatarData(user);
+	avatar.style.backgroundColor = userData.color;
+	avatar.textContent = userData.initials;
+	return true;
 }
 
 function initializeSidebarToggle(sidebarId, toggleBtnId, backdropId) {
 	const sidebar = document.getElementById(sidebarId);
 	const toggleBtn = document.getElementById(toggleBtnId);
-
-	// Tabler handles mobile menus via standard Bootstrap collapse/offcanvas mostly,
-	// but this ensures your specific toggle button works.
-	if (toggleBtn && sidebar) {
+	const backdrop = document.getElementById(backdropId);
+	if (toggleBtn && sidebar && backdrop) {
 		toggleBtn.addEventListener("click", function () {
 			sidebar.classList.toggle("show");
-			// If you use a backdrop
-			const backdrop = document.getElementById(backdropId);
-			if (backdrop) {
-				backdrop.style.display = sidebar.classList.contains("show")
-					? "block"
-					: "none";
-				backdrop.addEventListener("click", function () {
-					sidebar.classList.remove("show");
-					backdrop.style.display = "none";
-				});
-			}
+			backdrop.style.display = sidebar.classList.contains("show")
+				? "block"
+				: "none";
+		});
+		backdrop.addEventListener("click", function () {
+			sidebar.classList.remove("show");
+			backdrop.style.display = "none";
 		});
 	}
 }
@@ -116,17 +132,8 @@ function showToast(message, type = "success") {
 		);
 	}
 	const toastId = "toast-" + Date.now();
-	// Tabler uses text-bg-{color} for solid colored elements or specific alert classes
-	const bgClass = type === "success" ? "text-bg-success" : "text-bg-danger";
-
-	const toastHTML = `
-		<div id="${toastId}" class="toast align-items-center ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-			<div class="d-flex">
-				<div class="toast-body">${message}</div>
-				<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-			</div>
-		</div>`;
-
+	const bgClass = type === "success" ? "bg-success" : "bg-danger";
+	const toastHTML = `<div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true"><div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div></div>`;
 	$("#toast-container").append(toastHTML);
 	const toastElement = new bootstrap.Toast(document.getElementById(toastId));
 	document
@@ -137,35 +144,41 @@ function showToast(message, type = "success") {
 	toastElement.show();
 }
 
+function escapeHTML(str) {
+	if (str === null || str === undefined) return "";
+	const div = document.createElement("div");
+	div.appendChild(document.createTextNode(str));
+	return div.innerHTML;
+}
+
 function initializePasswordToggle(inputId, toggleBtnId) {
 	const passwordinp = document.getElementById(inputId);
 	const togglePasswordBtn = document.getElementById(toggleBtnId);
 	if (passwordinp && togglePasswordBtn) {
-		togglePasswordBtn.addEventListener("click", function (e) {
-			e.preventDefault();
+		togglePasswordBtn.addEventListener("click", function () {
 			const type =
 				passwordinp.getAttribute("type") === "password"
 					? "text"
 					: "password";
 			passwordinp.setAttribute("type", type);
-			// Assuming font awesome or tabler icons
-			const icon = this.querySelector("i") || this.querySelector("svg");
-			if (icon && icon.classList.contains("fa-eye")) {
-				icon.classList.remove("fa-eye");
-				icon.classList.add("fa-eye-slash");
-			} else if (icon && icon.classList.contains("fa-eye-slash")) {
-				icon.classList.remove("fa-eye-slash");
-				icon.classList.add("fa-eye");
-			}
+			this.querySelector("i").classList.toggle("fa-eye");
+			this.querySelector("i").classList.toggle("fa-eye-slash");
 		});
 	}
 }
 
+/**
+ * Initializes a modular To-Do list widget.
+ * @param {string} formSelector The CSS selector for the form element.
+ * @param {string} listSelector The CSS selector for the UL element.
+ */
 function initializeTodoList(formSelector, listSelector) {
 	const todoForm = $(formSelector);
 	const todoList = $(listSelector);
 
-	if (!todoForm.length || !todoList.length) return;
+	if (!todoForm.length || !todoList.length) {
+		return; // Exit if the required elements aren't on the page
+	}
 
 	function loadTodos() {
 		fetch("/hrms/api/todo.php?action=get_todos")
@@ -175,30 +188,29 @@ function initializeTodoList(formSelector, listSelector) {
 				if (result.success && result.data.length > 0) {
 					result.data.forEach((item) => {
 						const isCompleted = parseInt(item.is_completed) === 1;
-						// Tabler list group item styling
 						const li = `
                             <li class="list-group-item d-flex justify-content-between align-items-center" data-id="${
 								item.id
 							}">
                                 <span class="task-text ${
 									isCompleted
-										? "text-decoration-line-through text-secondary"
+										? "text-decoration-line-through text-muted"
 										: ""
 								}">${escapeHTML(item.task)}</span>
-                                <div class="btn-list">
+                                <div class="btn-group">
                                     ${
 										!isCompleted
-											? '<button class="btn btn-sm btn-icon btn-success complete-btn"><i class="fas fa-check"></i></button>'
+											? '<button class="btn btn-sm btn-success complete-btn"><i class="fas fa-check"></i></button>'
 											: ""
 									}
-                                    <button class="btn btn-sm btn-icon btn-danger delete-btn"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-sm btn-danger delete-btn"><i class="fas fa-trash"></i></button>
                                 </div>
                             </li>`;
 						todoList.append(li);
 					});
 				} else {
 					todoList.append(
-						'<li class="list-group-item text-secondary text-center">No tasks yet. Add one above!</li>'
+						'<li class="list-group-item text-muted text-center">No tasks yet. Add one above!</li>'
 					);
 				}
 			});
@@ -216,6 +228,7 @@ function initializeTodoList(formSelector, listSelector) {
 		);
 	});
 
+	// New handler for the complete button
 	todoList.on("click", ".complete-btn", function () {
 		const li = $(this).closest("li");
 		const formData = new FormData();
@@ -227,6 +240,7 @@ function initializeTodoList(formSelector, listSelector) {
 		);
 	});
 
+	// Existing handler for the delete button
 	todoList.on("click", ".delete-btn", function () {
 		if (confirm("Delete this task?")) {
 			const li = $(this).closest("li");
@@ -240,9 +254,14 @@ function initializeTodoList(formSelector, listSelector) {
 		}
 	});
 
-	loadTodos();
+	loadTodos(); // Initial load
 }
 
+/**
+ * Escapes HTML special characters in a string to prevent XSS.
+ * @param {string} str The string to escape.
+ * @returns {string} The escaped string.
+ */
 function escapeHTML(str) {
 	if (str === null || str === undefined) return "";
 	return String(str).replace(
@@ -258,12 +277,23 @@ function escapeHTML(str) {
 	);
 }
 
+/**
+ * Capitalizes the first letter of a string.
+ * @param {string} str The string to capitalize.
+ * @returns {string}
+ */
 function capitalize(str) {
 	if (!str) return "";
 	return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-// Helper to return tabler-compliant status colors
+// --- DOMAIN-SPECIFIC UTILITY FUNCTIONS ---
+
+/**
+ * Returns a Bootstrap color class based on a status string.
+ * @param {string} status The status string (e.g., 'approved', 'pending', 'rejected').
+ * @returns {string} A Bootstrap class name.
+ */
 function getStatusClass(status) {
 	switch (status) {
 		case "approved":

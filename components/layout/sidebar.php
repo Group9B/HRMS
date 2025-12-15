@@ -291,65 +291,64 @@ function isActivePage($url)
   return strpos($current_page, $url) !== false;
 }
 ?>
-<aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
-  <div class="container-fluid">
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu"
-      aria-controls="sidebar-menu" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <h1 class="navbar-brand navbar-brand-autodark">
-      <a href="index.php">
-        <img src="/hrms/assets/img/SS.png" width="110" height="32" alt="Staff Sync" class="navbar-brand-image">
-        Staff Sync
-      </a>
-    </h1>
-
-    <div class="collapse navbar-collapse" id="sidebar-menu">
-      <ul class="navbar-nav pt-lg-3">
-        <?php foreach ($navigation_menu as $key => $item): ?>
-          <?php if (shouldShowMenuItem($item)): ?>
-            <?php if (empty($item['submenu'])): ?>
-              <li class="nav-item <?php echo isActivePage($item['url']) ? 'active' : ''; ?>">
-                <a class="nav-link" href="<?php echo htmlspecialchars($item['url']); ?>">
-                  <span class="nav-link-icon d-md-none d-lg-inline-block">
-                    <i class="<?php echo htmlspecialchars($item['icon']); ?>"></i>
-                  </span>
-                  <span class="nav-link-title">
-                    <?php echo htmlspecialchars($item['title']); ?>
-                  </span>
-                </a>
-              </li>
-            <?php else: ?>
-              <li class="nav-item dropdown <?php echo isActivePage($item['url']) ? 'active' : ''; ?>">
-                <a class="nav-link dropdown-toggle" href="#navbar-<?php echo $key; ?>" data-bs-toggle="dropdown"
-                  data-bs-auto-close="false" role="button"
-                  aria-expanded="<?php echo isActivePage($item['url']) ? 'true' : 'false'; ?>">
-                  <span class="nav-link-icon d-md-none d-lg-inline-block">
-                    <i class="<?php echo htmlspecialchars($item['icon']); ?>"></i>
-                  </span>
-                  <span class="nav-link-title">
-                    <?php echo htmlspecialchars($item['title']); ?>
-                  </span>
-                </a>
-                <div class="dropdown-menu <?php echo isActivePage($item['url']) ? 'show' : ''; ?>">
-                  <div class="dropdown-menu-columns">
-                    <div class="dropdown-menu-column">
-                      <?php foreach ($item['submenu'] as $subitem): ?>
-                        <?php if (shouldShowMenuItem($subitem)): ?>
-                          <a class="dropdown-item <?php echo isActivePage($subitem['url']) ? 'active' : ''; ?>"
-                            href="<?php echo htmlspecialchars($subitem['url']); ?>">
-                            <?php echo htmlspecialchars($subitem['title']); ?>
-                          </a>
-                        <?php endif; ?>
-                      <?php endforeach; ?>
-                    </div>
-                  </div>
-                </div>
-              </li>
-            <?php endif; ?>
-          <?php endif; ?>
-        <?php endforeach; ?>
-      </ul>
+<div class="flex-column flex-shrink-0 p-3 bg-body-tertiary border-end sidebar d-md-flex position-fixed" id="backdrop">
+  <ul class="nav nav-pills flex-column" id="sidebar">
+    <div class="logo d-md-none d-sm-block">
+      <div class="wrapper d-flex align-items-center justify-content-between">
+        <a href="index.php" class="navbar-brand d-flex align-items-center text-decoration-none">
+          <img src="/hrms/assets/img/SS.png" alt="" height="40" class="d-inline-block align-text-top pe-1">
+          <h2 class="m-0">Staff Sync</h2>
+        </a>
+        <button class="btn fs-2 d-lg-none fa-color" id="sidebarToggle" type="button">
+          <i class="fas fa-x"></i>
+        </button>
+      </div>
+      <hr>
     </div>
-  </div>
-</aside>
+    <?php foreach ($navigation_menu as $key => $item): ?>
+      <?php if (shouldShowMenuItem($item)): ?>
+        <li class="nav-item mb-2">
+          <?php if (empty($item['submenu'])): ?>
+            <a class="nav-link d-flex align-items-center py-2 px-3 rounded <?php echo isActivePage($item['url']) ? 'active bg-primary text-white' : 'text-muted'; ?>"
+              href="<?php echo htmlspecialchars($item['url']); ?>">
+              <i class="<?php echo htmlspecialchars($item['icon']); ?> me-2" style="width: 20px;"></i>
+              <span><?php echo htmlspecialchars($item['title']); ?></span>
+            </a>
+          <?php else: ?>
+            <div class="nav-item">
+              <a class="nav-link d-flex align-items-center justify-content-between py-2 px-3 rounded text-muted" href="#"
+                data-bs-toggle="collapse" data-bs-target="#submenu-<?php echo $key; ?>"
+                aria-expanded="<?php echo isActivePage($item['url']) ? 'true' : 'false'; ?>">
+                <div class="d-flex align-items-center">
+                  <i class="<?php echo htmlspecialchars($item['icon']); ?> me-2" style="width: 20px;"></i>
+                  <span><?php echo htmlspecialchars($item['title']); ?></span>
+                </div>
+                <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+              </a>
+
+              <div class="collapse <?php echo isActivePage($item['url']) ? 'show' : ''; ?>" id="submenu-<?php echo $key; ?>">
+                <ul class="nav flex-column ms-3 mt-2">
+                  <?php foreach ($item['submenu'] as $subitem): ?>
+                    <?php if (shouldShowMenuItem($subitem)): ?>
+                      <li class="nav-item">
+                        <a class="nav-link py-1 px-3 rounded <?php echo isActivePage($subitem['url']) ? 'active bg-primary text-white' : 'text-muted'; ?>"
+                          href="<?php echo htmlspecialchars($subitem['url']); ?>">
+                          <i class="<?php echo htmlspecialchars($subitem['icon']); ?> me-2" style="width: 16px;"></i>
+                          <span style="font-size: 0.9rem;"><?php echo htmlspecialchars($subitem['title']); ?></span>
+                        </a>
+                      </li>
+                    <?php endif; ?>
+                  <?php endforeach; ?>
+                </ul>
+              </div>
+            </div>
+          <?php endif; ?>
+        </li>
+      <?php endif; ?>
+    <?php endforeach; ?>
+  </ul>
+</div>
+<div class="breaker me-md-5"></div>
+<div class="breaker me-md-5"></div>
+<div class="breaker me-md-5"></div>
+<div class="breaker me-md-5"></div>
