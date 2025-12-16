@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../modal/confirmation_modal.php'; ?>
 <script src="/hrms/assets/js/jquery.js"></script>
 <script src="/hrms/assets/js/bootstrap.js"></script>
 <script src="/hrms/assets/js/datatable.js"></script>

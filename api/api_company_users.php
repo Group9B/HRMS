@@ -5,7 +5,7 @@ require_once '../includes/functions.php';
 
 $response = ['success' => false, 'message' => 'An unknown error occurred.'];
 
-// Security Check: Must be a logged-in Company Admin
+// Security Check: Must be a logged-in Company Admin or HR Manager
 if (!isLoggedIn() || !in_array($_SESSION['role_id'], [2, 3])) {
     $response['message'] = 'Unauthorized access.';
     echo json_encode($response);
@@ -14,6 +14,7 @@ if (!isLoggedIn() || !in_array($_SESSION['role_id'], [2, 3])) {
 
 $action = $_REQUEST['action'] ?? '';
 $company_id = $_SESSION['company_id'];
+$is_c_admin = $_SESSION['role_id'] === 2;
 
 switch ($action) {
     case 'add_user':
@@ -24,7 +25,13 @@ switch ($action) {
         $role_id = isset($_POST['role_id']) ? (int) $_POST['role_id'] : 4;
 
         // --- Security Check ---
-        // A Company Admin can ONLY create HR Managers (3) , Employees (4) and Manager (6).
+        // Only Company Admin can create HR Manager (4)
+        if ($role_id === 4 && !$is_c_admin) {
+            $response['message'] = 'Only Company Admin can create HR Manager accounts.';
+            break;
+        }
+
+        // A Company Admin or HR Manager can create Employees (3) and Managers (6)
         if (!in_array($role_id, [3, 4, 6])) {
             $response['message'] = 'You do not have permission to create a user with this role.';
             break;
@@ -33,6 +40,18 @@ switch ($action) {
         // Server-side validation
         if (empty($username) || empty($email) || empty($password)) {
             $response['message'] = 'Username, email, and password are required.';
+            break;
+        }
+
+        // Validate username length
+        if (strlen($username) < 3) {
+            $response['message'] = 'Username must be at least 3 characters long.';
+            break;
+        }
+
+        // Validate email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $response['message'] = 'Invalid email format.';
             break;
         }
 
@@ -58,6 +77,27 @@ switch ($action) {
             ];
         } else {
             $response['message'] = 'Database error: ' . $result['error'];
+        }
+        break;
+
+    case 'check_username':
+        $username = $_GET['username'] ?? '';
+
+        if (empty($username)) {
+            $response['message'] = 'Username is required.';
+            break;
+        }
+
+        // Check if username already exists
+        $check_sql = "SELECT id FROM users WHERE username = ?";
+        $check_result = query($mysqli, $check_sql, [$username]);
+
+        if ($check_result['success']) {
+            $response = [
+                'available' => empty($check_result['data'])
+            ];
+        } else {
+            $response['message'] = 'Error checking username availability.';
         }
         break;
 

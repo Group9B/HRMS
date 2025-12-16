@@ -313,3 +313,7 @@
 .todo-list .delete-btn {
 	margin-left: auto;
 }
+
+.action::after {
+	content: none;
+}

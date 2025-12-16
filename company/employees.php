@@ -11,11 +11,10 @@ $company_id = $_SESSION['company_id'];
 $is_c_admin = $_SESSION['role_id'] === 2;
 
 // --- INITIAL DATA FETCHING for MODAL DROPDOWNS ---
-$all_users = query($mysqli, "SELECT id, username FROM users WHERE company_id = ? ORDER BY username ASC", [$company_id])['data'] ?? [];
+$all_users = query($mysqli, "SELECT id, username FROM users WHERE company_id = ? AND id != ? ORDER BY username ASC", [$company_id, $_SESSION['user_id']])['data'] ?? [];
 $departments = query($mysqli, "SELECT id, name FROM departments WHERE company_id = ? ORDER BY name ASC", [$company_id])['data'] ?? [];
-$designations = query($mysqli, "SELECT d.id, d.name FROM designations d JOIN departments dept ON d.department_id = dept.id WHERE dept.company_id = ? ORDER BY d.name ASC", [$company_id])['data'] ?? [];
 $shifts = query($mysqli, "SELECT id, name FROM shifts WHERE company_id = ? ORDER BY name ASC", [$company_id])['data'] ?? [];
-$assignable_roles = query($mysqli, "SELECT id, name FROM roles WHERE id IN (3, 4,6) ORDER BY name ASC")['data'] ?? [];
+$assignable_roles = $is_c_admin ? query($mysqli, "SELECT id, name FROM roles WHERE id IN (3, 4, 6) ORDER BY name ASC")['data'] ?? [] : query($mysqli, "SELECT id, name FROM roles WHERE id IN (3, 6) ORDER BY name ASC")['data'] ?? [];
 
 require_once '../components/layout/header.php';
 ?>
@@ -88,10 +87,8 @@ require_once '../components/layout/header.php';
                                 <?php endforeach; ?>
                             </select></div>
                         <div class="col-md-6 mb-3"><label class="form-label">Designation</label><select
-                                class="form-select" name="designation_id">
-                                <option value="">-- Select --</option><?php foreach ($designations as $des): ?>
-                                    <option value="<?= $des['id'] ?>"><?= htmlspecialchars($des['name']) ?></option>
-                                <?php endforeach; ?>
+                                class="form-select" name="designation_id" id="designationIdSelect" disabled>
+                                <option value="">-- Select Department First --</option>
                             </select></div>
                     </div>
                     <div class="row">
@@ -101,8 +98,18 @@ require_once '../components/layout/header.php';
                                     <option value="<?= $shift['id'] ?>"><?= htmlspecialchars($shift['name']) ?></option>
                                 <?php endforeach; ?>
                             </select></div>
-                        <div class="col-md-6 mb-3"><label class="form-label">Date of Joining</label><input type="date"
-                                class="form-control" name="date_of_joining"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Date of Joining</label>
+                            <div id="joiningDateContainer">
+                                <input type="date" class="form-control" name="date_of_joining" id="dateOfJoining">
+                                <small class="form-text text-muted" id="joiningDateHelp">Valid range: yesterday to
+                                    upcoming 3 months</small>
+                            </div>
+                            <div id="joiningDateDisabledContainer" style="display: none;">
+                                <input type="date" class="form-control" name="date_of_joining" id="dateOfJoiningLocked"
+                                    disabled>
+                                <small class="form-text text-muted d-block mt-2">Joined in past - Date is locked</small>
+                            </div>
+                        </div>
                     </div>
                     <div class="mb-3"><label class="form-label">Status</label><select class="form-select" name="status">
                             <option value="active">Active</option>
@@ -127,9 +134,13 @@ require_once '../components/layout/header.php';
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="action" value="add_user">
-                    <div class="mb-3"><label class="form-label">Username <span
-                                class="text-danger">*</span></label><input type="text" class="form-control"
-                            name="username" required></div>
+                    <div class="mb-3"><label class="form-label">Username <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="username" id="usernameInput" required>
+                            <button class="btn btn-outline-secondary" type="button" id="checkUsernameBtn">Check</button>
+                        </div>
+                        <small id="usernameStatus" class="d-block mt-2"></small>
+                    </div>
                     <div class="mb-3"><label class="form-label">Email <span class="text-danger">*</span></label><input
                             type="email" class="form-control" name="email" required></div>
                     <div class="mb-3"><label class="form-label">Password <span
@@ -154,7 +165,6 @@ require_once '../components/layout/header.php';
 <script>
     const allUsers = <?= json_encode($all_users) ?>;
     const hasDepartments = <?= !empty($departments) ? 'true' : 'false' ?>;
-    const hasDesignations = <?= !empty($designations) ? 'true' : 'false' ?>;
     const hasShifts = <?= !empty($shifts) ? 'true' : 'false' ?>;
 
     let employeesTable, employeeModal, createUserModal;
@@ -175,23 +185,164 @@ require_once '../components/layout/header.php';
                 { data: 'shift_name', defaultContent: 'N/A' },
                 { data: 'status', render: (d) => `<span class="badge bg-${d === 'active' ? 'success-subtle text-success-emphasis' : 'danger-subtle text-danger-emphasis'}">${capitalize(d)}</span>` },
                 {
-                    data: null, orderable: false, render: (d, t, r) => `<div class="btn-group"><button class="btn btn-sm bg-dark-subtle" onclick='prepareEditModal(${JSON.stringify(r)})'><i class="fas fa-edit"></i></button>
-                    <?php if ($is_c_admin): ?>
-                    <button class="btn btn-sm bg-dark-subtle" onclick="deleteEmployee(${r.id})"><i class="fas fa-trash"></i></button></div>
-                    <?php endif; ?>
-                    ` }
+                    data: null, orderable: false, render: (d, t, r) => {
+                        let dropdownHtml = `
+                            <div class="dropdown">
+                                <button class="btn btn-sm rounded-5 dropdown-toggle action" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#" onclick="prepareEditModal(${JSON.stringify(r).replace(/"/g, '&quot;')}); return false;">
+                                        <i class="fas fa-edit me-2"></i>Edit
+                                    </a></li>
+                        `;
+                        <?php if ($is_c_admin): ?>
+                        dropdownHtml += `
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteEmployee(${r.id}); return false;">
+                                        <i class="fas fa-trash me-2"></i>Delete
+                                    </a></li>
+                            `;
+                        <?php endif; ?>
+                        dropdownHtml += `
+                                </ul>
+                            </div>
+                        `;
+                        return dropdownHtml;
+                    }
+                }
             ],
             order: [[0, 'asc']]
         });
 
         $('#employeeForm').on('submit', handleEmployeeFormSubmit);
         $('#createUserForm').on('submit', handleCreateUserFormSubmit);
+        $('#checkUsernameBtn').on('click', checkUsernameAvailability);
+
+        // Add event listener for department change to populate designations
+        $('[name="department_id"]').on('change', function () {
+            populateDesignations();
+        });
     });
+
+    /**
+     * Validate the employee form with comprehensive frontend validations
+     */
+    function validateEmployeeForm() {
+        const errors = [];
+        const form = $('#employeeForm');
+
+        // Get form values
+        const firstName = form.find('[name="first_name"]').val().trim();
+        const lastName = form.find('[name="last_name"]').val().trim();
+        const userId = form.find('[name="user_id_select"]').val() || $('#hiddenUserId').val();
+        const departmentId = form.find('[name="department_id"]').val();
+        const designationId = form.find('[name="designation_id"]').val();
+        const dateOfJoining = form.find('[name="date_of_joining"]').val();
+
+        // Regex for names (only letters, spaces, hyphens, and apostrophes - no numbers)
+        const nameRegex = /^[a-zA-Z\s\-']+$/;
+
+        // Validation rules
+        if (!firstName) {
+            errors.push('First name is required.');
+        } else if (firstName.length < 2) {
+            errors.push('First name must be at least 2 characters long.');
+        } else if (!nameRegex.test(firstName)) {
+            errors.push('First name cannot contain numbers or special characters.');
+        }
+
+        if (!lastName) {
+            errors.push('Last name is required.');
+        } else if (lastName.length < 2) {
+            errors.push('Last name must be at least 2 characters long.');
+        } else if (!nameRegex.test(lastName)) {
+            errors.push('Last name cannot contain numbers or special characters.');
+        }
+
+        if (!userId) {
+            errors.push('User account is required.');
+        }
+
+        if (!departmentId) {
+            errors.push('Department is required.');
+        }
+
+        if (departmentId && !designationId) {
+            errors.push('Designation is required once a department is selected.');
+        }
+
+        if (dateOfJoining) {
+            const joiningDate = new Date(dateOfJoining);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            const maxDate = new Date(today);
+            maxDate.setMonth(maxDate.getMonth() + 3);
+
+            const isDateLocked = $('#joiningDateDisabledContainer').is(':visible');
+
+            if (!isDateLocked) {
+                if (joiningDate < yesterday) {
+                    errors.push('Date of joining cannot be in the past (before yesterday).');
+                } else if (joiningDate > maxDate) {
+                    errors.push('Date of joining cannot be more than 3 months from today.');
+                }
+            }
+        }
+
+        // Show errors if any
+        if (errors.length > 0) {
+            showToast(errors.join(' '), 'error');
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Populate designations based on selected department
+     */
+    function populateDesignations() {
+        const departmentId = $('[name="department_id"]').val();
+        const designationSelect = $('#designationIdSelect');
+
+        // Reset designation dropdown
+        designationSelect.html('<option value="">-- Select Designation --</option>');
+        designationSelect.prop('disabled', true);
+
+        if (!departmentId) {
+            designationSelect.html('<option value="">-- Select Department First --</option>');
+            return;
+        }
+
+        // Fetch designations for selected department
+        fetch(`/hrms/api/api_employees.php?action=get_designations_by_department&department_id=${departmentId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.data && data.data.length > 0) {
+                    designationSelect.prop('disabled', false);
+                    data.data.forEach(des => {
+                        designationSelect.append(`<option value="${des.id}">${escapeHTML(des.name)}</option>`);
+                    });
+                } else {
+                    designationSelect.html('<option value="">No designations available for this department</option>');
+                    designationSelect.prop('disabled', true);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching designations:', error);
+                showToast('Failed to load designations. Please try again.', 'error');
+                designationSelect.html('<option value="">Error loading designations</option>');
+            });
+    }
 
     function validateAndOpenAddModal() {
         let missing = [];
         if (!hasDepartments) missing.push('departments');
-        if (!hasDesignations) missing.push('designations');
         if (!hasShifts) missing.push('shifts');
 
         if (missing.length > 0) {
@@ -204,13 +355,24 @@ require_once '../components/layout/header.php';
 
     function handleEmployeeFormSubmit(e) {
         e.preventDefault();
+
+        // Frontend validation
+        if (!validateEmployeeForm()) {
+            return;
+        }
+
         const formData = new FormData(this);
+
+        // Ensure employee_id is set correctly
+        formData.set('employee_id', $('#employeeId').val());
+
         if ($('#userIdSelect').is(':disabled')) {
             formData.set('user_id', $('#hiddenUserId').val());
         } else {
             formData.set('user_id', $('#userIdSelect').val());
         }
         formData.delete('user_id_select');
+
         fetch('/hrms/api/api_employees.php', { method: 'POST', body: formData })
             .then(res => res.json()).then(data => {
                 if (data.success) {
@@ -218,11 +380,56 @@ require_once '../components/layout/header.php';
                     employeeModal.hide();
                     employeesTable.ajax.reload();
                 } else { showToast(data.message, 'error'); }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('An error occurred while saving the employee.', 'error');
+            });
+    }
+
+    /**
+     * Check if username is available
+     */
+    function checkUsernameAvailability() {
+        const username = $('#usernameInput').val().trim();
+        const statusElement = $('#usernameStatus');
+
+        if (!username) {
+            statusElement.html('<span class="text-warning">Please enter a username</span>');
+            return;
+        }
+
+        if (username.length < 3) {
+            statusElement.html('<span class="text-danger">Username must be at least 3 characters</span>');
+            return;
+        }
+
+        // Check username availability
+        fetch(`/hrms/api/api_company_users.php?action=check_username&username=${encodeURIComponent(username)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.available) {
+                    statusElement.html('<span class="text-success"><i class="fas fa-check"></i> Username is available</span>');
+                } else {
+                    statusElement.html('<span class="text-danger"><i class="fas fa-times"></i> Username is already taken</span>');
+                }
+            })
+            .catch(error => {
+                console.error('Error checking username:', error);
+                statusElement.html('<span class="text-danger">Error checking username availability</span>');
             });
     }
 
     function handleCreateUserFormSubmit(e) {
         e.preventDefault();
+
+        // Validate username availability status
+        const usernameStatus = $('#usernameStatus').text();
+        if (!usernameStatus.includes('available')) {
+            showToast('Please verify that username is available before creating user.', 'error');
+            return;
+        }
+
         fetch('/hrms/api/api_company_users.php', { method: 'POST', body: new FormData(this) })
             .then(res => res.json()).then(data => {
                 if (data.success) {
@@ -230,6 +437,7 @@ require_once '../components/layout/header.php';
                     createUserModal.hide();
                     employeeModal.show();
                     this.reset();
+                    $('#usernameStatus').html('');
                     const newUser = data.user;
                     allUsers.push(newUser);
                     const newOption = new Option(newUser.username, newUser.id, true, true);
@@ -253,46 +461,152 @@ require_once '../components/layout/header.php';
         });
         userDropdown.prop('disabled', false);
         $('#userDropdownContainer').show();
+
+        // Reset designation dropdown
+        $('#designationIdSelect').html('<option value="">-- Select Department First --</option>').prop('disabled', true);
+
+        // Clear username status
+        $('#usernameStatus').html('');
+        $('#usernameInput').val('');
+
+        // Set date constraints for joining date
+        setJoiningDateConstraints();
+    }
+
+    /**
+     * Set date constraints for joining date (yesterday to 3 months ahead)
+     */
+    function setJoiningDateConstraints() {
+        const today = new Date();
+
+        // Min date: yesterday
+        const minDate = new Date(today);
+        minDate.setDate(minDate.getDate() - 1);
+
+        // Max date: 3 months from today
+        const maxDate = new Date(today);
+        maxDate.setMonth(maxDate.getMonth() + 3);
+
+        const formatDate = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        // Ensure normal date input is shown and locked one is hidden
+        $('#joiningDateContainer').show();
+        $('#joiningDateDisabledContainer').hide();
+
+        // Set min and max attributes on the input
+        const dateInput = $('#dateOfJoining');
+        dateInput.attr('min', formatDate(minDate));
+        dateInput.attr('max', formatDate(maxDate));
     }
 
     function prepareEditModal(employee) {
         $('#employeeForm').trigger("reset");
+        $('#employeeId').val(employee.id); // Set ID first to ensure it's not missed
+
         $('#employeeModalLabel').text(`Edit ${escapeHTML(employee.first_name)} ${escapeHTML(employee.last_name)}`);
 
-        $('#employeeId').val(employee.id);
         $('form#employeeForm [name="first_name"]').val(employee.first_name);
         $('form#employeeForm [name="last_name"]').val(employee.last_name);
         $('form#employeeForm [name="department_id"]').val(employee.department_id);
-        $('form#employeeForm [name="designation_id"]').val(employee.designation_id);
         $('form#employeeForm [name="shift_id"]').val(employee.shift_id);
         $('form#employeeForm [name="date_of_joining"]').val(employee.date_of_joining);
         $('form#employeeForm [name="status"]').val(employee.status);
 
         const userDropdown = $('#userIdSelect');
-        const currentUser = allUsers.find(user => user.id == employee.user_id);
+        // For edit mode, hide the user account selector since it shouldn't be changed
         userDropdown.empty();
-        if (currentUser) {
-            userDropdown.append(`<option value="${currentUser.id}" selected>${escapeHTML(currentUser.username)}</option>`);
-        }
+        userDropdown.append(`<option value="${employee.user_id}" selected>Assigned User</option>`);
         userDropdown.prop('disabled', true);
         $('#hiddenUserId').val(employee.user_id);
-        $('#userDropdownContainer').show();
+        $('#userDropdownContainer').hide();
+
+        // Populate designations for the selected department
+        populateDesignations();
+
+        // Set the designation after a short delay to ensure options are loaded
+        setTimeout(() => {
+            $('form#employeeForm [name="designation_id"]').val(employee.designation_id);
+        }, 300);
+
+        // Set date constraints based on whether date is in past
+        setEditJoiningDateConstraints(employee.date_of_joining);
 
         employeeModal.show();
     }
 
-    function deleteEmployee(employeeId) {
-        if (confirm('Are you sure you want to delete this employee?')) {
-            const formData = new FormData();
-            formData.append('action', 'delete');
-            formData.append('employee_id', employeeId);
-            fetch('/hrms/api/api_employees.php', { method: 'POST', body: formData })
-                .then(res => res.json()).then(data => {
-                    if (data.success) {
-                        showToast(data.message, 'success');
-                        employeesTable.ajax.reload();
-                    } else { showToast(data.message, 'error'); }
-                });
+    /**
+     * Set date constraints for editing - if date is in past, disable field and show actions dropdown
+     * If date is future, allow normal editing
+     */
+    function setEditJoiningDateConstraints(currentDate) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const currentJoiningDate = new Date(currentDate);
+        currentJoiningDate.setHours(0, 0, 0, 0);
+
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        const maxDate = new Date(today);
+        maxDate.setMonth(maxDate.getMonth() + 3);
+
+        const formatDate = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        const dateInput = $('#dateOfJoining');
+        const dateContainer = $('#joiningDateContainer');
+        const disabledContainer = $('#joiningDateDisabledContainer');
+        const dateDisplay = $('#dateOfJoiningLocked');
+
+        // If current joining date is in the past (before today)
+        if (currentJoiningDate < today) {
+            // Hide the normal date input and show the locked version
+            dateContainer.hide();
+            disabledContainer.show();
+
+            // Set the locked date input with the current value
+            dateDisplay.val(currentDate);
+
+            // Remove constraints from hidden input to prevent validation error
+            dateInput.removeAttr('min');
+            dateInput.removeAttr('max');
+        } else {
+            // Show normal date input for future dates
+            dateContainer.show();
+            disabledContainer.hide();
+            dateInput.attr('min', formatDate(yesterday));
+            dateInput.attr('max', formatDate(maxDate));
         }
+    }
+
+    function deleteEmployee(employeeId) {
+        showConfirmationModal(
+            'Are you sure you want to delete this employee? This action cannot be undone.',
+            () => {
+                const formData = new FormData();
+                formData.append('action', 'delete');
+                formData.append('employee_id', employeeId);
+                fetch('/hrms/api/api_employees.php', { method: 'POST', body: formData })
+                    .then(res => res.json()).then(data => {
+                        if (data.success) {
+                            showToast(data.message, 'success');
+                            employeesTable.ajax.reload();
+                        } else { showToast(data.message, 'error'); }
+                    });
+            },
+            'Delete Employee',
+            'Delete',
+            'btn-danger'
+        );
     }
 </script>

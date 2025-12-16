@@ -352,3 +352,63 @@ function getScoreColor(score) {
 	if (score >= 40) return "info";
 	return "danger";
 }
+
+/**
+ * Global Confirmation Modal Logic
+ */
+let confirmationModalInstance = null;
+let confirmationCallback = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+	const modalElement = document.getElementById("confirmationModal");
+	if (modalElement) {
+		confirmationModalInstance = new bootstrap.Modal(modalElement);
+
+		document
+			.getElementById("confirmActionBtn")
+			.addEventListener("click", () => {
+				if (confirmationCallback) {
+					confirmationCallback();
+				}
+				confirmationModalInstance.hide();
+			});
+	}
+});
+
+/**
+ * Shows the confirmation modal with a custom message and callback.
+ * @param {string} message The message to display.
+ * @param {function} callback The function to execute on confirmation.
+ * @param {string} [title] Optional title for the modal.
+ * @param {string} [btnText] Optional text for the confirm button.
+ * @param {string} [btnClass] Optional class for the confirm button (e.g., 'btn-danger').
+ */
+function showConfirmationModal(
+	message,
+	callback,
+	title = "Confirm Action",
+	btnText = "Confirm",
+	btnClass = "btn-primary"
+) {
+	if (!confirmationModalInstance) {
+		console.error("Confirmation modal not initialized");
+		// Fallback to native confirm if modal fails
+		if (confirm(message)) {
+			callback();
+		}
+		return;
+	}
+
+	document.getElementById("confirmationMessage").textContent = message;
+	document.getElementById("confirmationModalLabel").textContent = title;
+
+	const confirmBtn = document.getElementById("confirmActionBtn");
+	confirmBtn.textContent = btnText;
+
+	// Reset classes and add the requested one
+	confirmBtn.className = "btn";
+	confirmBtn.classList.add(btnClass);
+
+	confirmationCallback = callback;
+	confirmationModalInstance.show();
+}
