@@ -71,7 +71,7 @@
 
     <!-- Hero Section -->
     <section class="py-5 bg-white border-bottom">
-        <div class="container py-5">
+        <div class="container">
             <div class="row align-items-center g-5">
                 <div class="col-lg-6 text-center text-lg-start">
                     <div class="badge bg-primary bg-opacity-10 text-primary mb-3 px-3 py-2 rounded-pill fw-semibold"
