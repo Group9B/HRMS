@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StaffSync HRMS - Modern HR Solution</title>
+    <link rel="icon" href="/hrms/assets/img/SS.png" type="image/png">
     <!-- Using existing local Bootstrap -->
     <link rel="stylesheet" href="/hrms/assets/css/bootstrap.css">
     <!-- Font Awesome for Icons -->
@@ -776,11 +777,16 @@
                 <div class="col-6 col-md-3 col-lg-2">
                     <h6 class="fw-bold text-white mb-3">Product</h6>
                     <ul class="list-unstyled d-flex flex-column gap-2 small">
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">People</a></li>
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Recruit</a></li>
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Payroll</a></li>
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Expense</a></li>
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Connect</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">People</a>
+                        </li>
+                        <li><a href="#"
+                                class="text-decoration-none text-white-50 footer-link transition-all">Recruit</a></li>
+                        <li><a href="#"
+                                class="text-decoration-none text-white-50 footer-link transition-all">Payroll</a></li>
+                        <li><a href="#"
+                                class="text-decoration-none text-white-50 footer-link transition-all">Expense</a></li>
+                        <li><a href="#"
+                                class="text-decoration-none text-white-50 footer-link transition-all">Connect</a></li>
                     </ul>
                 </div>
 
@@ -788,11 +794,16 @@
                 <div class="col-6 col-md-3 col-lg-2">
                     <h6 class="fw-bold text-white mb-3">Resources</h6>
                     <ul class="list-unstyled d-flex flex-column gap-2 small">
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Blog</a></li>
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Webinars</a></li>
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Case Studies</a></li>
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Help Center</a></li>
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">API Docs</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Blog</a>
+                        </li>
+                        <li><a href="#"
+                                class="text-decoration-none text-white-50 footer-link transition-all">Webinars</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Case
+                                Studies</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Help
+                                Center</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">API
+                                Docs</a></li>
                     </ul>
                 </div>
 
@@ -800,10 +811,15 @@
                 <div class="col-6 col-md-3 col-lg-2">
                     <h6 class="fw-bold text-white mb-3">Solutions</h6>
                     <ul class="list-unstyled d-flex flex-column gap-2 small">
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Remote Work</a></li>
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Return to Office</a></li>
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Diversity & Inclusion</a></li>
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Performance</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Remote
+                                Work</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Return to
+                                Office</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Diversity
+                                & Inclusion</a></li>
+                        <li><a href="#"
+                                class="text-decoration-none text-white-50 footer-link transition-all">Performance</a>
+                        </li>
                     </ul>
                 </div>
 
@@ -811,11 +827,16 @@
                 <div class="col-6 col-md-3 col-lg-2">
                     <h6 class="fw-bold text-white mb-3">Company</h6>
                     <ul class="list-unstyled d-flex flex-column gap-2 small">
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">About Us</a></li>
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Careers</a></li>
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Newsroom</a></li>
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Legal</a></li>
-                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Contact</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">About
+                                Us</a></li>
+                        <li><a href="#"
+                                class="text-decoration-none text-white-50 footer-link transition-all">Careers</a></li>
+                        <li><a href="#"
+                                class="text-decoration-none text-white-50 footer-link transition-all">Newsroom</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Legal</a>
+                        </li>
+                        <li><a href="#"
+                                class="text-decoration-none text-white-50 footer-link transition-all">Contact</a></li>
                     </ul>
                 </div>
             </div>
