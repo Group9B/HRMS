@@ -26,19 +26,35 @@ switch ($action) {
         break;
     case 'add_edit_department':
         $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        $name = $_POST['name'] ?? '';
-        $description = $_POST['description'] ?? '';
+        $name = trim($_POST['name'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+
         if (empty($name)) {
             $response['message'] = 'Department name is required.';
             break;
         }
+        if (strlen($name) < 2) {
+            $response['message'] = 'Department name must be at least 2 characters long.';
+            break;
+        }
+
+        // Check for duplicate name
+        $check_sql = "SELECT id FROM departments WHERE name = ? AND company_id = ? AND id != ?";
+        $check_result = query($mysqli, $check_sql, [$name, $company_id, $id]);
+        if ($check_result['success'] && !empty($check_result['data'])) {
+            $response['message'] = 'A department with this name already exists.';
+            break;
+        }
+
         if ($id === 0) {
             $result = query($mysqli, "INSERT INTO departments (company_id, name, description) VALUES (?, ?, ?)", [$company_id, $name, $description]);
         } else {
             $result = query($mysqli, "UPDATE departments SET name = ?, description = ? WHERE id = ? AND company_id = ?", [$name, $description, $id, $company_id]);
         }
         if ($result['success']) {
-            $response = ['success' => true, 'message' => 'Department saved!'];
+            $response = ['success' => true, 'message' => 'Department saved successfully!'];
+        } else {
+            $response['message'] = 'Database error: ' . $result['error'];
         }
         break;
     case 'delete_department':
@@ -59,20 +75,36 @@ switch ($action) {
         break;
     case 'add_edit_designation':
         $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        $dept_id = $_POST['department_id'] ?? 0;
-        $name = $_POST['name'] ?? '';
-        $description = $_POST['description'] ?? '';
+        $dept_id = (int) ($_POST['department_id'] ?? 0);
+        $name = trim($_POST['name'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+
         if (empty($name) || empty($dept_id)) {
             $response['message'] = 'Designation name and department are required.';
             break;
         }
+        if (strlen($name) < 2) {
+            $response['message'] = 'Designation name must be at least 2 characters long.';
+            break;
+        }
+
+        // Check for duplicate name within the department
+        $check_sql = "SELECT id FROM designations WHERE name = ? AND department_id = ? AND id != ?";
+        $check_result = query($mysqli, $check_sql, [$name, $dept_id, $id]);
+        if ($check_result['success'] && !empty($check_result['data'])) {
+            $response['message'] = 'A designation with this name already exists in the selected department.';
+            break;
+        }
+
         if ($id === 0) {
             $result = query($mysqli, "INSERT INTO designations (department_id, name, description) VALUES (?, ?, ?)", [$dept_id, $name, $description]);
         } else {
             $result = query($mysqli, "UPDATE designations SET department_id = ?, name = ?, description = ? WHERE id = ?", [$dept_id, $name, $description, $id]);
         }
         if ($result['success']) {
-            $response = ['success' => true, 'message' => 'Designation saved!'];
+            $response = ['success' => true, 'message' => 'Designation saved successfully!'];
+        } else {
+            $response['message'] = 'Database error: ' . $result['error'];
         }
         break;
     case 'delete_designation':
@@ -93,19 +125,35 @@ switch ($action) {
         break;
     case 'add_edit_team':
         $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        $name = $_POST['name'] ?? '';
-        $description = $_POST['description'] ?? '';
+        $name = trim($_POST['name'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+
         if (empty($name)) {
             $response['message'] = 'Team name is required.';
             break;
         }
+        if (strlen($name) < 2) {
+            $response['message'] = 'Team name must be at least 2 characters long.';
+            break;
+        }
+
+        // Check for duplicate name
+        $check_sql = "SELECT id FROM teams WHERE name = ? AND company_id = ? AND id != ?";
+        $check_result = query($mysqli, $check_sql, [$name, $company_id, $id]);
+        if ($check_result['success'] && !empty($check_result['data'])) {
+            $response['message'] = 'A team with this name already exists.';
+            break;
+        }
+
         if ($id === 0) {
             $result = query($mysqli, "INSERT INTO teams (company_id, name, description, created_by) VALUES (?, ?, ?, ?)", [$company_id, $name, $description, $user_id]);
         } else {
             $result = query($mysqli, "UPDATE teams SET name = ?, description = ?, updated_by = ? WHERE id = ? AND company_id = ?", [$name, $description, $user_id, $id, $company_id]);
         }
         if ($result['success']) {
-            $response = ['success' => true, 'message' => 'Team saved!'];
+            $response = ['success' => true, 'message' => 'Team saved successfully!'];
+        } else {
+            $response['message'] = 'Database error: ' . $result['error'];
         }
         break;
     case 'delete_team':
@@ -126,9 +174,25 @@ switch ($action) {
     case 'add_team_member':
         $team_id = isset($_POST['team_id']) ? (int) $_POST['team_id'] : 0;
         $employee_id = isset($_POST['employee_id']) ? (int) $_POST['employee_id'] : 0;
+
+        if ($team_id === 0 || $employee_id === 0) {
+            $response['message'] = 'Invalid team or employee selected.';
+            break;
+        }
+
+        // Check if already a member
+        $check_sql = "SELECT id FROM team_members WHERE team_id = ? AND employee_id = ?";
+        $check_result = query($mysqli, $check_sql, [$team_id, $employee_id]);
+        if ($check_result['success'] && !empty($check_result['data'])) {
+            $response['message'] = 'This employee is already a member of the team.';
+            break;
+        }
+
         $result = query($mysqli, "INSERT INTO team_members (team_id, employee_id, assigned_by) VALUES (?, ?, ?)", [$team_id, $employee_id, $user_id]);
         if ($result['success']) {
-            $response = ['success' => true, 'message' => 'Member added!'];
+            $response = ['success' => true, 'message' => 'Member added successfully!'];
+        } else {
+            $response['message'] = 'Database error: ' . $result['error'];
         }
         break;
     case 'remove_team_member':
@@ -148,21 +212,37 @@ switch ($action) {
         break;
     case 'add_edit_shift':
         $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        $name = $_POST['name'] ?? '';
+        $name = trim($_POST['name'] ?? '');
         $start_time = $_POST['start_time'] ?? '';
         $end_time = $_POST['end_time'] ?? '';
-        $description = $_POST['description'] ?? '';
+        $description = trim($_POST['description'] ?? '');
+
         if (empty($name) || empty($start_time) || empty($end_time)) {
             $response['message'] = 'Shift name, start time, and end time are required.';
             break;
         }
+        if (strlen($name) < 2) {
+            $response['message'] = 'Shift name must be at least 2 characters long.';
+            break;
+        }
+
+        // Check for duplicate name
+        $check_sql = "SELECT id FROM shifts WHERE name = ? AND company_id = ? AND id != ?";
+        $check_result = query($mysqli, $check_sql, [$name, $company_id, $id]);
+        if ($check_result['success'] && !empty($check_result['data'])) {
+            $response['message'] = 'A shift with this name already exists.';
+            break;
+        }
+
         if ($id === 0) {
             $result = query($mysqli, "INSERT INTO shifts (company_id, name, start_time, end_time, description) VALUES (?, ?, ?, ?, ?)", [$company_id, $name, $start_time, $end_time, $description]);
         } else {
             $result = query($mysqli, "UPDATE shifts SET name = ?, start_time = ?, end_time = ?, description = ? WHERE id = ? AND company_id = ?", [$name, $start_time, $end_time, $description, $id, $company_id]);
         }
         if ($result['success']) {
-            $response = ['success' => true, 'message' => 'Shift saved!'];
+            $response = ['success' => true, 'message' => 'Shift saved successfully!'];
+        } else {
+            $response['message'] = 'Database error: ' . $result['error'];
         }
         break;
     case 'delete_shift':
