@@ -754,7 +754,7 @@
                         <img src="/hrms/assets/img/SS.png" alt="Logo" width="30" height="30" class="me-2">
                         <span class="h5 fw-bold text-white mb-0">StaffSync</span>
                     </a>
-                    <p class="text-secondary mb-4">
+                    <p class="text-white-50 mb-4">
                         A comprehensive HR management solution designed to streamline your business operations and
                         empower your workforce.
                     </p>
@@ -775,47 +775,47 @@
                 <!-- Product Column -->
                 <div class="col-6 col-md-3 col-lg-2">
                     <h6 class="fw-bold text-white mb-3">Product</h6>
-                    <ul class="list-unstyled text-secondary d-flex flex-column gap-2 small">
-                        <li><a href="#" class="text-decoration-none text-secondary">People</a></li>
-                        <li><a href="#" class="text-decoration-none text-secondary">Recruit</a></li>
-                        <li><a href="#" class="text-decoration-none text-secondary">Payroll</a></li>
-                        <li><a href="#" class="text-decoration-none text-secondary">Expense</a></li>
-                        <li><a href="#" class="text-decoration-none text-secondary">Connect</a></li>
+                    <ul class="list-unstyled d-flex flex-column gap-2 small">
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">People</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Recruit</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Payroll</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Expense</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Connect</a></li>
                     </ul>
                 </div>
 
                 <!-- Resources Column -->
                 <div class="col-6 col-md-3 col-lg-2">
                     <h6 class="fw-bold text-white mb-3">Resources</h6>
-                    <ul class="list-unstyled text-secondary d-flex flex-column gap-2 small">
-                        <li><a href="#" class="text-decoration-none text-secondary">Blog</a></li>
-                        <li><a href="#" class="text-decoration-none text-secondary">Webinars</a></li>
-                        <li><a href="#" class="text-decoration-none text-secondary">Case Studies</a></li>
-                        <li><a href="#" class="text-decoration-none text-secondary">Help Center</a></li>
-                        <li><a href="#" class="text-decoration-none text-secondary">API Docs</a></li>
+                    <ul class="list-unstyled d-flex flex-column gap-2 small">
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Blog</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Webinars</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Case Studies</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Help Center</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">API Docs</a></li>
                     </ul>
                 </div>
 
                 <!-- Solutions Column -->
                 <div class="col-6 col-md-3 col-lg-2">
                     <h6 class="fw-bold text-white mb-3">Solutions</h6>
-                    <ul class="list-unstyled text-secondary d-flex flex-column gap-2 small">
-                        <li><a href="#" class="text-decoration-none text-secondary">Remote Work</a></li>
-                        <li><a href="#" class="text-decoration-none text-secondary">Return to Office</a></li>
-                        <li><a href="#" class="text-decoration-none text-secondary">Diversity & Inclusion</a></li>
-                        <li><a href="#" class="text-decoration-none text-secondary">Performance</a></li>
+                    <ul class="list-unstyled d-flex flex-column gap-2 small">
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Remote Work</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Return to Office</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Diversity & Inclusion</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Performance</a></li>
                     </ul>
                 </div>
 
                 <!-- Company Column -->
                 <div class="col-6 col-md-3 col-lg-2">
                     <h6 class="fw-bold text-white mb-3">Company</h6>
-                    <ul class="list-unstyled text-secondary d-flex flex-column gap-2 small">
-                        <li><a href="#" class="text-decoration-none text-secondary">About Us</a></li>
-                        <li><a href="#" class="text-decoration-none text-secondary">Careers</a></li>
-                        <li><a href="#" class="text-decoration-none text-secondary">Newsroom</a></li>
-                        <li><a href="#" class="text-decoration-none text-secondary">Legal</a></li>
-                        <li><a href="#" class="text-decoration-none text-secondary">Contact</a></li>
+                    <ul class="list-unstyled d-flex flex-column gap-2 small">
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">About Us</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Careers</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Newsroom</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Legal</a></li>
+                        <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">Contact</a></li>
                     </ul>
                 </div>
             </div>
@@ -824,7 +824,7 @@
 
             <div class="row align-items-center">
                 <div class="col-md-6 text-center text-md-start">
-                    <p class="small text-secondary mb-0">&copy; 2024 StaffSync HRMS. All rights reserved.</p>
+                    <p class="small text-white-50 mb-0">&copy; 2024 StaffSync HRMS. All rights reserved.</p>
                 </div>
                 <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
                     <ul class="list-inline small mb-0">
@@ -889,9 +889,15 @@
         .transition-all {
             transition: all 0.3s ease;
         }
+
         /* Mobile Menu Width Adjustment */
         #offcanvasNavbar {
             width: 60% !important;
+        }
+
+        .footer-link:hover {
+            color: #fff !important;
+            padding-left: 5px;
         }
     </style>
 </body>
