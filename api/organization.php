@@ -253,6 +253,24 @@ switch ($action) {
         }
         break;
 
+    case 'update_shift_timing':
+        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+        $start_time = $_POST['start_time'] ?? '';
+        $end_time = $_POST['end_time'] ?? '';
+
+        if ($id === 0 || empty($start_time) || empty($end_time)) {
+            $response['message'] = 'Invalid parameters.';
+            break;
+        }
+
+        $result = query($mysqli, "UPDATE shifts SET start_time = ?, end_time = ? WHERE id = ? AND company_id = ?", [$start_time, $end_time, $id, $company_id]);
+        if ($result['success']) {
+            $response = ['success' => true, 'message' => 'Shift updated!'];
+        } else {
+            $response['message'] = 'Database error: ' . $result['error'];
+        }
+        break;
+
     default:
         $response['message'] = 'Invalid action specified.';
         break;

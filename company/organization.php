@@ -68,49 +68,6 @@ require_once '../components/layout/header.php';
                         </div>
                     </div>
 
-                    <!-- Designations Tab -->
-                    <div class="tab-pane fade" id="designations-tab" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="m-0 text-secondary">Manage Designations</h5>
-                            <button class="btn btn-primary btn-sm" onclick="prepareAddModal('designation')">
-                                <i class="fas fa-plus me-1"></i> Add Designation
-                            </button>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle" id="designationsTable" width="100%">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Department</th>
-                                        <th class="text-end">Actions</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Teams Tab -->
-                    <div class="tab-pane fade" id="teams-tab" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="m-0 text-secondary">Manage Teams</h5>
-                            <button class="btn btn-primary btn-sm" onclick="prepareAddModal('team')">
-                                <i class="fas fa-plus me-1"></i> Add Team
-                            </button>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle" id="teamsTable" width="100%">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th class="text-center">Members</th>
-                                        <th class="text-end">Actions</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Shifts Tab -->
                     <div class="tab-pane fade" id="shifts-tab" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="m-0 text-secondary">Manage Shifts</h5>
@@ -130,6 +87,66 @@ require_once '../components/layout/header.php';
                             </table>
                         </div>
                     </div>
+
+                    <style>
+                        .shift-progress-container {
+                            background: #f8f9fa;
+                            border: 1px solid #dee2e6;
+                            border-radius: 10px;
+                            padding: 12px;
+                            margin: 5px 0;
+                            transition: all 0.3s ease;
+                        }
+
+                        [data-bs-theme="dark"] .shift-progress-container {
+                            background: #2b3035;
+                            border-color: #495057;
+                        }
+
+                        .shift-progress-bar {
+                            height: 12px;
+                            background: #e9ecef;
+                            border-radius: 6px;
+                            overflow: hidden;
+                            position: relative;
+                            margin: 8px 0;
+                        }
+
+                        [data-bs-theme="dark"] .shift-progress-bar {
+                            background: #1e2125;
+                        }
+
+                        .shift-progress-fill {
+                            height: 100%;
+                            width: 0%;
+                            background: linear-gradient(90deg, #0d6efd 0%, #0dcaf0 100%);
+                            border-radius: 6px;
+                            transition: width 1s cubic-bezier(0.1, 0.7, 1.0, 0.1);
+                        }
+
+                        .shift-status-badge {
+                            font-size: 10px;
+                            padding: 3px 8px;
+                            border-radius: 20px;
+                            font-weight: 600;
+                            text-transform: uppercase;
+                        }
+
+                        .status-ongoing {
+                            background: rgba(25, 135, 84, 0.15);
+                            color: #198754;
+                        }
+
+                        .status-upcoming {
+                            background: rgba(108, 117, 125, 0.15);
+                            color: #6c757d;
+                        }
+
+                        .status-finished {
+                            background: rgba(13, 110, 253, 0.15);
+                            color: #0d6efd;
+                        }
+                    </style>
                 </div>
             </div>
         </div>
@@ -203,12 +220,20 @@ require_once '../components/layout/header.php';
                 responsive: true,
                 bautoWidth: false,
                 ajax: { url: `/hrms/api/organization.php?action=get_${type}s`, dataSrc: 'data' },
-                columns: columns
+                columns: columns,
+                drawCallback: function () {
+                    if (type === 'shift') {
+                        updateLiveProgress();
+                    }
+                }
             });
         });
 
         $('#orgForm').on('submit', handleFormSubmit);
         $('#addMemberForm').on('submit', handleAddMember);
+
+        // Update progress every minute
+        setInterval(updateLiveProgress, 60000);
     });
 
     function getTableColumns(type) {
@@ -239,10 +264,127 @@ require_once '../components/layout/header.php';
             case 'shift':
                 return [
                     { data: 'name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted d-none d-md-block">${escapeHTML(r.description || '')}</small>` },
-                    { data: null, className: 'd-none d-md-table-cell', width: '40%', render: (d, t, r) => renderShiftTimeline(r.start_time, r.end_time) },
+                    { data: null, className: 'd-none d-md-table-cell', width: '40%', render: (d, t, r) => renderShiftTimeline(r.start_time, r.end_time, r.id) },
                     { data: null, orderable: false, searchable: false, className: 'text-end', render: actions }
                 ];
         }
+    }
+
+    function renderShiftTimeline(start, end, id) {
+        const parseMin = (t) => {
+            const [h, m] = t.split(':').map(Number);
+            return h * 60 + m;
+        };
+        const startMin = parseMin(start);
+        const endMin = parseMin(end);
+        let duration = endMin - startMin;
+        if (duration < 0) duration += 24 * 60;
+
+        return `
+            <div class="shift-wrapper" data-id="${id}" data-start="${start}" data-end="${end}" style="width: 100%; min-width: 320px;">
+                <div class="shift-progress-container shadow-sm border">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="shift-status-badge status-upcoming">Upcoming</span>
+                        <span class="text-muted status-text" style="font-size: 11px;">Hasn't started</span>
+                    </div>
+                    <div class="shift-progress-bar">
+                        <div class="shift-progress-fill"></div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold d-block" style="font-size: 13px;">${formatTime(start)}</span>
+                            <small class="text-muted" style="font-size: 9px; text-transform: uppercase;">Start</small>
+                        </div>
+                        <div class="text-center">
+                             <small class="text-muted d-block" style="font-size: 9px; text-transform: uppercase;">Duration</small>
+                             <span class="fw-bold" style="font-size: 11px;">${Math.floor(duration / 60)}h ${duration % 60}m</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="fw-bold d-block" style="font-size: 13px;">${formatTime(end)}</span>
+                            <small class="text-muted" style="font-size: 9px; text-transform: uppercase;">End</small>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    function updateLiveProgress() {
+        const now = new Date();
+        const currentMin = now.getHours() * 60 + now.getMinutes();
+        const totalDayMin = 24 * 60;
+
+        $('.shift-wrapper').each(function () {
+            const wrapper = $(this);
+            const startStr = wrapper.data('start');
+            const endStr = wrapper.data('end');
+
+            const parseMin = (t) => {
+                const [h, m] = t.split(':').map(Number);
+                return h * 60 + m;
+            };
+
+            const startMin = parseMin(startStr);
+            const endMin = parseMin(endStr);
+
+            let duration = endMin - startMin;
+            if (duration < 0) duration += totalDayMin;
+
+            let elapsed = 0;
+            let status = 'upcoming';
+            let statusText = 'Hasn\'t started';
+
+            const isEndBeforeStart = endMin < startMin;
+
+            if (!isEndBeforeStart) {
+                // Normal Intra-day
+                if (currentMin < startMin) {
+                    elapsed = 0;
+                    status = 'upcoming';
+                    statusText = `Starts in ${formatDuration(startMin - currentMin)}`;
+                } else if (currentMin >= startMin && currentMin <= endMin) {
+                    elapsed = currentMin - startMin;
+                    status = 'ongoing';
+                    statusText = `${Math.floor((elapsed / duration) * 100)}% Complete • ${formatDuration(endMin - currentMin)} left`;
+                } else {
+                    elapsed = duration;
+                    status = 'finished';
+                    statusText = 'Shift Finished';
+                }
+            } else {
+                // Overnight
+                if (currentMin >= startMin) {
+                    // Before midnight
+                    elapsed = currentMin - startMin;
+                    status = 'ongoing';
+                    statusText = `${Math.floor((elapsed / duration) * 100)}% Complete • ${formatDuration(totalDayMin - currentMin + endMin)} left`;
+                } else if (currentMin <= endMin) {
+                    // After midnight
+                    elapsed = (totalDayMin - startMin) + currentMin;
+                    status = 'ongoing';
+                    statusText = `${Math.floor((elapsed / duration) * 100)}% Complete • ${formatDuration(endMin - currentMin)} left`;
+                } else {
+                    // Outside shift
+                    elapsed = 0;
+                    status = 'upcoming';
+                    statusText = `Starts today at ${formatTime(startStr)}`;
+                }
+            }
+
+            const progress = (elapsed / duration) * 100;
+            wrapper.find('.shift-progress-fill').css('width', `${Math.max(0, Math.min(100, progress))}%`);
+
+            // Update Status UI
+            const badge = wrapper.find('.shift-status-badge');
+            badge.removeClass('status-ongoing status-upcoming status-finished').addClass(`status-${status}`).text(status);
+            wrapper.find('.status-text').text(statusText);
+        });
+    }
+
+    function formatDuration(minTotal) {
+        const h = Math.floor(minTotal / 60);
+        const m = minTotal % 60;
+        if (h > 0) return `${h}h ${m}m`;
+        return `${m}m`;
     }
 
     function getFormFields(type, data = {}) {
@@ -286,8 +428,6 @@ require_once '../components/layout/header.php';
 
     function handleFormSubmit(e) {
         e.preventDefault();
-
-        // Frontend Validation
         const form = $(this);
         const type = $('#orgAction').val().replace('add_edit_', '');
         const name = form.find('[name="name"]').val().trim();
@@ -297,31 +437,12 @@ require_once '../components/layout/header.php';
             return;
         }
 
-        if (type === 'designation') {
-            const deptId = form.find('[name="department_id"]').val();
-            if (!deptId) {
-                showToast('Please select a department.', 'error');
-                return;
-            }
-        }
-
-        if (type === 'shift') {
-            const startTime = form.find('[name="start_time"]').val();
-            const endTime = form.find('[name="end_time"]').val();
-            if (!startTime || !endTime) {
-                showToast('Start and End times are required.', 'error');
-                return;
-            }
-        }
-
         fetch('/hrms/api/organization.php', { method: 'POST', body: new FormData(this) })
             .then(res => res.json()).then(data => {
                 if (data.success) {
                     showToast(data.message, 'success');
                     modals.org.hide();
-                    if (type === 'department') {
-                        refreshDepartments();
-                    }
+                    if (type === 'department') refreshDepartments();
                     Object.values(tables).forEach(table => table.ajax.reload());
                 } else { showToast(data.message, 'error'); }
             });
@@ -329,7 +450,7 @@ require_once '../components/layout/header.php';
 
     function deleteItem(type, id) {
         showConfirmationModal(
-            `Are you sure you want to delete this ${type}? This action cannot be undone.`,
+            `Are you sure you want to delete this ${type}?`,
             () => {
                 const formData = new FormData();
                 formData.append('action', `delete_${type}`);
@@ -342,9 +463,7 @@ require_once '../components/layout/header.php';
                         } else { showToast(data.message, 'error'); }
                     });
             },
-            `Delete ${capitalize(type)}`,
-            'Delete',
-            'btn-danger'
+            `Delete ${capitalize(type)}`
         );
     }
 
@@ -374,134 +493,45 @@ require_once '../components/layout/header.php';
         const form = $(this);
         const teamId = form.find('[name="team_id"]').val();
         const teamName = $('#manageMembersModalLabel').text().replace('Manage Members for: ', '');
-        const employeeId = form.find('[name="employee_id"]').val();
-
-        if (!employeeId) {
-            showToast('Please select an employee.', 'error');
-            return;
-        }
-
         fetch('/hrms/api/organization.php', { method: 'POST', body: new FormData(this) })
             .then(res => res.json()).then(data => {
                 if (data.success) {
                     showToast(data.message, 'success');
-                    openManageMembersModal(teamId, teamName); // Refresh the member list
-                    tables.team.ajax.reload(); // Reload the main teams table to update member count
+                    openManageMembersModal(teamId, teamName);
+                    tables.team.ajax.reload();
                 } else { showToast(data.message, 'error'); }
             });
     }
 
     function removeMember(memberId, teamId, teamName) {
-        showConfirmationModal(
-            'Remove this member from the team?',
-            () => {
-                const formData = new FormData();
-                formData.append('action', 'remove_team_member');
-                formData.append('member_id', memberId);
-                fetch('/hrms/api/organization.php', { method: 'POST', body: formData })
-                    .then(res => res.json()).then(data => {
-                        if (data.success) {
-                            showToast(data.message, 'success');
-                            openManageMembersModal(teamId, teamName); // Refresh list
-                            tables.team.ajax.reload(); // Reload main table
-                        } else { showToast(data.message, 'error'); }
-                    });
-            },
-            'Remove Member',
-            'Remove',
-            'btn-danger'
-        );
+        showConfirmationModal('Remove this member?', () => {
+            const formData = new FormData();
+            formData.append('action', 'remove_team_member');
+            formData.append('member_id', memberId);
+            fetch('/hrms/api/organization.php', { method: 'POST', body: formData })
+                .then(res => res.json()).then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        openManageMembersModal(teamId, teamName);
+                        tables.team.ajax.reload();
+                    } else { showToast(data.message, 'error'); }
+                });
+        });
     }
 
-    function renderShiftTimeline(start, end) {
-        const parseMinutes = (t) => {
-            const [h, m] = t.split(':').map(Number);
-            return h * 60 + m;
-        };
-        const startMin = parseMinutes(start);
-        const endMin = parseMinutes(end);
-        const totalMin = 24 * 60;
-
-        let duration = endMin - startMin;
-        if (duration < 0) {
-            duration = totalMin + duration;
-        }
-
-        const hours = Math.floor(duration / 60);
-        const mins = duration % 60;
-        const durationStr = mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-
-        if (endMin >= startMin) {
-            // Normal shift (e.g., 09:00 to 17:00)
-            const left = (startMin / totalMin) * 100;
-            const width = ((endMin - startMin) / totalMin) * 100;
-
-            return `
-                <div style="width: 100%; min-width: 340px;">
-                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-bottom: 10px; align-items: center;">
-                        <div>
-                            <div style="font-size: 12px; color: #6c757d; margin-bottom: 2px;">Shift Hours</div>
-                            <div style="font-size: 14px; font-weight: 600; color: #495057;">${formatTime(start)} <span style="color: #adb5bd;">→</span> ${formatTime(end)}</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 12px; color: #6c757d; margin-bottom: 2px;">Duration</div>
-                            <div style="font-size: 14px; font-weight: 600; color: #495057;">${durationStr}</div>
-                        </div>
-                    </div>
-                    <div style="position: relative; height: 32px; background: linear-gradient(90deg, #c0c1c2ff 0%, #565759ff 50%, #f8f9fa 100%); border-radius: 6px; overflow: hidden; border: 1px solid #dee2e6;">
-                        <div style="position: absolute; top: 0; bottom: 0; background: linear-gradient(135deg, #e8f0fe 0%, #e0e7ff 100%); left: ${left}%; width: ${width}%; border-left: 2px solid #5f6edb; border-right: 2px solid #5f6edb; opacity: 0.8;"></div>
-                        <div style="position: absolute; top: 0; bottom: 0; display: flex; align-items: center; left: ${left}%; width: ${width}%; padding: 0 8px; font-size: 11px; font-weight: 600; color: #5f6edb;"></div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; margin-top: 6px; font-size: 9px; color: #adb5bd; text-align: center;">
-                        <span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>12 AM</span>
-                    </div>
-                </div>`;
-        } else {
-            // Overnight shift (e.g., 22:00 to 06:00)
-            const left1 = (startMin / totalMin) * 100;
-            const width1 = ((totalMin - startMin) / totalMin) * 100;
-            const width2 = (endMin / totalMin) * 100;
-
-            return `
-                <div style="width: 100%; min-width: 340px;">
-                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-bottom: 10px; align-items: center;">
-                        <div>
-                            <div style="font-size: 12px; color: #6c757d; margin-bottom: 2px;">Shift Hours <i class="fas fa-moon" style="color: #adb5bd; margin-left: 4px; font-size: 10px;"></i></div>
-                            <div style="font-size: 14px; font-weight: 600; color: #495057;">${formatTime(start)} <span style="color: #adb5bd;">→</span> ${formatTime(end)}</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 12px; color: #6c757d; margin-bottom: 2px;">Duration</div>
-                            <div style="font-size: 14px; font-weight: 600; color: #495057;">${durationStr}</div>
-                        </div>
-                    </div>
-                    <div style="position: relative; height: 32px; background: linear-gradient(90deg, #f8f9fa 0%, #f1f3f5 50%, #f8f9fa 100%); border-radius: 6px; overflow: hidden; border: 1px solid #dee2e6;">
-                        <div style="position: absolute; top: 0; bottom: 0; background: linear-gradient(135deg, #fef7e8 0%, #fff8e0 100%); left: ${left1}%; width: ${width1}%; border-left: 2px solid #b8860b; opacity: 0.8;"></div>
-                        <div style="position: absolute; top: 0; bottom: 0; background: linear-gradient(135deg, #fef7e8 0%, #fff8e0 100%); left: 0; width: ${width2}%; border-right: 2px solid #b8860b; opacity: 0.8;"></div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; margin-top: 6px; font-size: 9px; color: #adb5bd; text-align: center;">
-                        <span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>12 AM</span>
-                    </div>
-                </div>`;
-        }
-    }
     function refreshDepartments() {
         fetch('/hrms/api/organization.php?action=get_departments')
             .then(res => res.json())
-            .then(result => {
-                if (result.data) {
-                    departmentsData = result.data;
-                }
-            });
+            .then(result => { if (result.data) departmentsData = result.data; });
     }
 
     function formatTime(timeStr) {
         if (!timeStr) return '';
         const [h, m] = timeStr.split(':');
-        const hours = parseInt(h, 10);
+        let hours = parseInt(h, 10);
         const minutes = parseInt(m, 10);
         const ampm = hours >= 12 ? 'PM' : 'AM';
-        const formattedHours = hours % 12 || 12;
-        const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
-        return `${formattedHours}:${formattedMinutes} ${ampm}`;
+        hours = hours % 12 || 12;
+        return `${hours}:${minutes < 10 ? '0' + minutes : minutes} ${ampm}`;
     }
 </script>
