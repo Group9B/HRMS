@@ -11,19 +11,68 @@
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- AOS Animation CSS -->
+    <!-- AOS Animation CSS -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-</head>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
 
-<body class="bg-light">
+        .hover-shadow:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
+        }
+
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+
+        .letter-spacing-1 {
+            letter-spacing: 1px;
+        }
+
+        .letter-spacing-2 {
+            letter-spacing: 2px;
+        }
+
+        /* Dark mode specific overrides if needed can go here */
+        [data-bs-theme="dark"] .card {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Brighten text in dark mode */
+        [data-bs-theme="dark"] .text-secondary {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+
+        [data-bs-theme="dark"] body {
+            color: rgba(255, 255, 255, 0.95) !important;
+        }
+
+        [data-bs-theme="dark"] .text-body {
+            color: rgba(255, 255, 255, 0.95) !important;
+        }
+    </style>
+
+<body class="bg-body-tertiary">
 
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm py-3">
+    <nav class="navbar navbar-expand-lg bg-body sticky-top shadow-sm py-3">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center fw-bold text-primary" href="#">
                 <img src="/hrms/assets/img/SS.png" alt="Logo" width="30" height="30"
                     class="d-inline-block align-text-top me-2">
                 StaffSync
             </a>
+
+            <!-- Theme Toggle Button -->
+            <button class="btn btn-link text-primary p-0 me-3 ms-auto" id="themeToggle" aria-label="Toggle theme">
+                <i class="fas fa-moon fa-lg"></i>
+            </button>
 
             <!-- Custom Toggler Trigger -->
             <button class="navbar-toggler border-0 shadow-none z-3" type="button" data-bs-toggle="offcanvas"
@@ -47,21 +96,23 @@
                 <div class="offcanvas-body">
                     <ul class="navbar-nav justify-content-end flex-grow-1 align-items-center gap-3">
                         <li class="nav-item">
-                            <a class="nav-link text-secondary fw-semibold" href="#features">Features</a>
+                            <a class="nav-link text-body fw-semibold" href="#features">Features</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-secondary fw-semibold" href="#benefits">Benefits</a>
+                            <a class="nav-link text-body fw-semibold" href="#benefits">Benefits</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-secondary fw-semibold" href="#pricing">Pricing</a>
+                            <a class="nav-link text-body fw-semibold" href="#pricing">Pricing</a>
                         </li>
-                        <li class="nav-item ms-lg-2 w-100 w-lg-auto">
+                        <li class="nav-item ms-lg-2 w-20 w-lg-auto">
                             <a href="/hrms/auth/login.php"
-                                class="btn btn-outline-primary px-4 rounded-pill fw-semibold w-100 w-lg-auto">Log In</a>
+                                class="btn btn-outline-primary btn-sm px-3 rounded-pill fw-semibold w-100 w-lg-auto">Log
+                                In</a>
                         </li>
-                        <li class="nav-item w-100 w-lg-auto">
+                        <li class="nav-item w-20 w-lg-auto">
                             <a href="#"
-                                class="btn btn-primary px-4 rounded-pill fw-semibold shadow-sm w-100 w-lg-auto">Sign Up
+                                class="btn btn-primary btn-sm px-3 rounded-pill fw-semibold shadow-sm w-100 w-lg-auto">Sign
+                                Up
                                 Free</a>
                         </li>
                     </ul>
@@ -71,7 +122,7 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="py-5 bg-white border-bottom">
+    <section class="py-5 bg-body border-bottom">
         <div class="container">
             <div class="row align-items-center g-5">
                 <div class="col-lg-6 text-center text-lg-start">
@@ -79,7 +130,8 @@
                         data-aos="fade-up">
                         <i class="fas fa-star me-2"></i> #1 HR Management Software
                     </div>
-                    <h1 class="display-4 fw-bold text-dark mb-4 lh-tight" data-aos="fade-up" data-aos-delay="100">
+                    <h1 class="display-4 fw-bold text-body-emphasis mb-4 lh-tight" data-aos="fade-up"
+                        data-aos-delay="100">
                         The Smartest Way to Manage Your <span class="text-primary">Workforce</span>
                     </h1>
                     <p class="lead text-secondary mb-5 pe-lg-5" data-aos="fade-up" data-aos-delay="200">
@@ -103,15 +155,15 @@
                 </div>
                 <div class="col-lg-6">
                     <!-- Placeholder visual using Bootstrap utilities and Icons -->
-                    <div class="position-relative p-4 bg-light rounded-4 border" data-aos="fade-left"
+                    <div class="position-relative p-4 bg-body-tertiary rounded-4 border" data-aos="fade-left"
                         data-aos-duration="1000">
-                        <div class="bg-white rounded-3  shadow-sm p-4 mb-4 border-start border-4 border-primary">
+                        <div class="bg-body rounded-3  shadow-sm p-4 mb-4 border-start border-4 border-primary">
                             <div class="d-flex align-items-center mb-3">
                                 <div class="bg-primary bg-opacity-10 p-2 rounded-circle text-primary me-3">
                                     <i class="fas fa-users fa-lg"></i>
                                 </div>
                                 <div>
-                                    <h5 class="mb-0 fw-bold">Total Employees</h5>
+                                    <h5 class="mb-0 fw-bold text-body">Total Employees</h5>
                                     <small class="text-secondary">Active workforce status</small>
                                 </div>
                                 <h3 class="ms-auto mb-0 fw-bold text-primary">1,245</h3>
@@ -123,17 +175,15 @@
 
                         <div class="row g-3">
                             <div class="col-6">
-                                <div
-                                    class="bg-white rounded-3 shadow-sm p-3 border-start border-4 border-success h-100">
+                                <div class="bg-body rounded-3 shadow-sm p-3 border-start border-4 border-success h-100">
                                     <small class="text-secondary d-block mb-1">On Time</small>
-                                    <h4 class="fw-bold text-dark mb-0">95%</h4>
+                                    <h4 class="fw-bold text-body mb-0">95%</h4>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div
-                                    class="bg-white rounded-3 shadow-sm p-3 border-start border-4 border-warning h-100">
+                                <div class="bg-body rounded-3 shadow-sm p-3 border-start border-4 border-warning h-100">
                                     <small class="text-secondary d-block mb-1">On Leave</small>
-                                    <h4 class="fw-bold text-dark mb-0">12</h4>
+                                    <h4 class="fw-bold text-body mb-0">12</h4>
                                 </div>
                             </div>
                         </div>
@@ -150,11 +200,11 @@
     </section>
 
     <!-- Features Section -->
-    <section class="py-5 bg-light" id="features">
+    <section class="py-5 bg-body-tertiary" id="features">
         <div class="container py-5">
             <div class="text-center mb-5 mw-100 mx-auto" style="max-width: 700px;">
                 <h6 class="text-primary fw-bold text-uppercase letter-spacing-2">Key Features</h6>
-                <h2 class="fw-bold text-dark mb-3">Everything You Need to Manage Your Team</h2>
+                <h2 class="fw-bold text-body-emphasis mb-3">Everything You Need to Manage Your Team</h2>
                 <p class="text-secondary lead">One platform to handle all your HR needs, from onboarding to retirement.
                 </p>
             </div>
@@ -162,13 +212,13 @@
             <div class="row g-4">
                 <!-- Feature 1 -->
                 <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="0">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 bg-white hover-shadow transition-all">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 bg-body hover-shadow transition-all">
                         <div class="card-body">
                             <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-3 p-3 mb-4"
                                 style="width: 60px; height: 60px;">
                                 <i class="fas fa-calendar-check fa-xl"></i>
                             </div>
-                            <h4 class="fw-bold mb-3">Smart Attendance</h4>
+                            <h4 class="fw-bold mb-3 text-body">Smart Attendance</h4>
                             <p class="text-secondary mb-0">
                                 Track employee attendance in real-time with geofencing and biometric integration
                                 options.
@@ -179,13 +229,13 @@
 
                 <!-- Feature 2 -->
                 <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 hover-shadow transition-all bg-white">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 hover-shadow transition-all bg-body">
                         <div class="card-body">
                             <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success rounded-3 p-3 mb-4"
                                 style="width: 60px; height: 60px;">
                                 <i class="fas fa-money-bill-wave fa-xl"></i>
                             </div>
-                            <h4 class="fw-bold mb-3">Payroll Automation</h4>
+                            <h4 class="fw-bold mb-3 text-body">Payroll Automation</h4>
                             <p class="text-secondary mb-0">
                                 Automate salary calculations, deductions, and tax compliance with just a few clicks.
                             </p>
@@ -195,13 +245,13 @@
 
                 <!-- Feature 3 -->
                 <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 hover-shadow transition-all bg-white">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 hover-shadow transition-all bg-body">
                         <div class="card-body">
                             <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning rounded-3 p-3 mb-4"
                                 style="width: 60px; height: 60px;">
                                 <i class="fas fa-chart-pie fa-xl"></i>
                             </div>
-                            <h4 class="fw-bold mb-3">Performance Analytics</h4>
+                            <h4 class="fw-bold mb-3 text-body">Performance Analytics</h4>
                             <p class="text-secondary mb-0">
                                 Gain insights into employee performance and productivity with detailed reports.
                             </p>
@@ -211,13 +261,13 @@
 
                 <!-- Feature 4 -->
                 <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 hover-shadow transition-all bg-white">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 hover-shadow transition-all bg-body">
                         <div class="card-body">
                             <div class="d-inline-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info rounded-3 p-3 mb-4"
                                 style="width: 60px; height: 60px;">
                                 <i class="fas fa-user-plus fa-xl"></i>
                             </div>
-                            <h4 class="fw-bold mb-3">Easy Onboarding</h4>
+                            <h4 class="fw-bold mb-3 text-body">Easy Onboarding</h4>
                             <p class="text-secondary mb-0">
                                 Seamlessly onboard new hires with digital document signing and automated workflows.
                             </p>
@@ -227,13 +277,13 @@
 
                 <!-- Feature 5 -->
                 <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="400">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 hover-shadow transition-all bg-white">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 hover-shadow transition-all bg-body">
                         <div class="card-body">
                             <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-3 p-3 mb-4"
                                 style="width: 60px; height: 60px;">
                                 <i class="fas fa-tasks fa-xl"></i>
                             </div>
-                            <h4 class="fw-bold mb-3">Task Management</h4>
+                            <h4 class="fw-bold mb-3 text-body">Task Management</h4>
                             <p class="text-secondary mb-0">
                                 Assign tasks, track progress, and collaborate with your team efficiently.
                             </p>
@@ -243,13 +293,13 @@
 
                 <!-- Feature 6 -->
                 <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="500">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 hover-shadow transition-all bg-white">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 hover-shadow transition-all bg-body">
                         <div class="card-body">
                             <div class="d-inline-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary rounded-3 p-3 mb-4"
                                 style="width: 60px; height: 60px;">
                                 <i class="fas fa-shield-alt fa-xl"></i>
                             </div>
-                            <h4 class="fw-bold mb-3">Secure Data</h4>
+                            <h4 class="fw-bold mb-3 text-body">Secure Data</h4>
                             <p class="text-secondary mb-0">
                                 Enterprise-grade security to keep your employee data safe and compliant.
                             </p>
@@ -261,25 +311,25 @@
     </section>
 
     <!-- Trusted & Ratings Section -->
-    <section class="py-4 bg-light border-bottom">
+    <section class="py-4 bg-body-tertiary border-bottom">
         <div class="container text-center">
             <p class="text-uppercase text-secondary fw-bold small letter-spacing-2 mb-3">Trusted by leading companies
             </p>
             <div class="row align-items-center justify-content-center g-4 grayscale opacity-75">
                 <div class="col-6 col-md-3 col-lg-2">
-                    <span class="h4 fw-bold text-dark"><i class="fas fa-star text-warning me-1"></i> G2</span>
+                    <span class="h4 fw-bold text-body"><i class="fas fa-star text-warning me-1"></i> G2</span>
                     <div class="small">High Performer 2024</div>
                 </div>
                 <div class="col-6 col-md-3 col-lg-2">
-                    <span class="h4 fw-bold text-dark"><i class="fas fa-trophy text-warning me-1"></i> Capterra</span>
+                    <span class="h4 fw-bold text-body"><i class="fas fa-trophy text-warning me-1"></i> Capterra</span>
                     <div class="small">Best Ease of Use</div>
                 </div>
                 <div class="col-6 col-md-3 col-lg-2">
-                    <span class="h4 fw-bold text-dark"><i class="fab fa-google text-primary me-1"></i> Google</span>
+                    <span class="h4 fw-bold text-body"><i class="fab fa-google text-primary me-1"></i> Google</span>
                     <div class="small">4.8/5 Rating</div>
                 </div>
                 <div class="col-6 col-md-3 col-lg-2">
-                    <span class="h4 fw-bold text-dark"><i class="fas fa-shield-alt text-success me-1"></i> ISO</span>
+                    <span class="h4 fw-bold text-body"><i class="fas fa-shield-alt text-success me-1"></i> ISO</span>
                     <div class="small">27001 Certified</div>
                 </div>
             </div>
@@ -287,7 +337,7 @@
     </section>
 
     <!-- Detailed Feature: Core HR -->
-    <section class="py-5 bg-white">
+    <section class="py-5 bg-body">
         <div class="container py-5">
             <div class="row align-items-center g-5">
                 <div class="col-lg-6" data-aos="fade-right">
@@ -295,7 +345,7 @@
                         style="width: 60px; height: 60px;">
                         <i class="fas fa-users-cog fa-xl"></i>
                     </div>
-                    <h2 class="display-6 fw-bold text-dark mb-4">Simplify Core HR Operations</h2>
+                    <h2 class="display-6 fw-bold text-body-emphasis mb-4">Simplify Core HR Operations</h2>
                     <p class="lead text-secondary mb-4">
                         Stop juggling spreadsheets. Centralize your employee data in one secure location.
                         Manage documentation, assets, and policies effortlessly.
@@ -304,14 +354,14 @@
                         <li class="d-flex align-items-start">
                             <i class="fas fa-check-circle text-success mt-1 me-3"></i>
                             <div>
-                                <strong class="d-block text-dark">Employee Database</strong>
+                                <strong class="d-block text-body">Employee Database</strong>
                                 A 360-degree view of every employee's profile and history.
                             </div>
                         </li>
                         <li class="d-flex align-items-start">
                             <i class="fas fa-check-circle text-success mt-1 me-3"></i>
                             <div>
-                                <strong class="d-block text-dark">Document Management</strong>
+                                <strong class="d-block text-body">Document Management</strong>
                                 Securely store and share digitally signed documents.
                             </div>
                         </li>
@@ -319,18 +369,18 @@
                     <a href="#" class="btn btn-outline-primary rounded-pill fw-semibold px-4">Explore Core HR</a>
                 </div>
                 <div class="col-lg-6" data-aos="fade-left">
-                    <div class="p-4 bg-light rounded-4 border">
-                        <div class="bg-white rounded-3 shadow-sm p-4 text-center">
+                    <div class="p-4 bg-body-tertiary rounded-4 border">
+                        <div class="bg-body rounded-3 shadow-sm p-4 text-center">
                             <div class="display-1 text-primary mb-3"><i class="far fa-address-card"></i></div>
-                            <h4 class="mb-2">Employee Directory</h4>
+                            <h4 class="mb-2 text-body">Employee Directory</h4>
                             <p class="text-secondary small">Access team details anytime, anywhere.</p>
                             <div class="d-flex justify-content-center gap-2 mt-3">
-                                <div class="bg-light rounded p-2" style="width: 40px; height: 40px;"></div>
-                                <div class="bg-light rounded p-2" style="width: 140px; height: 40px;"></div>
+                                <div class="bg-body-secondary rounded p-2" style="width: 40px; height: 40px;"></div>
+                                <div class="bg-body-secondary rounded p-2" style="width: 140px; height: 40px;"></div>
                             </div>
                             <div class="d-flex justify-content-center gap-2 mt-2">
-                                <div class="bg-light rounded p-2" style="width: 40px; height: 40px;"></div>
-                                <div class="bg-light rounded p-2" style="width: 140px; height: 40px;"></div>
+                                <div class="bg-body-secondary rounded p-2" style="width: 40px; height: 40px;"></div>
+                                <div class="bg-body-secondary rounded p-2" style="width: 140px; height: 40px;"></div>
                             </div>
                         </div>
                     </div>
@@ -340,7 +390,7 @@
     </section>
 
     <!-- Detailed Feature: Performance (Alternating) -->
-    <section class="py-5 bg-light">
+    <section class="py-5 bg-body-tertiary">
         <div class="container py-5">
             <div class="row align-items-center g-5 flex-lg-row-reverse">
                 <div class="col-lg-6" data-aos="fade-left">
@@ -348,7 +398,7 @@
                         style="width: 60px; height: 60px;">
                         <i class="fas fa-chart-line fa-xl"></i>
                     </div>
-                    <h2 class="display-6 fw-bold text-dark mb-4">Drive High Performance</h2>
+                    <h2 class="display-6 fw-bold text-body-emphasis mb-4">Drive High Performance</h2>
                     <p class="lead text-secondary mb-4">
                         Align individual goals with organizational objectives. Run continuous feedback
                         cycles and 360-degree appraisals without the paperwork.
@@ -357,14 +407,14 @@
                         <li class="d-flex align-items-start">
                             <i class="fas fa-check-circle text-success mt-1 me-3"></i>
                             <div>
-                                <strong class="d-block text-dark">KRA & KPI Tracking</strong>
+                                <strong class="d-block text-body">KRA & KPI Tracking</strong>
                                 Set clear targets and monitor progress in real-time.
                             </div>
                         </li>
                         <li class="d-flex align-items-start">
                             <i class="fas fa-check-circle text-success mt-1 me-3"></i>
                             <div>
-                                <strong class="d-block text-dark">Skill Matrix</strong>
+                                <strong class="d-block text-body">Skill Matrix</strong>
                                 Identify skill gaps and plan training programs effectively.
                             </div>
                         </li>
@@ -372,16 +422,16 @@
                     <a href="#" class="btn btn-outline-primary rounded-pill fw-semibold px-4">See Performance Tools</a>
                 </div>
                 <div class="col-lg-6" data-aos="fade-right">
-                    <div class="p-4 bg-white rounded-4 border shadow-sm">
+                    <div class="p-4 bg-body rounded-4 border shadow-sm position-relative">
                         <div class="row g-3">
                             <div class="col-6">
-                                <div class="p-3 bg-light rounded-3 text-center h-100 border">
+                                <div class="p-3 bg-body-tertiary rounded-3 text-center h-100 border">
                                     <h2 class="text-primary fw-bold mb-0">98%</h2>
                                     <small class="text-secondary">Goals Met</small>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="p-3 bg-light rounded-3 text-center h-100 border">
+                                <div class="p-3 bg-body-tertiary rounded-3 text-center h-100 border">
                                     <div class="text-warning h2 mb-0"><i class="fas fa-star"></i> 4.8</div>
                                     <small class="text-secondary">Avg Rating</small>
                                 </div>
@@ -400,7 +450,7 @@
     </section>
 
     <!-- Detailed Feature: Analytics (New Section) -->
-    <section class="py-5 bg-white">
+    <section class="py-5 bg-body">
         <div class="container py-5">
             <div class="row align-items-center g-5">
                 <div class="col-lg-6" data-aos="fade-right">
@@ -408,7 +458,7 @@
                         style="width: 60px; height: 60px;">
                         <i class="fas fa-chart-pie fa-xl"></i>
                     </div>
-                    <h2 class="display-6 fw-bold text-dark mb-4">Powerful HR Analytics</h2>
+                    <h2 class="display-6 fw-bold text-body-emphasis mb-4">Powerful HR Analytics</h2>
                     <p class="lead text-secondary mb-4">
                         Make data-driven decisions with real-time insights. diverse reports to understand attrition,
                         attendance patterns, and workforce costs.
@@ -417,14 +467,14 @@
                         <li class="d-flex align-items-start">
                             <i class="fas fa-check-circle text-success mt-1 me-3"></i>
                             <div>
-                                <strong class="d-block text-dark">Visual Dashboards</strong>
+                                <strong class="d-block text-body">Visual Dashboards</strong>
                                 Instantly see the big picture with intuitive charts and graphs.
                             </div>
                         </li>
                         <li class="d-flex align-items-start">
                             <i class="fas fa-check-circle text-success mt-1 me-3"></i>
                             <div>
-                                <strong class="d-block text-dark">Custom Reports</strong>
+                                <strong class="d-block text-body">Custom Reports</strong>
                                 Build reports that matter most to your organization.
                             </div>
                         </li>
@@ -433,7 +483,7 @@
                 </div>
                 <div class="col-lg-6" data-aos="fade-left">
                     <!-- Placeholder Image for Analytics -->
-                    <div class="position-relative p-2 bg-light rounded-4 border">
+                    <div class="position-relative p-2 bg-body-secondary rounded-4 border">
                         <img src="/hrms/assets/img/hrms_analytics_dashboard.png" alt="HR Analytics Dashboard Screenshot"
                             class="img-fluid rounded-3 shadow-sm w-100">
                         <!-- Caption for User to Replace Image -->
@@ -448,7 +498,7 @@
     </section>
 
     <!-- Trusted By / Stats Section -->
-    <section class="py-5 bg-white border-top border-bottom">
+    <section class="py-5 bg-body border-top border-bottom">
         <div class="container py-4">
             <div class="row text-center g-4">
                 <div class="col-md-4">
@@ -474,39 +524,39 @@
     </section>
 
     <!-- Integrations Section -->
-    <section class="py-5 bg-light">
+    <section class="py-5 bg-body-tertiary">
         <div class="container py-5 text-center">
             <h6 class="text-primary fw-bold text-uppercase letter-spacing-2 mb-3">Integrations</h6>
-            <h2 class="fw-bold text-dark mb-5">Works With Your Favorite Tools</h2>
+            <h2 class="fw-bold text-body-emphasis mb-5">Works With Your Favorite Tools</h2>
 
             <div class="row justify-content-center g-4">
                 <div class="col-6 col-md-4 col-lg-2">
                     <div
-                        class="bg-white p-4 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
-                        <i class="fab fa-slack fa-3x text-dark"></i>
+                        class="bg-body p-4 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
+                        <i class="fab fa-slack fa-3x text-body"></i>
                     </div>
                 </div>
                 <div class="col-6 col-md-4 col-lg-2">
                     <div
-                        class="bg-white p-4 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
+                        class="bg-body p-4 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
                         <i class="fab fa-google fa-3x text-danger"></i>
                     </div>
                 </div>
                 <div class="col-6 col-md-4 col-lg-2">
                     <div
-                        class="bg-white p-4 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
+                        class="bg-body p-4 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
                         <i class="fab fa-microsoft fa-3x text-primary"></i>
                     </div>
                 </div>
                 <div class="col-6 col-md-4 col-lg-2">
                     <div
-                        class="bg-white p-4 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
+                        class="bg-body p-4 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
                         <i class="fab fa-jira fa-3x text-primary"></i>
                     </div>
                 </div>
                 <div class="col-6 col-md-4 col-lg-2">
                     <div
-                        class="bg-white p-4 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
+                        class="bg-body p-4 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
                         <i class="fab fa-dropbox fa-3x text-primary"></i>
                     </div>
                 </div>
@@ -519,7 +569,7 @@
     </section>
 
     <!-- Detailed Feature: Payroll & Expenses (New Dark Section) -->
-    <section class="py-5 bg-white text-black">
+    <section class="py-5 bg-body text-body">
         <div class="container py-5">
             <div class="row align-items-center g-5">
                 <div class="col-lg-6" data-aos="fade-right">
@@ -532,21 +582,22 @@
                     <div class="d-flex flex-wrap gap-3 mb-5">
                         <a href="#" class="btn btn-outline-primary rounded-pill fw-semibold px-4 py-2">Explore Payroll
                             <i class="fas fa-arrow-right ms-2 small"></i></a>
-                        <a href="#" class="btn btn-outline-light rounded-pill fw-semibold px-4 py-2">Explore Travel and
+                        <a href="#" class="btn btn-outline-secondary rounded-pill fw-semibold px-4 py-2">Explore Travel
+                            and
                             expense <i class="fas fa-arrow-right ms-2 small"></i></a>
                     </div>
                     <div class="row g-4 text-secondary small">
                         <div class="col-sm-6 d-flex align-items-center">
-                            <i class="fas fa-check-circle text-white me-2"></i> Payroll processing
+                            <i class="fas fa-check-circle text-success me-2"></i> Payroll processing
                         </div>
                         <div class="col-sm-6 d-flex align-items-center">
-                            <i class="fas fa-check-circle text-white me-2"></i> Statutory compliance and reporting
+                            <i class="fas fa-check-circle text-success me-2"></i> Statutory compliance and reporting
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-6" data-aos="fade-left">
                     <!-- Placeholder visual for Payroll -->
-                    <div class="position-relative p-2 bg-white rounded-4 border border-secondary">
+                    <div class="position-relative p-2 bg-body rounded-4 border border-secondary">
                         <img src="/hrms/assets/img/hrms_payroll_dashboard_v2.png" alt="Payroll Dashboard"
                             class="img-fluid rounded-3 w-100 opacity-75">
                         <!-- Fallback/Caption if image fails or for replacement -->
@@ -562,20 +613,20 @@
     </section>
 
     <!-- Built for your people Section -->
-    <section class="py-5 bg-light text-black">
+    <section class="py-5 bg-body-tertiary text-body">
         <div class="container py-5">
             <h2 class="display-5 fw-bold mb-5" data-aos="fade-up">Built for your people</h2>
             <div class="row g-4">
                 <!-- Card 1 -->
                 <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="0">
                     <div
-                        class="card h-100 bg-white text-black border-0 rounded-4 p-4 shadow-sm hover-shadow transition-all">
+                        class="card h-100 bg-body text-body border-0 rounded-4 p-4 shadow-sm hover-shadow transition-all">
                         <div class="card-body p-0">
                             <div class="mb-4">
                                 <i class="far fa-smile fa-2x text-primary"></i>
                             </div>
-                            <p class="card-text text-black mb-0">
-                                <span class="text-black fw-bold">User-friendly</span> interface that's quick to deploy
+                            <p class="card-text text-body mb-0">
+                                <span class="text-body fw-bold">User-friendly</span> interface that's quick to deploy
                                 and easy to set up.
                             </p>
                         </div>
@@ -584,13 +635,13 @@
                 <!-- Card 2 -->
                 <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
                     <div
-                        class="card h-100 bg-white text-black border-0 rounded-4 p-4 shadow-sm hover-shadow transition-all">
+                        class="card h-100 bg-body text-body border-0 rounded-4 p-4 shadow-sm hover-shadow transition-all">
                         <div class="card-body p-0">
                             <div class="mb-4">
                                 <i class="far fa-file-alt fa-2x text-primary"></i>
                             </div>
-                            <p class="card-text text-black mb-0">
-                                Expansive <span class="text-black fw-bold">resource library</span> to help you get
+                            <p class="card-text text-body mb-0">
+                                Expansive <span class="text-body fw-bold">resource library</span> to help you get
                                 started.
                             </p>
                         </div>
@@ -599,13 +650,13 @@
                 <!-- Card 3 -->
                 <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
                     <div
-                        class="card h-100 bg-white text-black border-0 rounded-4 p-4 shadow-sm hover-shadow transition-all">
+                        class="card h-100 bg-body text-body border-0 rounded-4 p-4 shadow-sm hover-shadow transition-all">
                         <div class="card-body p-0">
                             <div class="mb-4">
                                 <i class="fas fa-chart-line fa-2x text-primary"></i>
                             </div>
-                            <p class="card-text text-black mb-0">
-                                HR solution that can be fine-tuned to <span class="text-black fw-bold">changing business
+                            <p class="card-text text-body mb-0">
+                                HR solution that can be fine-tuned to <span class="text-body fw-bold">changing business
                                     demands</span>.
                             </p>
                         </div>
@@ -614,13 +665,13 @@
                 <!-- Card 4 -->
                 <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
                     <div
-                        class="card h-100 bg-light text-black border-0 rounded-4 p-4 shadow-sm hover-shadow transition-all">
+                        class="card h-100 bg-body text-body border-0 rounded-4 p-4 shadow-sm hover-shadow transition-all">
                         <div class="card-body p-0">
                             <div class="mb-4">
                                 <i class="fas fa-robot fa-2x text-primary"></i>
                             </div>
-                            <p class="card-text text-black mb-0">
-                                Friendly <span class="text-black fw-bold">HR chatbot Zia</span> to help you with your
+                            <p class="card-text text-body mb-0">
+                                Friendly <span class="text-body fw-bold">HR chatbot Zia</span> to help you with your
                                 daily HR tasks.
                             </p>
                         </div>
@@ -631,27 +682,27 @@
     </section>
 
     <!-- FAQ Section -->
-    <section class="py-5 bg-white text-black">
+    <section class="py-5 bg-body text-body">
         <div class="container py-5">
             <div class="row g-5">
                 <div class="col-lg-5">
                     <h2 class="display-4 fw-bold mb-4">Frequently Asked Questions</h2>
-                    <p class="lead text-black">
+                    <p class="lead text-body">
                         Everything you need to know about StaffSync and how it can help your organization.
                     </p>
                 </div>
                 <div class="col-lg-7">
                     <div class="accordion accordion-flush" id="faqAccordion">
                         <!-- Item 1 -->
-                        <div class="accordion-item bg-white border-bottom border-secondary">
+                        <div class="accordion-item bg-body border-bottom border-secondary">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed bg-white text-black shadow-none fs-5 py-4"
+                                <button class="accordion-button collapsed bg-body text-body shadow-none fs-5 py-4"
                                     type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
                                     What is an HRMS?
                                 </button>
                             </h2>
                             <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body text-black pb-4">
+                                <div class="accordion-body text-body pb-4">
                                     An HRMS (Human Resource Management System) is a software solution that helps
                                     organizations manage their internal HR functions. It streamlines processes like
                                     employee data management, payroll, recruitment, benefits administration, attendance,
@@ -660,15 +711,15 @@
                             </div>
                         </div>
                         <!-- Item 2 -->
-                        <div class="accordion-item bg-white border-bottom border-secondary">
+                        <div class="accordion-item bg-body border-bottom border-secondary">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed bg-white text-black shadow-none fs-5 py-4"
+                                <button class="accordion-button collapsed bg-body text-body shadow-none fs-5 py-4"
                                     type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
                                     How do I choose the best HRMS?
                                 </button>
                             </h2>
                             <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body text-black pb-4">
+                                <div class="accordion-body text-body pb-4">
                                     To choose the best HRMS, assess your organization's specific needs, look for
                                     essential features like ease of use, scalability, integration capabilities (with
                                     payroll, etc.), customer support, and ensure it fits within your budget.
@@ -676,15 +727,15 @@
                             </div>
                         </div>
                         <!-- Item 3 -->
-                        <div class="accordion-item bg-white border-bottom border-secondary">
+                        <div class="accordion-item bg-body border-bottom border-secondary">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed bg-white text-black shadow-none fs-5 py-4"
+                                <button class="accordion-button collapsed bg-body text-body shadow-none fs-5 py-4"
                                     type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
                                     What are the key features of an HRMS?
                                 </button>
                             </h2>
                             <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body text-black pb-4">
+                                <div class="accordion-body text-body pb-4">
                                     Key features generally include Employee Information Management, Attendance & Leave
                                     Tracking, Payroll Management, Performance Appraisals, Recruitment & Onboarding,
                                     Self-Service Portals, and Analytics.
@@ -692,15 +743,15 @@
                             </div>
                         </div>
                         <!-- Item 4 -->
-                        <div class="accordion-item bg-white border-bottom border-secondary">
+                        <div class="accordion-item bg-body border-bottom border-secondary">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed bg-white text-black shadow-none fs-5 py-4"
+                                <button class="accordion-button collapsed bg-body text-body shadow-none fs-5 py-4"
                                     type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
                                     What is StaffSync?
                                 </button>
                             </h2>
                             <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body text-black pb-4">
+                                <div class="accordion-body text-body pb-4">
                                     StaffSync is a comprehensive cloud-based HRMS designed to simplify your HR
                                     operations. From hiring to retiring, we provide all the tools you need to manage
                                     your diverse workforce effectively.
@@ -708,15 +759,15 @@
                             </div>
                         </div>
                         <!-- Item 5 -->
-                        <div class="accordion-item bg-white border-bottom border-secondary">
+                        <div class="accordion-item bg-body border-bottom border-secondary">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed bg-white text-black shadow-none fs-5 py-4"
+                                <button class="accordion-button collapsed bg-body text-body shadow-none fs-5 py-4"
                                     type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
                                     How do I get started with StaffSync?
                                 </button>
                             </h2>
                             <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body text-white pb-4">
+                                <div class="accordion-body text-body pb-4">
                                     Getting started is easy! Simply sign up for our 14-day free trial. Our onboarding
                                     team will guide you through the setup process, importing your data, and configuring
                                     the system to match your policies.
@@ -760,15 +811,15 @@
                         empower your workforce.
                     </p>
                     <div class="d-flex gap-3">
-                        <a href="#" class="btn btn-icon btn-sm btn-outline-secondary rounded-circle"><i
+                        <a href="#" class="btn btn-icon btn-sm btn-outline-light rounded-circle"><i
                                 class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="btn btn-icon btn-sm btn-outline-secondary rounded-circle"><i
+                        <a href="#" class="btn btn-icon btn-sm btn-outline-light rounded-circle"><i
                                 class="fab fa-twitter"></i></a>
-                        <a href="#" class="btn btn-icon btn-sm btn-outline-secondary rounded-circle"><i
+                        <a href="#" class="btn btn-icon btn-sm btn-outline-light rounded-circle"><i
                                 class="fab fa-linkedin-in"></i></a>
-                        <a href="#" class="btn btn-icon btn-sm btn-outline-secondary rounded-circle"><i
+                        <a href="#" class="btn btn-icon btn-sm btn-outline-light rounded-circle"><i
                                 class="fab fa-instagram"></i></a>
-                        <a href="#" class="btn btn-icon btn-sm btn-outline-secondary rounded-circle"><i
+                        <a href="#" class="btn btn-icon btn-sm btn-outline-light rounded-circle"><i
                                 class="fab fa-youtube"></i></a>
                     </div>
                 </div>
@@ -843,23 +894,21 @@
 
             <hr class="border-secondary opacity-25 mt-5">
 
-            <div class="row align-items-center">
-                <div class="col-md-6 text-center text-md-start">
-                    <p class="small text-white-50 mb-0">&copy; 2024 StaffSync HRMS. All rights reserved.</p>
+            <div class="row pt-4 border-top border-secondary border-opacity-25 align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    <p class="mb-0 small text-white-50">&copy; 2024 StaffSync. All rights reserved.</p>
                 </div>
-                <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
-                    <ul class="list-inline small mb-0">
-                        <li class="list-inline-item"><a href="#" class="text-secondary text-decoration-none">Privacy
-                                Policy</a></li>
-                        <li class="list-inline-item mx-2 text-secondary">|</li>
-                        <li class="list-inline-item"><a href="#" class="text-secondary text-decoration-none">Cookie
-                                Policy</a></li>
-                        <li class="list-inline-item mx-2 text-secondary">|</li>
-                        <li class="list-inline-item"><a href="#" class="text-secondary text-decoration-none">Terms of
-                                Service</a></li>
-                        <li class="list-inline-item mx-2 text-secondary">|</li>
+                <div class="col-md-6 text-center text-md-end">
+                    <ul class="list-inline mb-0 small">
                         <li class="list-inline-item"><a href="#"
-                                class="text-secondary text-decoration-none">Security</a></li>
+                                class="text-decoration-none text-white-50 footer-link transition-all">Privacy
+                                Policy</a></li>
+                        <li class="list-inline-item"><a href="#"
+                                class="text-decoration-none text-white-50 footer-link transition-all">Terms of
+                                Service</a></li>
+                        <li class="list-inline-item"><a href="#"
+                                class="text-decoration-none text-white-50 footer-link transition-all">Cookie
+                                Settings</a></li>
                     </ul>
                 </div>
             </div>
@@ -892,6 +941,32 @@
                 togglerIcon.classList.remove('fa-times');
                 togglerIcon.classList.add('fa-bars');
             });
+        }
+
+        // Dark Mode Logic
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+        const htmlElement = document.documentElement;
+
+        // Check local storage or system preference
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        setTheme(currentTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const newTheme = htmlElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
+        function setTheme(theme) {
+            htmlElement.setAttribute('data-bs-theme', theme);
+            if (theme === 'dark') {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
         }
     </script>
     <style>
