@@ -13,7 +13,7 @@ require_once '../components/layout/header.php';
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-            <h2 class="h3 mb-0"><i class="fas fa-tasks me-2"></i>Tasks & Goals</h2>
+            <h2 class="h3 mb-0"><i class="ti ti-checklist me-2"></i>Tasks & Goals</h2>
         </div>
 
         <!-- Task Statistics -->
@@ -26,7 +26,7 @@ require_once '../components/layout/header.php';
                                 <h4 class="mb-0" id="stat-total">--</h4>
                                 <p class="text-muted mb-0">Total Tasks</p>
                             </div>
-                            <div class="flex-shrink-0"><i class="fas fa-tasks fa-2x text-primary"></i></div>
+                            <div class="flex-shrink-0"><i class="ti ti-checklist fa-2x text-primary"></i></div>
                         </div>
                     </div>
                 </div>
@@ -39,7 +39,7 @@ require_once '../components/layout/header.php';
                                 <h4 class="mb-0" id="stat-pending">--</h4>
                                 <p class="text-muted mb-0">Pending</p>
                             </div>
-                            <div class="flex-shrink-0"><i class="fas fa-clock fa-2x text-warning"></i></div>
+                            <div class="flex-shrink-0"><i class="ti ti-clock fa-2x text-warning"></i></div>
                         </div>
                     </div>
                 </div>
@@ -52,7 +52,7 @@ require_once '../components/layout/header.php';
                                 <h4 class="mb-0" id="stat-in-progress">--</h4>
                                 <p class="text-muted mb-0">In Progress</p>
                             </div>
-                            <div class="flex-shrink-0"><i class="fas fa-spinner fa-2x text-info"></i></div>
+                            <div class="flex-shrink-0"><i class="ti ti-loader fa-2x text-info"></i></div>
                         </div>
                     </div>
                 </div>
@@ -65,7 +65,7 @@ require_once '../components/layout/header.php';
                                 <h4 class="mb-0" id="stat-completed">--</h4>
                                 <p class="text-muted mb-0">Completed</p>
                             </div>
-                            <div class="flex-shrink-0"><i class="fas fa-check-circle fa-2x text-success"></i></div>
+                            <div class="flex-shrink-0"><i class="ti ti-circle-check fa-2x text-success"></i></div>
                         </div>
                     </div>
                 </div>
@@ -78,7 +78,7 @@ require_once '../components/layout/header.php';
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h6 class="m-0 font-weight-bold">Assigned Tasks</h6>
                         <button class="btn btn-sm btn-secondary py-1 px-2" onclick="loadAssignedTasks()"><i
-                                class="fas fa-sync-alt"></i></button>
+                                class="ti ti-refresh"></i></button>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -146,7 +146,7 @@ require_once '../components/layout/header.php';
             ],
             language: {
                 emptyTable: `<div class="text-center py-5">
-                    <i class= "fas fa-tasks fa-3x text-muted mb-3"></i>
+                    <i class="ti ti-checklist fa-3x text-muted mb-3"></i>
                         <h5 class="text-muted">No Tasks Assigned</h5>
                         <p class="text-muted">New Tasks will appear here when assigned.</p>
                     </div>`

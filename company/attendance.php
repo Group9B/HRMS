@@ -16,14 +16,14 @@ require_once '../components/layout/header.php';
             <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
                 <div class="d-flex align-items-center my-1">
                     <button id="prevMonth" class="btn btn-sm btn-outline-secondary"><i
-                            class="fas fa-chevron-left"></i></button>
+                            class="ti ti-chevron-left"></i></button>
                     <h5 id="currentMonth" class="m-0 mx-3"></h5>
                     <button id="nextMonth" class="btn btn-sm btn-outline-secondary"><i
-                            class="fas fa-chevron-right"></i></button>
+                            class="ti ti-chevron-right"></i></button>
                 </div>
                 <div class="d-flex align-items-center flex-wrap gap-2 my-1">
                     <button class="btn bg-dark-subtle btn-sm" id="openBulkModalBtn"><i
-                            class="fas fa-gifts me-2"></i>Bulk
+                            class="ti ti-loader-3 me-2"></i>Bulk
                         Actions</button>
                     <input type="search" id="employeeSearch" class="form-control form-control-sm"
                         placeholder="Search Employee..." style="width: 200px;">
@@ -38,7 +38,7 @@ require_once '../components/layout/header.php';
         </div>
         <div class="attendance-grid" id="attendanceGrid" style="display:none;"></div>
         <div id="noResults" class="alert alert-info text-center" style="display:none;"><i
-                class="fas fa-info-circle me-2"></i>No attendance records found for the selected month.</div>
+                class="ti ti-info-circle me-2"></i>No attendance records found for the selected month.</div>
     </div>
 </div>
 
@@ -57,14 +57,14 @@ require_once '../components/layout/header.php';
                             id="modalDateDisplay"></strong>:</p>
                     <div class="d-grid gap-2" id="statusButtons"><button type="submit" name="status" value="present"
                             class="btn btn-success bg-success-subtle text-success-emphasis"><i
-                                class="fas fa-check me-2"></i>Present</button><button type="submit" name="status"
+                                class="ti ti-check me-2"></i>Present</button><button type="submit" name="status"
                             value="absent" class="btn btn-danger bg-danger-subtle text-danger-emphasis"><i
-                                class="fas fa-times me-2"></i>Absent</button><button type="submit" name="status"
+                                class="ti ti-x me-2"></i>Absent</button><button type="submit" name="status"
                             value="half-day" class="btn btn-info  bg-info-subtle text-info-emphasis"><i
-                                class="fas fa-star-half-alt me-2"></i>Half
+                                class="ti ti-subtract me-2"></i>Half
                             Day</button><button type="submit" name="status" value="leave"
                             class="btn btn-warning bg-warning-subtle text-warning-emphasis"><i
-                                class="fas fa-plane-departure me-2"></i>On
+                                class="ti ti-plane me-2"></i>On
                             Leave</button></div>
                 </div>
             </form>
@@ -155,14 +155,14 @@ require_once '../components/layout/header.php';
 
     function renderDashboard(summary) {
         const stats = [
-            { label: 'Attendance (Month)', value: `${summary.overall_percentage}%`, color: 'primary', icon: 'percentage' },
-            { label: 'Total Present', value: summary.total_present, color: 'success', icon: 'check-circle' },
-            { label: 'Total Absent', value: summary.total_absent, color: 'danger', icon: 'times-circle' },
-            { label: 'Total On Leave', value: summary.total_leave, color: 'warning', icon: 'plane-departure' }
+            { label: 'Attendance (Month)', value: `${summary.overall_percentage}%`, color: 'primary', icon: 'percent' },
+            { label: 'Total Present', value: summary.total_present, color: 'success', icon: 'circle-check' },
+            { label: 'Total Absent', value: summary.total_absent, color: 'danger', icon: 'x' },
+            { label: 'Total On Leave', value: summary.total_leave, color: 'warning', icon: 'plane' }
         ];
         let statsHtml = '';
         stats.forEach(stat => {
-            statsHtml += `<div class="col-xl-3 col-md-6 mb-4"><div class="card border-start border-${stat.color} border-4 shadow-sm h-100 py-2"><div class="card-body"><div class="row g-0 align-items-center"><div class="col"><div class="text-xs fw-bold text-${stat.color} text-uppercase mb-1">${stat.label}</div><div class="h5 mb-0 fw-bold text-body">${stat.value}</div></div><div class="col-auto"><i class="fas fa-${stat.icon} fa-2x text-body-tertiary"></i></div></div></div></div></div>`;
+            statsHtml += `<div class="col-xl-3 col-md-6 mb-4"><div class="card border-start border-${stat.color} border-4 shadow-sm h-100 py-2"><div class="card-body"><div class="row g-0 align-items-center"><div class="col"><div class="text-xs fw-bold text-${stat.color} text-uppercase mb-1">${stat.label}</div><div class="h5 mb-0 fw-bold text-body">${stat.value}</div></div><div class="col-auto"><i class="ti ti-${stat.icon} fa-2x text-body-tertiary"></i></div></div></div></div></div>`;
         });
         $('#dashboardStats').html(statsHtml);
     }
@@ -182,12 +182,12 @@ require_once '../components/layout/header.php';
         const companyCreationDate = new Date(company_created_at);
 
         if (viewingDate < companyCreationDate && viewingDate.getMonth() !== companyCreationDate.getMonth()) {
-            $('#noResults').html('<i class="fas fa-info-circle me-2"></i>Attendance tracking began after your company was created.').show();
+            $('#noResults').html('<i class="ti ti-info-circle me-2"></i>Attendance tracking began after your company was created.').show();
             grid.hide();
             return;
         }
 
-        if (!employees || employees.length === 0) { $('#noResults').html('<i class="fas fa-info-circle me-2"></i>No employees found to display attendance.').show(); grid.hide(); return; }
+        if (!employees || employees.length === 0) { $('#noResults').html('<i class="ti ti-info-circle me-2"></i>No employees found to display attendance.').show(); grid.hide(); return; }
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);

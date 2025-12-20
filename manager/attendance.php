@@ -104,14 +104,14 @@ require_once '../components/layout/header.php';
     <div class="p-3 p-md-4" style="flex: 1;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="h3 text-gray-800">
-                <i class="fas fa-calendar-check me-2"></i>Team Attendance
+                <i class="ti ti-calendar-check me-2"></i>Team Attendance
             </h2>
             <div>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#markAttendanceModal">
-                    <i class="fas fa-plus me-2"></i>Mark Attendance
+                    <i class="ti ti-plus me-2"></i>Mark Attendance
                 </button>
                 <button class="btn btn-success" onclick="exportAttendance()">
-                    <i class="fas fa-download me-2"></i>Export Report
+                    <i class="ti ti-download me-2"></i>Export Report
                 </button>
             </div>
         </div>
@@ -121,7 +121,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-2 col-md-4 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-success"><i class="fas fa-check"></i></div>
+                        <div class="icon-circle bg-success"><i class="ti ti-check"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Present</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['present'] ?></div>
@@ -132,7 +132,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-2 col-md-4 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-danger"><i class="fas fa-times"></i></div>
+                        <div class="icon-circle bg-danger"><i class="ti ti-x"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Absent</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['absent'] ?></div>
@@ -143,7 +143,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-2 col-md-4 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-warning"><i class="fas fa-plane"></i></div>
+                        <div class="icon-circle bg-warning"><i class="ti ti-plane"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">On Leave</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['on_leave'] ?></div>
@@ -154,7 +154,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-2 col-md-4 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-info"><i class="fas fa-clock"></i></div>
+                        <div class="icon-circle bg-info"><i class="ti ti-clock"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Half Day</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['half_day'] ?></div>
@@ -165,7 +165,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-2 col-md-4 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-secondary"><i class="fas fa-calendar"></i></div>
+                        <div class="icon-circle bg-secondary"><i class="ti ti-calendar"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Holiday</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['holiday'] ?></div>
@@ -176,7 +176,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-2 col-md-4 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-primary"><i class="fas fa-users"></i></div>
+                        <div class="icon-circle bg-primary"><i class="ti ti-users"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $total_team ?></div>
@@ -309,10 +309,10 @@ require_once '../components/layout/header.php';
                                         <td>
                                             <div class="btn-group btn-group-sm">
                                                 <button class="btn btn-outline-primary" onclick="editAttendance(<?= $record['id'] ?>)" title="Edit">
-                                                    <i class="fas fa-edit"></i>
+                                                    <i class="ti ti-edit"></i>
                                                 </button>
                                                 <button class="btn btn-outline-info" onclick="viewAttendanceDetails(<?= $record['id'] ?>)" title="View Details">
-                                                    <i class="fas fa-eye"></i>
+                                                    <i class="ti ti-eye"></i>
                                                 </button>
                                             </div>
                                         </td>
@@ -323,7 +323,8 @@ require_once '../components/layout/header.php';
                     </div>
                 <?php else: ?>
                     <div class="text-center text-muted p-5">
-                        <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                        <i class="ti ti-calendar-x" style="font-size: 3rem;"></i>
+                        <div class="mb-3"></div>
                         <h5>No Attendance Records Found</h5>
                         <p>No attendance records match your current filters for this date.</p>
                     </div>

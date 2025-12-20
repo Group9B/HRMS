@@ -47,18 +47,18 @@ require_once '../components/layout/header.php';
     <div class="p-3 p-md-4" style="flex: 1;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="h3 text-gray-800">
-                <i class="fas fa-users me-2"></i>Team Management
+                <i class="ti ti-users me-2"></i>Team Management
                 <small class="text-muted">- <?= htmlspecialchars($department['name'] ?? 'Department') ?></small>
             </h2>
             <div>
                 <a href="teams.php" class="btn btn-info me-2">
-                    <i class="fas fa-users-cog me-2"></i>Manage Teams
+                    <i class="ti ti-settings me-2"></i>Manage Teams
                 </a>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
-                    <i class="fas fa-plus me-2"></i>Assign Task
+                    <i class="ti ti-plus me-2"></i>Assign Task
                 </button>
                 <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#teamReportModal">
-                    <i class="fas fa-chart-bar me-2"></i>Team Report
+                    <i class="ti ti-chart-bar me-2"></i>Team Report
                 </button>
             </div>
         </div>
@@ -68,9 +68,10 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-primary"><i class="fas fa-users"></i></div>
+                        <div class="icon-circle bg-primary"><i class="ti ti-users"></i></div>
                         <div>
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Team Members</div>
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Team Members
+                            </div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= count($team_members) ?></div>
                         </div>
                     </div>
@@ -79,10 +80,13 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-success"><i class="fas fa-user-check"></i></div>
+                        <div class="icon-circle bg-success"><i class="ti ti-user-check"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Active Members</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= count(array_filter($team_members, function($member) { return $member['user_status'] === 'active'; })) ?></div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                <?= count(array_filter($team_members, function ($member) {
+                                    return $member['user_status'] === 'active'; })) ?>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -90,7 +94,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-info"><i class="fas fa-tasks"></i></div>
+                        <div class="icon-circle bg-info"><i class="ti ti-checklist"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Pending Tasks</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800" id="pending-tasks-count">--</div>
@@ -101,7 +105,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-warning"><i class="fas fa-clock"></i></div>
+                        <div class="icon-circle bg-warning"><i class="ti ti-clock"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">On Leave Today</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800" id="on-leave-count">--</div>
@@ -140,7 +144,9 @@ require_once '../components/layout/header.php';
                                                     <?= strtoupper(substr($member['first_name'], 0, 1) . substr($member['last_name'], 0, 1)) ?>
                                                 </div>
                                                 <div>
-                                                    <div class="fw-bold"><?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?></div>
+                                                    <div class="fw-bold">
+                                                        <?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?>
+                                                    </div>
                                                     <small class="text-muted"><?= htmlspecialchars($member['email']) ?></small>
                                                 </div>
                                             </div>
@@ -149,21 +155,26 @@ require_once '../components/layout/header.php';
                                         <td><?= htmlspecialchars($member['designation_name'] ?? 'N/A') ?></td>
                                         <td><?= htmlspecialchars($member['shift_name'] ?? 'N/A') ?></td>
                                         <td>
-                                            <span class="badge bg-<?= $member['user_status'] === 'active' ? 'success' : 'danger' ?>">
+                                            <span
+                                                class="badge bg-<?= $member['user_status'] === 'active' ? 'success' : 'danger' ?>">
                                                 <?= ucfirst($member['user_status']) ?>
                                             </span>
                                         </td>
-                                        <td><?= $member['date_of_joining'] ? date('M j, Y', strtotime($member['date_of_joining'])) : 'N/A' ?></td>
+                                        <td><?= $member['date_of_joining'] ? date('M j, Y', strtotime($member['date_of_joining'])) : 'N/A' ?>
+                                        </td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary" onclick="viewEmployee(<?= $member['id'] ?>)" title="View Details">
-                                                    <i class="fas fa-eye"></i>
+                                                <button class="btn btn-outline-primary"
+                                                    onclick="viewEmployee(<?= $member['id'] ?>)" title="View Details">
+                                                    <i class="ti ti-eye"></i>
                                                 </button>
-                                                <button class="btn btn-outline-success" onclick="assignTask(<?= $member['id'] ?>)" title="Assign Task">
-                                                    <i class="fas fa-tasks"></i>
+                                                <button class="btn btn-outline-success"
+                                                    onclick="assignTask(<?= $member['id'] ?>)" title="Assign Task">
+                                                    <i class="ti ti-checklist"></i>
                                                 </button>
-                                                <button class="btn btn-outline-info" onclick="viewPerformance(<?= $member['id'] ?>)" title="View Performance">
-                                                    <i class="fas fa-chart-line"></i>
+                                                <button class="btn btn-outline-info"
+                                                    onclick="viewPerformance(<?= $member['id'] ?>)" title="View Performance">
+                                                    <i class="ti ti-chart-line"></i>
                                                 </button>
                                             </div>
                                         </td>
@@ -174,7 +185,7 @@ require_once '../components/layout/header.php';
                     </div>
                 <?php else: ?>
                     <div class="text-center text-muted p-5">
-                        <i class="fas fa-users fa-3x mb-3"></i>
+                        <i class="ti ti-users fa-3x mb-3" style="font-size: 2rem;"></i>
                         <h5>No Team Members Found</h5>
                         <p>There are no employees in your department yet.</p>
                     </div>
@@ -199,7 +210,8 @@ require_once '../components/layout/header.php';
                         <select class="form-select" id="task_employee" name="employee_id" required>
                             <option value="">Select Employee</option>
                             <?php foreach ($team_members as $member): ?>
-                                <option value="<?= $member['id'] ?>"><?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?></option>
+                                <option value="<?= $member['id'] ?>">
+                                    <?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -253,148 +265,149 @@ require_once '../components/layout/header.php';
 <?php require_once '../components/layout/footer.php'; ?>
 
 <style>
-.avatar-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(45deg, #4e73df, #36b9cc);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-}
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #4e73df, #36b9cc);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 14px;
+    }
 
-.stat-card {
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 14px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-}
-.stat-card .card-body {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding-top: 14px;
-    padding-bottom: 14px;
-}
+    .stat-card {
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+    }
 
-.icon-circle {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 6px;
-    color: white;
-    font-size: 20px;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-}
+    .stat-card .card-body {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding-top: 14px;
+        padding-bottom: 14px;
+    }
 
-.stat-card .text-xs {
-    letter-spacing: .03em;
-    opacity: .9;
-}
+    .icon-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 6px;
+        color: white;
+        font-size: 20px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
 
-.stat-card .h5 {
-    margin: 0;
-}
+    .stat-card .text-xs {
+        letter-spacing: .03em;
+        opacity: .9;
+    }
+
+    .stat-card .h5 {
+        margin: 0;
+    }
 </style>
 
 <script>
-$(document).ready(function() {
-    // Initialize DataTable
-    $('#teamTable').DataTable({
-        responsive: true,
-        pageLength: 10,
-        order: [[0, 'asc']]
-    });
-
-    // Load team statistics
-    loadTeamStats();
-
-    // Handle task form submission
-    $('#taskForm').on('submit', function(e) {
-        e.preventDefault();
-        assignTaskToEmployee();
-    });
-});
-
-function loadTeamStats() {
-    fetch('/hrms/api/api_manager.php?action=get_team_stats')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                $('#pending-tasks-count').text(data.data.pending_tasks);
-                $('#on-leave-count').text(data.data.on_leave_today);
-            }
-        })
-        .catch(error => {
-            console.error('Error loading team stats:', error);
+    $(document).ready(function () {
+        // Initialize DataTable
+        $('#teamTable').DataTable({
+            responsive: true,
+            pageLength: 10,
+            order: [[0, 'asc']]
         });
-}
 
-function viewEmployee(employeeId) {
-    // Open employee profile in same tab; managers are allowed via updated employee/profile.php
-    window.location.href = `/hrms/employee/profile.php?employee_id=${employeeId}`;
-}
+        // Load team statistics
+        loadTeamStats();
 
-function assignTask(employeeId) {
-    $('#task_employee').val(employeeId);
-    $('#addTaskModal').modal('show');
-}
-
-function assignTaskToEmployee() {
-    const formData = new FormData(document.getElementById('taskForm'));
-    formData.append('action', 'assign_task');
-
-    fetch('/hrms/api/api_manager.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message, 'success');
-            $('#addTaskModal').modal('hide');
-            document.getElementById('taskForm').reset();
-            loadTeamStats();
-        } else {
-            showToast(data.message, 'error');
-        }
-    })
-    .catch(error => {
-        showToast('An error occurred. Please try again.', 'error');
-    });
-}
-
-function viewPerformance(employeeId) {
-    // Redirect to performance page
-    window.location.href = `/hrms/manager/performance.php?employee_id=${employeeId}`;
-}
-
-$('#teamReportModal').on('show.bs.modal', function() {
-    loadTeamReport();
-});
-
-function loadTeamReport() {
-    fetch('/hrms/api/api_manager.php?action=get_team_report')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                displayTeamReport(data.data);
-            } else {
-                $('#teamReportContent').html('<div class="alert alert-danger">Failed to load team report.</div>');
-            }
-        })
-        .catch(error => {
-            $('#teamReportContent').html('<div class="alert alert-danger">Error loading team report.</div>');
+        // Handle task form submission
+        $('#taskForm').on('submit', function (e) {
+            e.preventDefault();
+            assignTaskToEmployee();
         });
-}
+    });
 
-function displayTeamReport(data) {
-    let html = `
+    function loadTeamStats() {
+        fetch('/hrms/api/api_manager.php?action=get_team_stats')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    $('#pending-tasks-count').text(data.data.pending_tasks);
+                    $('#on-leave-count').text(data.data.on_leave_today);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading team stats:', error);
+            });
+    }
+
+    function viewEmployee(employeeId) {
+        // Open employee profile in same tab; managers are allowed via updated employee/profile.php
+        window.location.href = `/hrms/employee/profile.php?employee_id=${employeeId}`;
+    }
+
+    function assignTask(employeeId) {
+        $('#task_employee').val(employeeId);
+        $('#addTaskModal').modal('show');
+    }
+
+    function assignTaskToEmployee() {
+        const formData = new FormData(document.getElementById('taskForm'));
+        formData.append('action', 'assign_task');
+
+        fetch('/hrms/api/api_manager.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    $('#addTaskModal').modal('hide');
+                    document.getElementById('taskForm').reset();
+                    loadTeamStats();
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred. Please try again.', 'error');
+            });
+    }
+
+    function viewPerformance(employeeId) {
+        // Redirect to performance page
+        window.location.href = `/hrms/manager/performance.php?employee_id=${employeeId}`;
+    }
+
+    $('#teamReportModal').on('show.bs.modal', function () {
+        loadTeamReport();
+    });
+
+    function loadTeamReport() {
+        fetch('/hrms/api/api_manager.php?action=get_team_report')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayTeamReport(data.data);
+                } else {
+                    $('#teamReportContent').html('<div class="alert alert-danger">Failed to load team report.</div>');
+                }
+            })
+            .catch(error => {
+                $('#teamReportContent').html('<div class="alert alert-danger">Error loading team report.</div>');
+            });
+    }
+
+    function displayTeamReport(data) {
+        let html = `
         <div class="row">
             <div class="col-md-6">
                 <h6>Team Overview</h6>
@@ -426,12 +439,12 @@ function displayTeamReport(data) {
             </div>
         </div>
     `;
-    
-    $('#teamReportContent').html(html);
-}
 
-function exportTeamReport() {
-    // Implement export functionality
-    showToast('Export feature will be available soon.', 'info');
-}
+        $('#teamReportContent').html(html);
+    }
+
+    function exportTeamReport() {
+        // Implement export functionality
+        showToast('Export feature will be available soon.', 'info');
+    }
 </script>

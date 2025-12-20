@@ -26,7 +26,7 @@ require_once '../components/layout/header.php';
             <div class="card-header justify-content-between d-flex align-items-center">
                 <h6 class="m-0 font-weight-bold">All Employees</h6>
                 <button class="btn btn-sm btn-primary" onclick="validateAndOpenAddModal()">
-                    <i class="fas fa-plus me-2"></i>Add Employee
+                    <i class="ti ti-plus me-2"></i>Add Employee
                 </button>
             </div>
             <div class="card-body">
@@ -186,29 +186,18 @@ require_once '../components/layout/header.php';
                 { data: 'status', render: (d) => `<span class="badge bg-${d === 'active' ? 'success-subtle text-success-emphasis' : 'danger-subtle text-danger-emphasis'}">${capitalize(d)}</span>` },
                 {
                     data: null, orderable: false, render: (d, t, r) => {
-                        let dropdownHtml = `
-                            <div class="dropdown">
-                                <button class="btn btn-sm rounded-5 dropdown-toggle action" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#" onclick="prepareEditModal(${JSON.stringify(r).replace(/"/g, '&quot;')}); return false;">
-                                        <i class="fas fa-edit me-2"></i>Edit
-                                    </a></li>
-                        `;
-                        <?php if ($is_c_admin): ?>
-                        dropdownHtml += `
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteEmployee(${r.id}); return false;">
-                                        <i class="fas fa-trash me-2"></i>Delete
-                                    </a></li>
-                            `;
-                        <?php endif; ?>
-                        dropdownHtml += `
-                                </ul>
-                            </div>
-                        `;
-                        return dropdownHtml;
+                        return createActionDropdown(
+                            {
+                                onEdit: () => prepareEditModal(r),
+                                <?php if ($is_c_admin): ?>
+                                            onDelete: () => deleteEmployee(r.id)
+                                <?php endif; ?>
+                            },
+                            {
+                                editTooltip: 'Edit',
+                                deleteTooltip: 'Delete'
+                            }
+                        );
                     }
                 }
             ],
@@ -409,9 +398,9 @@ require_once '../components/layout/header.php';
             .then(res => res.json())
             .then(data => {
                 if (data.available) {
-                    statusElement.html('<span class="text-success"><i class="fas fa-check"></i> Username is available</span>');
+                    statusElement.html('<span class="text-success"><i class="ti ti-check"></i> Username is available</span>');
                 } else {
-                    statusElement.html('<span class="text-danger"><i class="fas fa-times"></i> Username is already taken</span>');
+                    statusElement.html('<span class="text-danger"><i class="ti ti-x"></i> Username is already taken</span>');
                 }
             })
             .catch(error => {

@@ -92,14 +92,14 @@ require_once '../components/layout/header.php';
     <div class="p-3 p-md-4" style="flex: 1;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="h3 text-gray-800">
-                <i class="fas fa-tasks me-2"></i>Task Management
+                <i class="ti ti-checklist me-2"></i>Task Management
             </h2>
             <div>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
-                    <i class="fas fa-plus me-2"></i>Assign New Task
+                    <i class="ti ti-plus me-2"></i>Assign New Task
                 </button>
                 <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#bulkTaskModal">
-                    <i class="fas fa-tasks me-2"></i>Bulk Assign
+                    <i class="ti ti-checklist me-2"></i>Bulk Assign
                 </button>
             </div>
         </div>
@@ -109,7 +109,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-warning"><i class="fas fa-clock"></i></div>
+                        <div class="icon-circle bg-warning"><i class="ti ti-clock"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['pending'] ?></div>
@@ -120,7 +120,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-info"><i class="fas fa-play"></i></div>
+                        <div class="icon-circle bg-info"><i class="ti ti-play"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">In Progress</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['in_progress'] ?></div>
@@ -131,7 +131,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-success"><i class="fas fa-check"></i></div>
+                        <div class="icon-circle bg-success"><i class="ti ti-check"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Completed</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['completed'] ?></div>
@@ -142,7 +142,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-danger"><i class="fas fa-times"></i></div>
+                        <div class="icon-circle bg-danger"><i class="ti ti-x"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Cancelled</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['cancelled'] ?></div>
@@ -161,9 +161,12 @@ require_once '../components/layout/header.php';
                         <select class="form-select" id="status" name="status">
                             <option value="all" <?= $status_filter === 'all' ? 'selected' : '' ?>>All Status</option>
                             <option value="pending" <?= $status_filter === 'pending' ? 'selected' : '' ?>>Pending</option>
-                            <option value="in_progress" <?= $status_filter === 'in_progress' ? 'selected' : '' ?>>In Progress</option>
-                            <option value="completed" <?= $status_filter === 'completed' ? 'selected' : '' ?>>Completed</option>
-                            <option value="cancelled" <?= $status_filter === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
+                            <option value="in_progress" <?= $status_filter === 'in_progress' ? 'selected' : '' ?>>In
+                                Progress</option>
+                            <option value="completed" <?= $status_filter === 'completed' ? 'selected' : '' ?>>Completed
+                            </option>
+                            <option value="cancelled" <?= $status_filter === 'cancelled' ? 'selected' : '' ?>>Cancelled
+                            </option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -212,7 +215,8 @@ require_once '../components/layout/header.php';
                                         <td>
                                             <div>
                                                 <div class="fw-bold"><?= htmlspecialchars($task['title']) ?></div>
-                                                <small class="text-muted"><?= htmlspecialchars(substr($task['description'] ?: 'No description', 0, 100)) ?><?= strlen($task['description'] ?: '') > 100 ? '...' : '' ?></small>
+                                                <small
+                                                    class="text-muted"><?= htmlspecialchars(substr($task['description'] ?: 'No description', 0, 100)) ?><?= strlen($task['description'] ?: '') > 100 ? '...' : '' ?></small>
                                             </div>
                                         </td>
                                         <td>
@@ -221,8 +225,11 @@ require_once '../components/layout/header.php';
                                                     <?= strtoupper(substr($task['first_name'], 0, 1) . substr($task['last_name'], 0, 1)) ?>
                                                 </div>
                                                 <div>
-                                                    <div class="fw-bold"><?= htmlspecialchars($task['first_name'] . ' ' . $task['last_name']) ?></div>
-                                                    <small class="text-muted"><?= htmlspecialchars($task['employee_code'] ?? 'N/A') ?></small>
+                                                    <div class="fw-bold">
+                                                        <?= htmlspecialchars($task['first_name'] . ' ' . $task['last_name']) ?>
+                                                    </div>
+                                                    <small
+                                                        class="text-muted"><?= htmlspecialchars($task['employee_code'] ?? 'N/A') ?></small>
                                                 </div>
                                             </div>
                                         </td>
@@ -236,7 +243,8 @@ require_once '../components/layout/header.php';
                                             ];
                                             $status_class = $status_classes[$task['status']] ?? 'secondary';
                                             ?>
-                                            <span class="badge bg-<?= $status_class ?>"><?= ucfirst(str_replace('_', ' ', $task['status'])) ?></span>
+                                            <span
+                                                class="badge bg-<?= $status_class ?>"><?= ucfirst(str_replace('_', ' ', $task['status'])) ?></span>
                                         </td>
                                         <td>
                                             <?php if ($task['due_date']): ?>
@@ -258,15 +266,18 @@ require_once '../components/layout/header.php';
                                         <td><?= date('M j, Y', strtotime($task['created_at'])) ?></td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary" onclick="viewTask(<?= $task['id'] ?>)" title="View Details">
-                                                    <i class="fas fa-eye"></i>
+                                                <button class="btn btn-outline-primary" onclick="viewTask(<?= $task['id'] ?>)"
+                                                    title="View Details">
+                                                    <i class="ti ti-eye"></i>
                                                 </button>
-                                                <button class="btn btn-outline-success" onclick="editTask(<?= $task['id'] ?>)" title="Edit Task">
-                                                    <i class="fas fa-edit"></i>
+                                                <button class="btn btn-outline-success" onclick="editTask(<?= $task['id'] ?>)"
+                                                    title="Edit Task">
+                                                    <i class="ti ti-edit"></i>
                                                 </button>
                                                 <?php if ($task['status'] !== 'completed' && $task['status'] !== 'cancelled'): ?>
-                                                    <button class="btn btn-outline-danger" onclick="cancelTask(<?= $task['id'] ?>)" title="Cancel Task">
-                                                        <i class="fas fa-times"></i>
+                                                    <button class="btn btn-outline-danger" onclick="cancelTask(<?= $task['id'] ?>)"
+                                                        title="Cancel Task">
+                                                        <i class="ti ti-x"></i>
                                                     </button>
                                                 <?php endif; ?>
                                             </div>
@@ -278,7 +289,8 @@ require_once '../components/layout/header.php';
                     </div>
                 <?php else: ?>
                     <div class="text-center text-muted p-5">
-                        <i class="fas fa-tasks fa-3x mb-3"></i>
+                        <i class="ti ti-checklist" style="font-size: 3rem;"></i>
+                        <div class="mb-3"></div>
                         <h5>No Tasks Found</h5>
                         <p>No tasks match your current filters.</p>
                     </div>
@@ -302,13 +314,14 @@ require_once '../components/layout/header.php';
                         <label for="task_employee" class="form-label">Assign To *</label>
                         <select class="form-select" id="task_employee" name="employee_id" required>
                             <option value="">Select Employee</option>
-                            <?php foreach ($team_members as $member): 
-                                echo(($member["id"]===$user_id));
+                            <?php foreach ($team_members as $member):
+                                echo (($member["id"] === $user_id));
                                 ?>
-                                
-                                <option value="<?= $member['id'] ?>"><?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?></option>
-                            <?php 
-                        endforeach; ?>
+
+                                <option value="<?= $member['id'] ?>">
+                                    <?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?></option>
+                            <?php
+                            endforeach; ?>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -349,7 +362,8 @@ require_once '../components/layout/header.php';
                             <?php foreach ($team_members as $member): ?>
                                 <div class="col-md-6">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="employee_ids[]" value="<?= $member['id'] ?>" id="emp_<?= $member['id'] ?>">
+                                        <input class="form-check-input" type="checkbox" name="employee_ids[]"
+                                            value="<?= $member['id'] ?>" id="emp_<?= $member['id'] ?>">
                                         <label class="form-check-label" for="emp_<?= $member['id'] ?>">
                                             <?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?>
                                         </label>
@@ -364,7 +378,8 @@ require_once '../components/layout/header.php';
                     </div>
                     <div class="mb-3">
                         <label for="bulk_task_description" class="form-label">Description</label>
-                        <textarea class="form-control" id="bulk_task_description" name="description" rows="3"></textarea>
+                        <textarea class="form-control" id="bulk_task_description" name="description"
+                            rows="3"></textarea>
                     </div>
                     <div class="mb-3">
                         <label for="bulk_task_due_date" class="form-label">Due Date</label>
@@ -400,100 +415,100 @@ require_once '../components/layout/header.php';
 
 <?php require_once '../components/layout/footer.php'; ?>
 <script>
-$(document).ready(function() {
-    // Initialize DataTable
-    $('#tasksTable').DataTable({
-        responsive: true,
-        pageLength: 10,
-        order: [[5, 'desc']] // Sort by created date
+    $(document).ready(function () {
+        // Initialize DataTable
+        $('#tasksTable').DataTable({
+            responsive: true,
+            pageLength: 10,
+            order: [[5, 'desc']] // Sort by created date
+        });
+
+        // Handle task form submission
+        $('#taskForm').on('submit', function (e) {
+            e.preventDefault();
+            assignTask();
+        });
+
+        // Handle bulk task form submission
+        $('#bulkTaskForm').on('submit', function (e) {
+            e.preventDefault();
+            assignBulkTasks();
+        });
     });
 
-    // Handle task form submission
-    $('#taskForm').on('submit', function(e) {
-        e.preventDefault();
-        assignTask();
-    });
+    function assignTask() {
+        const formData = new FormData(document.getElementById('taskForm'));
+        formData.append('action', 'assign_task');
 
-    // Handle bulk task form submission
-    $('#bulkTaskForm').on('submit', function(e) {
-        e.preventDefault();
-        assignBulkTasks();
-    });
-});
-
-function assignTask() {
-    const formData = new FormData(document.getElementById('taskForm'));
-    formData.append('action', 'assign_task');
-
-    fetch('/hrms/api/api_manager.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message, 'success');
-            $('#addTaskModal').modal('hide');
-            document.getElementById('taskForm').reset();
-            location.reload();
-        } else {
-            showToast(data.message, 'error');
-        }
-    })
-    .catch(error => {
-        showToast('An error occurred. Please try again.', 'error');
-    });
-}
-
-function assignBulkTasks() {
-    const formData = new FormData(document.getElementById('bulkTaskForm'));
-    formData.append('action', 'bulk_assign_tasks');
-
-    // Check if at least one employee is selected
-    const selectedEmployees = $('input[name="employee_ids[]"]:checked');
-    if (selectedEmployees.length === 0) {
-        showToast('Please select at least one employee.', 'error');
-        return;
+        fetch('/hrms/api/api_manager.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    $('#addTaskModal').modal('hide');
+                    document.getElementById('taskForm').reset();
+                    location.reload();
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred. Please try again.', 'error');
+            });
     }
 
-    fetch('/hrms/api/api_manager.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message, 'success');
-            $('#bulkTaskModal').modal('hide');
-            document.getElementById('bulkTaskForm').reset();
-            location.reload();
-        } else {
-            showToast(data.message, 'error');
+    function assignBulkTasks() {
+        const formData = new FormData(document.getElementById('bulkTaskForm'));
+        formData.append('action', 'bulk_assign_tasks');
+
+        // Check if at least one employee is selected
+        const selectedEmployees = $('input[name="employee_ids[]"]:checked');
+        if (selectedEmployees.length === 0) {
+            showToast('Please select at least one employee.', 'error');
+            return;
         }
-    })
-    .catch(error => {
-        showToast('An error occurred. Please try again.', 'error');
-    });
-}
 
-function viewTask(taskId) {
-    fetch(`/hrms/api/api_manager.php?action=get_task_details&task_id=${taskId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                displayTaskDetails(data.data);
-                $('#taskDetailsModal').modal('show');
-            } else {
-                showToast(data.message, 'error');
-            }
+        fetch('/hrms/api/api_manager.php', {
+            method: 'POST',
+            body: formData
         })
-        .catch(error => {
-            showToast('An error occurred. Please try again.', 'error');
-        });
-}
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    $('#bulkTaskModal').modal('hide');
+                    document.getElementById('bulkTaskForm').reset();
+                    location.reload();
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred. Please try again.', 'error');
+            });
+    }
 
-function displayTaskDetails(task) {
-    const html = `
+    function viewTask(taskId) {
+        fetch(`/hrms/api/api_manager.php?action=get_task_details&task_id=${taskId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayTaskDetails(data.data);
+                    $('#taskDetailsModal').modal('show');
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred. Please try again.', 'error');
+            });
+    }
+
+    function displayTaskDetails(task) {
+        const html = `
         <div class="row">
             <div class="col-md-6">
                 <h6>Task Information</h6>
@@ -510,47 +525,47 @@ function displayTaskDetails(task) {
             </div>
         </div>
     `;
-    
-    $('#taskDetailsContent').html(html);
-}
 
-function editTask(taskId) {
-    // Redirect to edit page or show edit modal
-    window.location.href = `/hrms/manager/edit_task.php?id=${taskId}`;
-}
-
-function cancelTask(taskId) {
-    if (confirm('Are you sure you want to cancel this task?')) {
-        const formData = new FormData();
-        formData.append('action', 'cancel_task');
-        formData.append('task_id', taskId);
-
-        fetch('/hrms/api/api_manager.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast(data.message, 'success');
-                location.reload();
-            } else {
-                showToast(data.message, 'error');
-            }
-        })
-        .catch(error => {
-            showToast('An error occurred. Please try again.', 'error');
-        });
+        $('#taskDetailsContent').html(html);
     }
-}
 
-function getStatusClass(status) {
-    const classes = {
-        'pending': 'warning',
-        'in_progress': 'info',
-        'completed': 'success',
-        'cancelled': 'danger'
-    };
-    return classes[status] || 'secondary';
-}
+    function editTask(taskId) {
+        // Redirect to edit page or show edit modal
+        window.location.href = `/hrms/manager/edit_task.php?id=${taskId}`;
+    }
+
+    function cancelTask(taskId) {
+        if (confirm('Are you sure you want to cancel this task?')) {
+            const formData = new FormData();
+            formData.append('action', 'cancel_task');
+            formData.append('task_id', taskId);
+
+            fetch('/hrms/api/api_manager.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        location.reload();
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showToast('An error occurred. Please try again.', 'error');
+                });
+        }
+    }
+
+    function getStatusClass(status) {
+        const classes = {
+            'pending': 'warning',
+            'in_progress': 'info',
+            'completed': 'success',
+            'cancelled': 'danger'
+        };
+        return classes[status] || 'secondary';
+    }
 </script>

@@ -12,7 +12,7 @@ require_once '../components/layout/header.php';
         loading="lazy">
     <p class="text-center">The page you are looking for does not exist or has been moved.</p>
     <div class="text-center">
-        <a href="/hrms/includes/redirect.php" class="btn btn-primary"><i class="fas fa-arrow-left pe-2"></i>Go to
+        <a href="/hrms/includes/redirect.php" class="btn btn-primary"><i class="ti ti-arrow-left pe-2"></i>Go to
             Dashboard</a>
     </div>
 </div>

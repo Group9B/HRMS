@@ -49,7 +49,7 @@ require_once '../components/layout/header.php';
                             if (app.interview_date) {
                                 interviewDetails = `
                                 <hr>
-                                <h6><i class="fas fa-calendar-check me-2"></i>Interview Scheduled</h6>
+                                <h6><i class="ti ti-calendar-check me-2"></i>Interview Scheduled</h6>
                                 <p class="card-text mb-0">
                                     <strong>Date & Time:</strong> ${new Date(app.interview_date).toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' })}
                                 </p>

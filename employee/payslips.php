@@ -31,7 +31,7 @@ require_once '../components/layout/header.php';
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-            <h2 class="h3 mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>My Payslips</h2>
+            <h2 class="h3 mb-0"><i class="ti ti-receipt me-2"></i>My Payslips</h2>
         </div>
 
         <div class="card shadow-sm">
@@ -41,7 +41,7 @@ require_once '../components/layout/header.php';
             <div class="card-body">
                 <?php if (empty($payslips)): ?>
                     <div class="text-center py-5">
-                        <i class="fas fa-file-invoice-dollar fa-3x text-muted mb-3"></i>
+                        <i class="ti ti-receipt fa-3x text-muted mb-3"></i>
                         <h5 class="text-muted">No payslips found</h5>
                         <p class="text-muted">Your salary details will appear here once processed.</p>
                     </div>
@@ -64,11 +64,14 @@ require_once '../components/layout/header.php';
                                         <td>₹<?= number_format($payslip['gross_salary'], 2) ?></td>
                                         <td><strong>₹<?= number_format($payslip['net_salary'], 2) ?></strong></td>
                                         <td>
-                                            <span class="badge text-bg-<?= $payslip['status'] === 'paid' ? 'success' : ($payslip['status'] === 'processed' ? 'info' : 'warning') ?>">
+                                            <span
+                                                class="badge text-bg-<?= $payslip['status'] === 'paid' ? 'success' : ($payslip['status'] === 'processed' ? 'info' : 'warning') ?>">
                                                 <?= ucfirst($payslip['status']) ?>
                                             </span>
                                         </td>
-                                        <td><button class="btn btn-sm btn-outline-primary" onclick="viewPayslip(<?= (int)$payslip['id'] ?>)"><i class="fas fa-eye"></i> View</button></td>
+                                        <td><button class="btn btn-sm btn-outline-primary"
+                                                onclick="viewPayslip(<?= (int) $payslip['id'] ?>)"><i class="ti ti-eye"></i>
+                                                View</button></td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -94,7 +97,7 @@ require_once '../components/layout/header.php';
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" onclick="printPayslip()">
-                    <i class="fas fa-print me-2"></i>Print
+                    <i class="ti ti-printer me-2"></i>Print
                 </button>
             </div>
         </div>
@@ -104,32 +107,32 @@ require_once '../components/layout/header.php';
 <?php require_once '../components/layout/footer.php'; ?>
 
 <script>
-$(function() {
-    $('#payslipsTable').DataTable({
-        responsive: true,
-        order: [[0, 'desc']]
+    $(function () {
+        $('#payslipsTable').DataTable({
+            responsive: true,
+            order: [[0, 'desc']]
+        });
     });
-});
 
-function viewPayslip(payslipId) {
-    fetch(`/hrms/api/api_payroll.php?action=get_payslip&id=${payslipId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const ps = data.data;
-                document.getElementById('payslipContent').innerHTML = ps.html;
-                $('#payslipModal').modal('show');
-            } else {
-                showToast('Failed to load payslip', 'error');
-            }
-        })
-        .catch(() => showToast('Failed to load payslip', 'error'));
-}
+    function viewPayslip(payslipId) {
+        fetch(`/hrms/api/api_payroll.php?action=get_payslip&id=${payslipId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const ps = data.data;
+                    document.getElementById('payslipContent').innerHTML = ps.html;
+                    $('#payslipModal').modal('show');
+                } else {
+                    showToast('Failed to load payslip', 'error');
+                }
+            })
+            .catch(() => showToast('Failed to load payslip', 'error'));
+    }
 
-function printPayslip() {
-    const content = document.getElementById('payslipContent').innerHTML;
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
+    function printPayslip() {
+        const content = document.getElementById('payslipContent').innerHTML;
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
         <html>
             <head>
                 <title>Payslip</title>
@@ -145,7 +148,7 @@ function printPayslip() {
             </body>
         </html>
     `);
-    printWindow.document.close();
-    printWindow.print();
-}
+        printWindow.document.close();
+        printWindow.print();
+    }
 </script>

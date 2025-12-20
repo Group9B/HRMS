@@ -88,14 +88,14 @@ require_once '../components/layout/header.php';
     <div class="p-3 p-md-4" style="flex: 1;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="h3 text-gray-800">
-                <i class="fas fa-calendar-check me-2"></i>Leave Approval
+                <i class="ti ti-calendar-check me-2"></i>Leave Approval
             </h2>
             <div>
                 <button class="btn btn-success" onclick="approveAllPending()">
-                    <i class="fas fa-check-double me-2"></i>Approve All Pending
+                    <i class="ti ti-check me-2"></i>Approve All Pending
                 </button>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bulkActionModal">
-                    <i class="fas fa-tasks me-2"></i>Bulk Actions
+                    <i class="ti ti-checklist me-2"></i>Bulk Actions
                 </button>
             </div>
         </div>
@@ -105,7 +105,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-warning"><i class="fas fa-clock"></i></div>
+                        <div class="icon-circle bg-warning"><i class="ti ti-clock"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['pending'] ?></div>
@@ -116,7 +116,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-success"><i class="fas fa-check"></i></div>
+                        <div class="icon-circle bg-success"><i class="ti ti-check"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Approved</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['approved'] ?></div>
@@ -127,7 +127,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-danger"><i class="fas fa-times"></i></div>
+                        <div class="icon-circle bg-danger"><i class="ti ti-x"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Rejected</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['rejected'] ?></div>
@@ -138,7 +138,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-secondary"><i class="fas fa-ban"></i></div>
+                        <div class="icon-circle bg-secondary"><i class="ti ti-ban"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Cancelled</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['cancelled'] ?></div>
@@ -157,18 +157,23 @@ require_once '../components/layout/header.php';
                         <select class="form-select" id="status" name="status">
                             <option value="all" <?= $status_filter === 'all' ? 'selected' : '' ?>>All Status</option>
                             <option value="pending" <?= $status_filter === 'pending' ? 'selected' : '' ?>>Pending</option>
-                            <option value="approved" <?= $status_filter === 'approved' ? 'selected' : '' ?>>Approved</option>
-                            <option value="rejected" <?= $status_filter === 'rejected' ? 'selected' : '' ?>>Rejected</option>
-                            <option value="cancelled" <?= $status_filter === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
+                            <option value="approved" <?= $status_filter === 'approved' ? 'selected' : '' ?>>Approved
+                            </option>
+                            <option value="rejected" <?= $status_filter === 'rejected' ? 'selected' : '' ?>>Rejected
+                            </option>
+                            <option value="cancelled" <?= $status_filter === 'cancelled' ? 'selected' : '' ?>>Cancelled
+                            </option>
                         </select>
                     </div>
                     <div class="col-md-3">
                         <label for="date_from" class="form-label">From Date</label>
-                        <input type="date" class="form-control" id="date_from" name="date_from" value="<?= htmlspecialchars($date_from) ?>">
+                        <input type="date" class="form-control" id="date_from" name="date_from"
+                            value="<?= htmlspecialchars($date_from) ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="date_to" class="form-label">To Date</label>
-                        <input type="date" class="form-control" id="date_to" name="date_to" value="<?= htmlspecialchars($date_to) ?>">
+                        <input type="date" class="form-control" id="date_to" name="date_to"
+                            value="<?= htmlspecialchars($date_to) ?>">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">&nbsp;</label>
@@ -207,7 +212,8 @@ require_once '../components/layout/header.php';
                                 <?php foreach ($leaves as $leave): ?>
                                     <tr>
                                         <td>
-                                            <input type="checkbox" class="form-check-input leave-checkbox" value="<?= $leave['id'] ?>">
+                                            <input type="checkbox" class="form-check-input leave-checkbox"
+                                                value="<?= $leave['id'] ?>">
                                         </td>
                                         <td>
                                             <div class="d-flex align-items-center">
@@ -215,8 +221,11 @@ require_once '../components/layout/header.php';
                                                     <?= strtoupper(substr($leave['first_name'], 0, 1) . substr($leave['last_name'], 0, 1)) ?>
                                                 </div>
                                                 <div>
-                                                    <div class="fw-bold"><?= htmlspecialchars($leave['first_name'] . ' ' . $leave['last_name']) ?></div>
-                                                    <small class="text-muted"><?= htmlspecialchars($leave['employee_code'] ?? 'N/A') ?></small>
+                                                    <div class="fw-bold">
+                                                        <?= htmlspecialchars($leave['first_name'] . ' ' . $leave['last_name']) ?>
+                                                    </div>
+                                                    <small
+                                                        class="text-muted"><?= htmlspecialchars($leave['employee_code'] ?? 'N/A') ?></small>
                                                 </div>
                                             </div>
                                         </td>
@@ -227,11 +236,13 @@ require_once '../components/layout/header.php';
                                             <div>
                                                 <strong><?= date('M j, Y', strtotime($leave['start_date'])) ?></strong>
                                                 <br>
-                                                <small class="text-muted">to <?= date('M j, Y', strtotime($leave['end_date'])) ?></small>
+                                                <small class="text-muted">to
+                                                    <?= date('M j, Y', strtotime($leave['end_date'])) ?></small>
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="text-truncate" style="max-width: 200px;" title="<?= htmlspecialchars($leave['reason']) ?>">
+                                            <div class="text-truncate" style="max-width: 200px;"
+                                                title="<?= htmlspecialchars($leave['reason']) ?>">
                                                 <?= htmlspecialchars($leave['reason'] ?: 'No reason provided') ?>
                                             </div>
                                         </td>
@@ -251,15 +262,18 @@ require_once '../components/layout/header.php';
                                         <td>
                                             <div class="btn-group btn-group-sm">
                                                 <?php if ($leave['status'] === 'pending'): ?>
-                                                    <button class="btn btn-success btn-sm" onclick="approveLeave(<?= $leave['id'] ?>)" title="Approve">
-                                                        <i class="fas fa-check"></i>
+                                                    <button class="btn btn-success btn-sm"
+                                                        onclick="approveLeave(<?= $leave['id'] ?>)" title="Approve">
+                                                        <i class="ti ti-check"></i>
                                                     </button>
-                                                    <button class="btn btn-danger btn-sm" onclick="rejectLeave(<?= $leave['id'] ?>)" title="Reject">
-                                                        <i class="fas fa-times"></i>
+                                                    <button class="btn btn-danger btn-sm" onclick="rejectLeave(<?= $leave['id'] ?>)"
+                                                        title="Reject">
+                                                        <i class="ti ti-x"></i>
                                                     </button>
                                                 <?php endif; ?>
-                                                <button class="btn btn-info btn-sm" onclick="viewLeaveDetails(<?= $leave['id'] ?>)" title="View Details">
-                                                    <i class="fas fa-eye"></i>
+                                                <button class="btn btn-info btn-sm"
+                                                    onclick="viewLeaveDetails(<?= $leave['id'] ?>)" title="View Details">
+                                                    <i class="ti ti-eye"></i>
                                                 </button>
                                             </div>
                                         </td>
@@ -270,7 +284,8 @@ require_once '../components/layout/header.php';
                     </div>
                 <?php else: ?>
                     <div class="text-center text-muted p-5">
-                        <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                        <i class="ti ti-calendar-x" style="font-size: 3rem;"></i>
+                        <div class="mb-3"></div>
                         <h5>No Leave Requests Found</h5>
                         <p>No leave requests match your current filters.</p>
                     </div>
@@ -299,7 +314,8 @@ require_once '../components/layout/header.php';
                 </div>
                 <div class="mb-3">
                     <label for="bulkReason" class="form-label">Reason (Optional)</label>
-                    <textarea class="form-control" id="bulkReason" rows="3" placeholder="Enter reason for bulk action..."></textarea>
+                    <textarea class="form-control" id="bulkReason" rows="3"
+                        placeholder="Enter reason for bulk action..."></textarea>
                 </div>
             </div>
             <div class="modal-footer">
@@ -331,118 +347,118 @@ require_once '../components/layout/header.php';
 <?php require_once '../components/layout/footer.php'; ?>
 
 <style>
-.avatar-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(45deg, #4e73df, #36b9cc);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-}
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #4e73df, #36b9cc);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 14px;
+    }
 
-.stat-card .card-body {
-    display: flex;
-    align-items: center;
-}
+    .stat-card .card-body {
+        display: flex;
+        align-items: center;
+    }
 
-.icon-circle {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 15px;
-    color: white;
-    font-size: 20px;
-}
+    .icon-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        color: white;
+        font-size: 20px;
+    }
 </style>
 
 <script>
-$(document).ready(function() {
-    // Initialize DataTable
-    $('#leavesTable').DataTable({
-        responsive: true,
-        pageLength: 10,
-        order: [[5, 'desc']] // Sort by applied date
-    });
-
-    // Handle select all checkbox
-    $('#selectAll').on('change', function() {
-        $('.leave-checkbox').prop('checked', this.checked);
-    });
-
-    // Handle individual checkboxes
-    $('.leave-checkbox').on('change', function() {
-        if (!this.checked) {
-            $('#selectAll').prop('checked', false);
-        } else {
-            // Check if all checkboxes are checked
-            if ($('.leave-checkbox:checked').length === $('.leave-checkbox').length) {
-                $('#selectAll').prop('checked', true);
-            }
-        }
-    });
-});
-
-function approveLeave(leaveId) {
-    if (confirm('Are you sure you want to approve this leave request?')) {
-        updateLeaveStatus(leaveId, 'approved');
-    }
-}
-
-function rejectLeave(leaveId) {
-    const reason = prompt('Please provide a reason for rejection (optional):');
-    updateLeaveStatus(leaveId, 'rejected', reason);
-}
-
-function updateLeaveStatus(leaveId, status, reason = '') {
-    const formData = new FormData();
-    formData.append('action', 'update_leave_status');
-    formData.append('leave_id', leaveId);
-    formData.append('status', status);
-    formData.append('reason', reason);
-
-    fetch('/hrms/api/api_manager.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message, 'success');
-            location.reload();
-        } else {
-            showToast(data.message, 'error');
-        }
-    })
-    .catch(error => {
-        showToast('An error occurred. Please try again.', 'error');
-    });
-}
-
-function viewLeaveDetails(leaveId) {
-    fetch(`/hrms/api/api_manager.php?action=get_leave_details&leave_id=${leaveId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                displayLeaveDetails(data.data);
-                $('#leaveDetailsModal').modal('show');
-            } else {
-                showToast(data.message, 'error');
-            }
-        })
-        .catch(error => {
-            showToast('An error occurred. Please try again.', 'error');
+    $(document).ready(function () {
+        // Initialize DataTable
+        $('#leavesTable').DataTable({
+            responsive: true,
+            pageLength: 10,
+            order: [[5, 'desc']] // Sort by applied date
         });
-}
 
-function displayLeaveDetails(leave) {
-    const html = `
+        // Handle select all checkbox
+        $('#selectAll').on('change', function () {
+            $('.leave-checkbox').prop('checked', this.checked);
+        });
+
+        // Handle individual checkboxes
+        $('.leave-checkbox').on('change', function () {
+            if (!this.checked) {
+                $('#selectAll').prop('checked', false);
+            } else {
+                // Check if all checkboxes are checked
+                if ($('.leave-checkbox:checked').length === $('.leave-checkbox').length) {
+                    $('#selectAll').prop('checked', true);
+                }
+            }
+        });
+    });
+
+    function approveLeave(leaveId) {
+        if (confirm('Are you sure you want to approve this leave request?')) {
+            updateLeaveStatus(leaveId, 'approved');
+        }
+    }
+
+    function rejectLeave(leaveId) {
+        const reason = prompt('Please provide a reason for rejection (optional):');
+        updateLeaveStatus(leaveId, 'rejected', reason);
+    }
+
+    function updateLeaveStatus(leaveId, status, reason = '') {
+        const formData = new FormData();
+        formData.append('action', 'update_leave_status');
+        formData.append('leave_id', leaveId);
+        formData.append('status', status);
+        formData.append('reason', reason);
+
+        fetch('/hrms/api/api_manager.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    location.reload();
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred. Please try again.', 'error');
+            });
+    }
+
+    function viewLeaveDetails(leaveId) {
+        fetch(`/hrms/api/api_manager.php?action=get_leave_details&leave_id=${leaveId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayLeaveDetails(data.data);
+                    $('#leaveDetailsModal').modal('show');
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred. Please try again.', 'error');
+            });
+    }
+
+    function displayLeaveDetails(leave) {
+        const html = `
         <div class="row">
             <div class="col-md-6">
                 <h6>Employee Information</h6>
@@ -467,84 +483,84 @@ function displayLeaveDetails(leave) {
             </div>
         </div>
     `;
-    
-    $('#leaveDetailsContent').html(html);
-}
 
-function getStatusClass(status) {
-    const classes = {
-        'pending': 'warning',
-        'approved': 'success',
-        'rejected': 'danger',
-        'cancelled': 'secondary'
-    };
-    return classes[status] || 'secondary';
-}
-
-function approveAllPending() {
-    if (confirm('Are you sure you want to approve all pending leave requests?')) {
-        const formData = new FormData();
-        formData.append('action', 'approve_all_pending');
-
-        fetch('/hrms/api/api_manager.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast(data.message, 'success');
-                location.reload();
-            } else {
-                showToast(data.message, 'error');
-            }
-        })
-        .catch(error => {
-            showToast('An error occurred. Please try again.', 'error');
-        });
-    }
-}
-
-function executeBulkAction() {
-    const action = $('#bulkAction').val();
-    const reason = $('#bulkReason').val();
-    const selectedLeaves = $('.leave-checkbox:checked').map(function() {
-        return this.value;
-    }).get();
-
-    if (!action) {
-        showToast('Please select an action.', 'error');
-        return;
+        $('#leaveDetailsContent').html(html);
     }
 
-    if (selectedLeaves.length === 0) {
-        showToast('Please select at least one leave request.', 'error');
-        return;
+    function getStatusClass(status) {
+        const classes = {
+            'pending': 'warning',
+            'approved': 'success',
+            'rejected': 'danger',
+            'cancelled': 'secondary'
+        };
+        return classes[status] || 'secondary';
     }
 
-    if (confirm(`Are you sure you want to ${action} ${selectedLeaves.length} leave request(s)?`)) {
-        const formData = new FormData();
-        formData.append('action', 'bulk_update_leave_status');
-        formData.append('leave_ids', JSON.stringify(selectedLeaves));
-        formData.append('status', action);
-        formData.append('reason', reason);
+    function approveAllPending() {
+        if (confirm('Are you sure you want to approve all pending leave requests?')) {
+            const formData = new FormData();
+            formData.append('action', 'approve_all_pending');
 
-        fetch('/hrms/api/api_manager.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast(data.message, 'success');
-                location.reload();
-            } else {
-                showToast(data.message, 'error');
-            }
-        })
-        .catch(error => {
-            showToast('An error occurred. Please try again.', 'error');
-        });
+            fetch('/hrms/api/api_manager.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        location.reload();
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showToast('An error occurred. Please try again.', 'error');
+                });
+        }
     }
-}
+
+    function executeBulkAction() {
+        const action = $('#bulkAction').val();
+        const reason = $('#bulkReason').val();
+        const selectedLeaves = $('.leave-checkbox:checked').map(function () {
+            return this.value;
+        }).get();
+
+        if (!action) {
+            showToast('Please select an action.', 'error');
+            return;
+        }
+
+        if (selectedLeaves.length === 0) {
+            showToast('Please select at least one leave request.', 'error');
+            return;
+        }
+
+        if (confirm(`Are you sure you want to ${action} ${selectedLeaves.length} leave request(s)?`)) {
+            const formData = new FormData();
+            formData.append('action', 'bulk_update_leave_status');
+            formData.append('leave_ids', JSON.stringify(selectedLeaves));
+            formData.append('status', action);
+            formData.append('reason', reason);
+
+            fetch('/hrms/api/api_manager.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        location.reload();
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showToast('An error occurred. Please try again.', 'error');
+                });
+        }
+    }
 </script>

@@ -13,7 +13,7 @@ require_once '../components/layout/header.php';
     <p class="text-center">You do not have permission to view this page. Please contact the administrator if you believe
         this is a mistake.</p>
     <div class="text-center">
-        <a href="/hrms/includes/redirect.php" class="btn btn-primary"><i class="fas fa-arrow-left pe-2"></i>Go to
+        <a href="/hrms/includes/redirect.php" class="btn btn-primary"><i class="ti ti-arrow-left pe-2"></i>Go to
             Dashboard</a>
     </div>
 </div>

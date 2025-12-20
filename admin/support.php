@@ -17,9 +17,9 @@ require_once '../components/layout/header.php';
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="h3 mb-0 text-gray-800"><i class="fas fa-circle-question me-2"></i>Support Center</h2>
+            <h2 class="h3 mb-0 text-gray-800"><i class="ti ti-help me-2"></i>Support Center</h2>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTicketModal">
-                <i class="fas fa-plus me-2"></i>Create New Ticket
+                <i class="ti ti-plus me-2"></i>Create New Ticket
             </button>
         </div>
 

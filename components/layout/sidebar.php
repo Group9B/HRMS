@@ -6,42 +6,42 @@ switch ($_SESSION['role_id']) {
     $navigation_menu = [
       'dashboard' => [
         'title' => 'Dashboard',
-        'icon' => 'fas fa-tachometer-alt',
+        'icon' => 'ti ti-dashboard',
         'url' => '/hrms/admin/index.php',
         'permission' => null, // Available to all logged in users
         'submenu' => []
       ],
       'Companies' => [
         'title' => 'Company Management',
-        'icon' => 'fas fa-building',
+        'icon' => 'ti ti-building',
         'url' => '/hrms/admin/companies.php',
         'permission' => null,
         'submenu' => []
       ],
       'Users' => [
         'title' => 'User Management',
-        'icon' => 'fas fa-users',
+        'icon' => 'ti ti-users',
         'url' => '/hrms/admin/user_management.php',
         'permission' => null,
         'submenu' => []
       ],
       'Configuration' => [
         'title' => 'Configuration',
-        'icon' => 'fas fa-cog',
+        'icon' => 'ti ti-settings',
         'url' => '/hrms/admin/settings.php',
         'permission' => null,
         'submenu' => []
       ],
       'Reports/Analytics' => [
         'title' => 'Reports Analytics',
-        'icon' => 'fas fa-chart-bar',
+        'icon' => 'ti ti-chart-bar',
         'url' => '/hrms/admin/reports.php',
         'permission' => null,
         'submenu' => []
       ],
       'Support' => [
         'title' => 'Support',
-        'icon' => 'fas fa-circle-question',
+        'icon' => 'ti ti-help',
         'url' => '/hrms/admin/support.php',
         'permission' => null,
         'submenu' => []
@@ -52,56 +52,56 @@ switch ($_SESSION['role_id']) {
     $navigation_menu = [
       'dashboard' => [
         'title' => 'Dashboard',
-        'icon' => 'fas fa-tachometer-alt',
+        'icon' => 'ti ti-dashboard',
         'url' => '/hrms/company/index.php',
         'permission' => null, // Available to all logged in users
         'submenu' => []
       ],
       'Users' => [
         'title' => 'Employee Management',
-        'icon' => 'fas fa-users',
+        'icon' => 'ti ti-users',
         'url' => '/hrms/company/employees.php',
         'permission' => null,
         'submenu' => []
       ],
       'Department' => [
         'title' => 'Organization Management',
-        'icon' => 'fas fa-sitemap',
+        'icon' => 'ti ti-sitemap',
         'url' => '/hrms/company/organization.php',
         'permission' => null,
         'submenu' => []
       ],
       'Recruitment' => [
         'title' => 'Recruitment Management',
-        'icon' => 'fas fa-user-plus',
+        'icon' => 'ti ti-user-plus',
         'url' => '/hrms/company/recruitment.php',
         'permission' => null,
         'submenu' => []
       ],
       'Attendence' => [
         'title' => 'Attendence Management',
-        'icon' => 'fas fa-calendar-check',
+        'icon' => 'ti ti-calendar-check',
         'url' => '/hrms/company/attendance.php',
         'permission' => null,
         'submenu' => []
       ],
       'Leave' => [
         'title' => 'Leave Management',
-        'icon' => 'fas fa-calendar-alt',
+        'icon' => 'ti ti-calendar',
         'url' => '/hrms/company/leaves.php',
         'permission' => null,
         'submenu' => []
       ],
       'Payslips' => [
         'title' => 'Payslips',
-        'icon' => 'fas fa-file-invoice-dollar',
+        'icon' => 'ti ti-receipt',
         'url' => '/hrms/company/payslips.php',
         'permission' => null,
         'submenu' => []
       ],
       'Settings' => [
         'title' => 'Settings',
-        'icon' => 'fas fa-cog',
+        'icon' => 'ti ti-settings',
         'url' => '/hrms/company/company_settings.php',
         'permission' => null,
         'submenu' => []
@@ -112,42 +112,42 @@ switch ($_SESSION['role_id']) {
     $navigation_menu = [
       'dashboard' => [
         'title' => 'Dashboard',
-        'icon' => 'fas fa-tachometer-alt',
+        'icon' => 'ti ti-dashboard',
         'url' => '/hrms/hr/index.php',
         'permission' => null, // Available to all logged in users
         'submenu' => []
       ],
       'Employees' => [
         'title' => 'Employee Management',
-        'icon' => 'fas fa-users',
+        'icon' => 'ti ti-users',
         'url' => '/hrms/company/employees.php',
         'permission' => null,
         'submenu' => []
       ],
       'Departments' => [
         'title' => 'Organization Management',
-        'icon' => 'fas fa-sitemap',
+        'icon' => 'ti ti-sitemap',
         'url' => '/hrms/company/organization.php',
         'permission' => null,
         'submenu' => []
       ],
       'Attendance' => [
         'title' => 'Attendance',
-        'icon' => 'fas fa-calendar-check',
+        'icon' => 'ti ti-calendar-check',
         'url' => '/hrms/company/attendance.php',
         'permission' => null,
         'submenu' => []
       ],
       'Leaves' => [
         'title' => 'Leave Management',
-        'icon' => 'fas fa-calendar-alt',
+        'icon' => 'ti ti-calendar',
         'url' => '/hrms/company/leaves.php',
         'permission' => null,
         'submenu' => []
       ],
       'Payslips' => [
         'title' => 'Payslips',
-        'icon' => 'fas fa-file-invoice-dollar',
+        'icon' => 'ti ti-receipt',
         'url' => '/hrms/company/payslips.php',
         'permission' => null,
         'submenu' => []
@@ -159,49 +159,49 @@ switch ($_SESSION['role_id']) {
     $navigation_menu = [
       'dashboard' => [
         'title' => 'Dashboard',
-        'icon' => 'fas fa-tachometer-alt',
+        'icon' => 'ti ti-dashboard',
         'url' => '/hrms/employee/index.php',
         'permission' => null, // Available to all logged in users
         'submenu' => []
       ],
       'profile' => [
         'title' => 'My Profile',
-        'icon' => 'fas fa-user',
+        'icon' => 'ti ti-user',
         'url' => '/hrms/employee/profile.php',
         'permission' => null,
         'submenu' => []
       ],
       'attendance' => [
         'title' => 'Attendance',
-        'icon' => 'fas fa-calendar-check',
+        'icon' => 'ti ti-calendar-check',
         'url' => '/hrms/employee/attendance.php',
         'permission' => null,
         'submenu' => []
       ],
       'leaves' => [
         'title' => 'Leaves',
-        'icon' => 'fas fa-plane-departure',
+        'icon' => 'ti ti-plane',
         'url' => '/hrms/company/leaves.php',
         'permission' => null,
         'submenu' => []
       ],
       'payslips' => [
         'title' => 'Payslips',
-        'icon' => 'fas fa-file-invoice-dollar',
+        'icon' => 'ti ti-receipt',
         'url' => '/hrms/employee/payslips.php',
         'permission' => null,
         'submenu' => []
       ],
       'goals' => [
         'title' => 'Tasks & Goals',
-        'icon' => 'fas fa-tasks',
+        'icon' => 'ti ti-checklist',
         'url' => '/hrms/employee/goals.php',
         'permission' => null,
         'submenu' => []
       ],
       'feedback' => [
         'title' => 'Feedback',
-        'icon' => 'fas fa-comment-dots',
+        'icon' => 'ti ti-message',
         'url' => '/hrms/employee/feedback.php',
         'permission' => null,
         'submenu' => []
@@ -212,56 +212,56 @@ switch ($_SESSION['role_id']) {
     $navigation_menu = [
       'dashboard' => [
         'title' => 'Dashboard',
-        'icon' => 'fas fa-tachometer-alt',
+        'icon' => 'ti ti-dashboard',
         'url' => '/hrms/manager/index.php',
         'permission' => null, // Available to all logged in users
         'submenu' => []
       ],
       'team' => [
         'title' => 'Team Management',
-        'icon' => 'fas fa-users',
+        'icon' => 'ti ti-users',
         'url' => '/hrms/manager/team_management.php',
         'permission' => null,
         'submenu' => []
       ],
       'leaves' => [
         'title' => 'Leave Approval',
-        'icon' => 'fas fa-calendar-check',
+        'icon' => 'ti ti-calendar-check',
         'url' => '/hrms/manager/leave_approval.php',
         'permission' => null,
         'submenu' => []
       ],
       'tasks' => [
         'title' => 'Task Management',
-        'icon' => 'fas fa-tasks',
+        'icon' => 'ti ti-checklist',
         'url' => '/hrms/manager/task_management.php',
         'permission' => null,
         'submenu' => []
       ],
       'attendance' => [
         'title' => 'Team Attendance',
-        'icon' => 'fas fa-calendar-alt',
+        'icon' => 'ti ti-calendar',
         'url' => '/hrms/manager/attendance.php',
         'permission' => null,
         'submenu' => []
       ],
       'performance' => [
         'title' => 'Performance',
-        'icon' => 'fas fa-chart-line',
+        'icon' => 'ti ti-chart-line',
         'url' => '/hrms/manager/performance.php',
         'permission' => null,
         'submenu' => []
       ],
       'teams' => [
         'title' => 'Teams',
-        'icon' => 'fas fa-users-cog',
+        'icon' => 'ti ti-users-group',
         'url' => '/hrms/manager/teams.php',
         'permission' => null,
         'submenu' => []
       ],
       'payslips' => [
         'title' => 'Payslips',
-        'icon' => 'fas fa-file-invoice-dollar',
+        'icon' => 'ti ti-receipt',
         'url' => '/hrms/manager/payslips.php',
         'permission' => null,
         'submenu' => []
@@ -300,7 +300,7 @@ function isActivePage($url)
           <h2 class="m-0">Staff Sync</h2>
         </a>
         <button class="btn fs-2 d-lg-none fa-color" id="sidebarToggle" type="button">
-          <i class="fas fa-x"></i>
+          <i class="ti ti-x"></i>
         </button>
       </div>
       <hr>
@@ -323,7 +323,7 @@ function isActivePage($url)
                   <i class="<?php echo htmlspecialchars($item['icon']); ?> me-2" style="width: 20px;"></i>
                   <span><?php echo htmlspecialchars($item['title']); ?></span>
                 </div>
-                <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+                <i class="ti ti-chevron-down" style="font-size: 0.8rem;"></i>
               </a>
 
               <div class="collapse <?php echo isActivePage($item['url']) ? 'show' : ''; ?>" id="submenu-<?php echo $key; ?>">

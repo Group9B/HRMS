@@ -24,7 +24,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm h-100">
                     <div class="card-body">
-                        <div class="icon-circle bg-primary"><i class="fas fa-calendar-alt"></i></div>
+                        <div class="icon-circle bg-primary"><i class="ti ti-calendar"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Leave Balance</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800" id="stat-leave-balance">--</div>
@@ -35,7 +35,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm h-100">
                     <div class="card-body">
-                        <div class="icon-circle bg-warning"><i class="fas fa-clock"></i></div>
+                        <div class="icon-circle bg-warning"><i class="ti ti-clock"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Leaves</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800" id="stat-pending-leaves">--</div>
@@ -46,7 +46,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm h-100">
                     <div class="card-body">
-                        <div class="icon-circle bg-info"><i class="fas fa-tasks"></i></div>
+                        <div class="icon-circle bg-info"><i class="ti ti-checklist"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Pending Tasks</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800" id="stat-pending-tasks">--</div>
@@ -57,7 +57,7 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm h-100">
                     <div class="card-body">
-                        <div class="icon-circle bg-success"><i class="fas fa-check-circle"></i></div>
+                        <div class="icon-circle bg-success"><i class="ti ti-circle-check"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Completed Tasks</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800" id="stat-completed-tasks">--</div>
@@ -79,10 +79,10 @@ require_once '../components/layout/header.php';
                             <div class="spinner-border spinner-border-sm"></div>
                         </div>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-success" id="checkInBtn"><i class="fas fa-sign-in-alt me-2"></i>Check
+                            <button class="btn btn-success" id="checkInBtn"><i class="ti ti-login-2 me-2"></i>Check
                                 In</button>
-                            <button class="btn btn-danger" id="checkOutBtn"><i
-                                    class="fas fa-sign-out-alt me-2"></i>Check Out</button>
+                            <button class="btn btn-danger" id="checkOutBtn"><i class="ti ti-logout-2 me-2"></i>Check
+                                Out</button>
                         </div>
                     </div>
                 </div>
@@ -137,8 +137,8 @@ require_once '../components/layout/header.php';
                 const checkOutBtn = $('#checkOutBtn');
 
                 // Always reset buttons to default state first
-                checkInBtn.prop('disabled', false).html('<i class="fas fa-sign-in-alt me-2"></i>Check In');
-                checkOutBtn.prop('disabled', false).html('<i class="fas fa-sign-out-alt me-2"></i>Check Out');
+                checkInBtn.prop('disabled', false).html('<i class="ti ti-login-2 me-2"></i>Check In');
+                checkOutBtn.prop('disabled', false).html('<i class="ti ti-logout-2 me-2"></i>Check Out');
 
                 if (result.success) {
                     const data = result.data;

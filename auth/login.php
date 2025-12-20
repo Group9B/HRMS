@@ -105,7 +105,7 @@ require_once "../components/layout/header.php";
                                         placeholder="Enter password" style="border-right: none;" required>
                                     <button class="btn btn-outline-secondary" type="button" id="togglePassword"
                                         style="border-left: none;">
-                                        <i class="fas fa-eye" id="icon"></i>
+                                        <i class="ti ti-eye" id="icon"></i>
                                     </button>
                                 </div>
                             </div>

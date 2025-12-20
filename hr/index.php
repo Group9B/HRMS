@@ -34,14 +34,14 @@ require_once '../components/layout/header.php';
 <div class="d-flex">
   <?php require_once '../components/layout/sidebar.php'; ?>
   <div class="p-3 p-md-4" style="flex: 1;">
-    <h2 class="h3 mb-4 text-gray-800"><i class="fas fa-user-tie me-2"></i>HR Dashboard</h2>
+    <h2 class="h3 mb-4 text-gray-800"><i class="ti ti-briefcase me-2"></i>HR Dashboard</h2>
 
     <!-- Stat Cards Row -->
     <div class="row">
       <div class="col-xl-3 col-md-6 mb-4">
         <div class="card stat-card shadow-sm">
           <div class="card-body">
-            <div class="icon-circle bg-primary"><i class="fas fa-users"></i></div>
+            <div class="icon-circle bg-primary"><i class="ti ti-users"></i></div>
             <div>
               <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Employees</div>
               <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $total_employees ?></div>
@@ -52,7 +52,7 @@ require_once '../components/layout/header.php';
       <div class="col-xl-3 col-md-6 mb-4">
         <div class="card stat-card shadow-sm">
           <div class="card-body">
-            <div class="icon-circle bg-info"><i class="fas fa-plane-departure"></i></div>
+            <div class="icon-circle bg-info"><i class="ti ti-plane"></i></div>
             <div>
               <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Pending Leaves</div>
               <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $pending_leaves ?></div>
@@ -63,7 +63,7 @@ require_once '../components/layout/header.php';
       <div class="col-xl-3 col-md-6 mb-4">
         <div class="card stat-card shadow-sm">
           <div class="card-body">
-            <div class="icon-circle bg-warning"><i class="fas fa-life-ring"></i></div>
+            <div class="icon-circle bg-warning"><i class="ti ti-help"></i></div>
             <div>
               <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Open Tickets</div>
               <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $open_tickets ?></div>
@@ -74,7 +74,7 @@ require_once '../components/layout/header.php';
       <div class="col-xl-3 col-md-6 mb-4">
         <div class="card stat-card shadow-sm">
           <div class="card-body">
-            <div class="icon-circle bg-success"><i class="fas fa-user-plus"></i></div>
+            <div class="icon-circle bg-success"><i class="ti ti-user-plus"></i></div>
             <div>
               <div class="text-xs font-weight-bold text-success text-uppercase mb-1">New Hires (Month)</div>
               <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $new_hires_this_month ?></div>
@@ -119,11 +119,11 @@ require_once '../components/layout/header.php';
           </div>
           <div class="card-body quick-actions">
             <div class="d-grid gap-2">
-              <a href="/hrms/company/employees.php" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add
+              <a href="/hrms/company/employees.php" class="btn btn-primary"><i class="ti ti-user-plus"></i> Add
                 Employee</a>
-              <a href="/hrms/company/attendance.php" class="btn btn-info"><i class="fas fa-calendar-check"></i> Mark
+              <a href="/hrms/company/attendance.php" class="btn btn-info"><i class="ti ti-calendar-check"></i> Mark
                 Attendance</a>
-              <a href="/hrms/company/leaves.php" class="btn btn-success"><i class="fas fa-check-double"></i> Approve
+              <a href="/hrms/company/leaves.php" class="btn btn-success"><i class="ti ti-check"></i> Approve
                 Leaves</a>
             </div>
           </div>

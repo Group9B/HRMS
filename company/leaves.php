@@ -53,7 +53,7 @@ require_once '../components/layout/header.php';
             <?php if ($role_id !== 2) : ?>
                 <div class="tab-pane fade show active" id="my-requests" role="tabpanel">
                     <div class="card shadow-sm mt-3">
-                        <div class="card-header d-flex justify-content-between align-items-center"><h6 class="m-0">My Leave Request History</h6><button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#applyLeaveModal"><i class="fas fa-plus me-1"></i> New Request</button></div>
+                        <div class="card-header d-flex justify-content-between align-items-center"><h6 class="m-0">My Leave Request History</h6><button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#applyLeaveModal"><i class="ti ti-plus me-1"></i> New Request</button></div>
                         <div class="card-body"><table class="table table-hover" id="myRequestsTable" width="100%"><thead><tr><th>Type</th><th>Dates</th><th>Days</th><th>Status</th><th>Actions</th></tr></thead></table></div>
                     </div>
                 </div>
@@ -64,7 +64,7 @@ require_once '../components/layout/header.php';
                     <div class="card shadow-sm mt-3">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h6 class="m-0">Employee Leave Requests</h6>
-                            <a href="/hrms/company/leave_policy.php" class="btn btn-outline-secondary btn-sm"><i class="fas fa-cog me-1"></i> Manage Policies</a>
+                            <a href="/hrms/company/leave_policy.php" class="btn btn-outline-secondary btn-sm"><i class="ti ti-settings me-1"></i> Manage Policies</a>
                         </div>
                         <div class="card-body"><table class="table table-hover" id="approveRequestsTable" width="100%"><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead></table></div>
                     </div>
@@ -135,7 +135,7 @@ require_once '../components/layout/header.php';
                     $('#leave-summary-row').prepend(`<div class="col-lg-4 col-md-6 mb-4 leave-balance-card"><div class="card shadow-sm h-100"><div class="card-header"><h6 class="m-0">${escapeHTML(b.type)}</h6></div><div class="card-body text-center d-flex flex-column justify-content-center"><p class="fs-2 fw-bold mb-0">${b.balance} / <small class="text-muted">${b.total}</small></p><p class="text-muted mb-0">Days Remaining</p></div></div></div>`);
                 });
                 $('#upcoming-holiday-card').html(next_holiday ? `<p class="fs-4 fw-bold mb-1">${escapeHTML(next_holiday.holiday_name)}</p><p class="text-muted mb-0">${formatDate(next_holiday.holiday_date, true)}</p>` : '<p class="text-muted">No upcoming holidays.</p>');
-                $('#policy-document-card').html(policy_document ? `<a href="/hrms/pages/view_document.php?id=${policy_document.id}" target="_blank" class="btn btn-outline-primary"><i class="fas fa-file-pdf me-2"></i>View Policy</a>` : '<p class="text-muted">No policy document uploaded.</p>');
+                $('#policy-document-card').html(policy_document ? `<a href="/hrms/pages/view_document.php?id=${policy_document.id}" target="_blank" class="btn btn-outline-primary"><i class="ti ti-file-pdf me-2"></i>View Policy</a>` : '<p class="text-muted">No policy document uploaded.</p>');
             }
         });
     }

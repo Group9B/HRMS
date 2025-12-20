@@ -117,8 +117,9 @@ require_once '../components/layout/header.php';
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
         <h2 class="h3 mb-4 text-gray-800">
-            <i class="fas fa-tachometer-alt me-2"></i>Manager Dashboard
-            <small class="text-muted">- <?= htmlspecialchars($manager['first_name'] . ' ' . $manager['last_name']) ?></small>
+            <i class="ti ti-dashboard me-2"></i>Manager Dashboard
+            <small class="text-muted">-
+                <?= htmlspecialchars($manager['first_name'] . ' ' . $manager['last_name']) ?></small>
         </h2>
 
         <!-- Stat Cards Row -->
@@ -126,10 +127,11 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-primary"><i class="fas fa-users"></i></div>
+                        <div class="icon-circle bg-primary"><i class="ti ti-users"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Team Members</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $team_stats['total_team_members'] ?></div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $team_stats['total_team_members'] ?>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -137,10 +139,11 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-warning"><i class="fas fa-clock"></i></div>
+                        <div class="icon-circle bg-warning"><i class="ti ti-clock"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Leaves</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $team_stats['pending_leaves'] ?></div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $team_stats['pending_leaves'] ?>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -148,10 +151,11 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-info"><i class="fas fa-tasks"></i></div>
+                        <div class="icon-circle bg-info"><i class="ti ti-checklist"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Pending Tasks</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $team_stats['pending_tasks'] ?></div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $team_stats['pending_tasks'] ?>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -159,10 +163,11 @@ require_once '../components/layout/header.php';
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card stat-card shadow-sm">
                     <div class="card-body">
-                        <div class="icon-circle bg-success"><i class="fas fa-check-circle"></i></div>
+                        <div class="icon-circle bg-success"><i class="ti ti-circle-check"></i></div>
                         <div>
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Completed Tasks</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $team_stats['completed_tasks'] ?></div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $team_stats['completed_tasks'] ?>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -184,21 +189,25 @@ require_once '../components/layout/header.php';
                                 <?php foreach ($pending_leaves as $leave): ?>
                                     <div class="list-group-item d-flex justify-content-between align-items-center px-0">
                                         <div>
-                                            <div class="fw-bold"><?= htmlspecialchars($leave['first_name'] . ' ' . $leave['last_name']) ?></div>
+                                            <div class="fw-bold">
+                                                <?= htmlspecialchars($leave['first_name'] . ' ' . $leave['last_name']) ?></div>
                                             <small class="text-muted">
-                                                <?= htmlspecialchars($leave['leave_type']) ?> - 
-                                                <?= date('M j, Y', strtotime($leave['start_date'])) ?> to 
+                                                <?= htmlspecialchars($leave['leave_type']) ?> -
+                                                <?= date('M j, Y', strtotime($leave['start_date'])) ?> to
                                                 <?= date('M j, Y', strtotime($leave['end_date'])) ?>
                                             </small>
                                         </div>
                                         <div class="text-end">
-                                            <small class="text-muted d-block"><?= date('M j', strtotime($leave['applied_at'])) ?></small>
+                                            <small
+                                                class="text-muted d-block"><?= date('M j', strtotime($leave['applied_at'])) ?></small>
                                             <div class="btn-group btn-group-sm mt-1">
-                                                <button class="btn btn-success btn-sm" onclick="approveLeave(<?= $leave['id'] ?>)">
-                                                    <i class="fas fa-check"></i>
+                                                <button class="btn btn-success btn-sm"
+                                                    onclick="approveLeave(<?= $leave['id'] ?>)">
+                                                    <i class="ti ti-check"></i>
                                                 </button>
-                                                <button class="btn btn-danger btn-sm" onclick="rejectLeave(<?= $leave['id'] ?>)">
-                                                    <i class="fas fa-times"></i>
+                                                <button class="btn btn-danger btn-sm"
+                                                    onclick="rejectLeave(<?= $leave['id'] ?>)">
+                                                    <i class="ti ti-x"></i>
                                                 </button>
                                             </div>
                                         </div>
@@ -207,7 +216,8 @@ require_once '../components/layout/header.php';
                             </div>
                         <?php else: ?>
                             <div class="text-center text-muted p-4">
-                                <i class="fas fa-check-circle fa-3x mb-3"></i>
+                                <i class="ti ti-circle-check" style="font-size: 3rem;"></i>
+                                <div class="mb-3"></div>
                                 <p>No pending leave requests</p>
                             </div>
                         <?php endif; ?>
@@ -228,8 +238,11 @@ require_once '../components/layout/header.php';
                                 <?php foreach (array_slice($team_members, 0, 5) as $member): ?>
                                     <div class="list-group-item d-flex justify-content-between align-items-center px-0">
                                         <div>
-                                            <div class="fw-bold"><?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?></div>
-                                            <small class="text-muted"><?= htmlspecialchars($member['designation_name'] ?? 'N/A') ?></small>
+                                            <div class="fw-bold">
+                                                <?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?>
+                                            </div>
+                                            <small
+                                                class="text-muted"><?= htmlspecialchars($member['designation_name'] ?? 'N/A') ?></small>
                                         </div>
                                         <div class="text-end">
                                             <span class="badge bg-success">Active</span>
@@ -244,7 +257,8 @@ require_once '../components/layout/header.php';
                             </div>
                         <?php else: ?>
                             <div class="text-center text-muted p-4">
-                                <i class="fas fa-users fa-3x mb-3"></i>
+                                <i class="ti ti-users" style="font-size: 3rem;"></i>
+                                <div class="mb-3"></div>
                                 <p>No team members found</p>
                             </div>
                         <?php endif; ?>
@@ -265,18 +279,22 @@ require_once '../components/layout/header.php';
                             <div class="timeline">
                                 <?php foreach ($recent_activities as $activity): ?>
                                     <div class="timeline-item">
-                                        <div class="timeline-marker bg-<?= $activity['type'] === 'leave' ? 'warning' : 'success' ?>"></div>
+                                        <div
+                                            class="timeline-marker bg-<?= $activity['type'] === 'leave' ? 'warning' : 'success' ?>">
+                                        </div>
                                         <div class="timeline-content bg-body">
                                             <div class="fw-bold"><?= htmlspecialchars($activity['employee_name']) ?></div>
                                             <div class="text-muted"><?= htmlspecialchars($activity['activity']) ?></div>
-                                            <small class="text-muted"><?= date('M j, Y g:i A', strtotime($activity['created_at'])) ?></small>
+                                            <small
+                                                class="text-muted"><?= date('M j, Y g:i A', strtotime($activity['created_at'])) ?></small>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
                         <?php else: ?>
                             <div class="text-center text-muted p-4">
-                                <i class="fas fa-history fa-3x mb-3"></i>
+                                <i class="ti ti-history" style="font-size: 3rem;"></i>
+                                <div class="mb-3"></div>
                                 <p>No recent activities</p>
                             </div>
                         <?php endif; ?>
@@ -290,81 +308,81 @@ require_once '../components/layout/header.php';
 <?php require_once '../components/layout/footer.php'; ?>
 
 <style>
-.timeline {
-    position: relative;
-    padding-left: 30px;
-}
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
 
-.timeline-item {
-    position: relative;
-    margin-bottom: 20px;
-}
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
 
-.timeline-marker {
-    position: absolute;
-    left: -35px;
-    top: 5px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid #fff;
-    box-shadow: 0 0 0 2px #e3e6f0;
-}
+    .timeline-marker {
+        position: absolute;
+        left: -35px;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 2px #e3e6f0;
+    }
 
-.timeline-content {
-    background: #f8f9fc;
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 3px solid #4e73df;
-}
+    .timeline-content {
+        background: #f8f9fc;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 3px solid #4e73df;
+    }
 </style>
 
 <script>
-function approveLeave(leaveId) {
-    if (confirm('Are you sure you want to approve this leave request?')) {
-        fetch('/hrms/api/api_manager.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `action=approve_leave&leave_id=${leaveId}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast(data.message, 'success');
-                location.reload();
-            } else {
-                showToast(data.message, 'error');
-            }
-        })
-        .catch(error => {
-            showToast('An error occurred. Please try again.', 'error');
-        });
+    function approveLeave(leaveId) {
+        if (confirm('Are you sure you want to approve this leave request?')) {
+            fetch('/hrms/api/api_manager.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `action=approve_leave&leave_id=${leaveId}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        location.reload();
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showToast('An error occurred. Please try again.', 'error');
+                });
+        }
     }
-}
 
-function rejectLeave(leaveId) {
-    if (confirm('Are you sure you want to reject this leave request?')) {
-        fetch('/hrms/api/api_manager.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `action=reject_leave&leave_id=${leaveId}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast(data.message, 'success');
-                location.reload();
-            } else {
-                showToast(data.message, 'error');
-            }
-        })
-        .catch(error => {
-            showToast('An error occurred. Please try again.', 'error');
-        });
+    function rejectLeave(leaveId) {
+        if (confirm('Are you sure you want to reject this leave request?')) {
+            fetch('/hrms/api/api_manager.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `action=reject_leave&leave_id=${leaveId}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        location.reload();
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showToast('An error occurred. Please try again.', 'error');
+                });
+        }
     }
-}
 </script>

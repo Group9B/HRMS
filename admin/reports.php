@@ -14,7 +14,7 @@ require_once '../components/layout/header.php';
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
-        <h2 class="h3 mb-4 text-gray-800"><i class="fas fa-shield-alt me-2"></i>Super Admin Analytics</h2>
+        <h2 class="h3 mb-4 text-gray-800"><i class="ti ti-shield-check me-2"></i>Super Admin Analytics</h2>
 
         <div class="row">
             <div class="col-xl-6 mb-4">

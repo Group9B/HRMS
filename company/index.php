@@ -79,18 +79,18 @@ if ($hires_chart_result['success']) {
 
 // Define the stat cards
 $stat_cards = [
-    ['title' => 'Active Employees', 'value' => $total_employees, 'icon' => 'fas fa-users-line', 'color' => 'primary'],
-    ['title' => 'Departments', 'value' => $total_departments, 'icon' => 'fas fa-sitemap', 'color' => 'info'],
-    ['title' => 'Pending Leaves', 'value' => $pending_leaves, 'icon' => 'fas fa-hourglass-half', 'color' => 'danger'],
-    ['title' => 'On Leave Today', 'value' => $on_leave_today, 'icon' => 'fas fa-user-clock', 'color' => 'warning']
+    ['title' => 'Active Employees', 'value' => $total_employees, 'icon' => 'ti ti-users', 'color' => 'primary'],
+    ['title' => 'Departments', 'value' => $total_departments, 'icon' => 'ti ti-sitemap', 'color' => 'info'],
+    ['title' => 'Pending Leaves', 'value' => $pending_leaves, 'icon' => 'ti ti-hourglass-empty', 'color' => 'danger'],
+    ['title' => 'On Leave Today', 'value' => $on_leave_today, 'icon' => 'ti ti-user-clock', 'color' => 'warning']
 ];
 
 // Define the quick actions
 $quick_actions = [
-    ['title' => 'Add New Employee', 'url' => 'employees.php', 'icon' => 'fas fa-user-plus'],
-    ['title' => 'Manage Departments', 'url' => 'organization.php', 'icon' => 'fas fa-sitemap'],
-    ['title' => 'Approve Leaves', 'url' => 'leaves.php', 'icon' => 'fas fa-calendar-check'],
-    ['title' => 'View Reports', 'url' => '#', 'icon' => 'fas fa-chart-bar', 'onclick' => "alert('This Feature will be Available soon..!');"]
+    ['title' => 'Add New Employee', 'url' => 'employees.php', 'icon' => 'ti ti-user-plus'],
+    ['title' => 'Manage Departments', 'url' => 'organization.php', 'icon' => 'ti ti-sitemap'],
+    ['title' => 'Approve Leaves', 'url' => 'leaves.php', 'icon' => 'ti ti-calendar-check'],
+    ['title' => 'View Reports', 'url' => '#', 'icon' => 'ti ti-chart-bar', 'onclick' => "alert('This Feature will be Available soon..!');"]
 ];
 
 

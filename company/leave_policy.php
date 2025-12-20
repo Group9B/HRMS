@@ -29,7 +29,7 @@ require_once '../components/layout/header.php';
                 <div class="card shadow-sm mt-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h6 class="m-0">Manage Leave Types</h6><button class="btn btn-primary btn-sm"
-                            onclick="preparePolicyModal()"><i class="fas fa-plus me-1"></i> Add Policy</button>
+                            onclick="preparePolicyModal()"><i class="ti ti-plus me-1"></i> Add Policy</button>
                     </div>
                     <div class="card-body">
                         <table class="table table-hover" id="policiesTable" width="100%">
@@ -55,9 +55,9 @@ require_once '../components/layout/header.php';
                                 <h6 class="m-0">My Company's Holidays</h6>
                                 <div>
                                     <button class="btn btn-secondary btn-sm me-2" onclick="openImportModal()"><i
-                                            class="fas fa-cloud-download-alt me-1"></i> Import</button>
+                                            class="ti ti-download me-1"></i> Import</button>
                                     <button class="btn btn-primary btn-sm" onclick="prepareHolidayModal()"><i
-                                            class="fas fa-plus me-1"></i> Add Custom</button>
+                                            class="ti ti-plus me-1"></i> Add Custom</button>
                                 </div>
                             </div>
                             <div class="card-body">
@@ -217,9 +217,9 @@ require_once '../components/layout/header.php';
     $(function () {
         Object.assign(modals, { policy: new bootstrap.Modal('#policyModal'), holiday: new bootstrap.Modal('#holidayModal'), import: new bootstrap.Modal('#importHolidayModal') });
         Object.assign(tables, {
-            policies: $('#policiesTable').DataTable({ responsive: true, ajax: { url: '/hrms/api/api_policies.php?action=get_policies', dataSrc: 'data' }, columns: [{ data: 'leave_type' }, { data: 'days_per_year', className: 'text-center' }, { data: 'is_accruable', className: 'text-center', render: d => parseInt(d) ? '<i class="fas fa-check-circle text-success"></i>' : '<i class="fas fa-times-circle text-danger"></i>' }, { data: null, orderable: false, render: (d, t, r) => `<div class="btn-group btn-group-sm"><button class="btn btn-outline-primary" onclick='preparePolicyModal(${JSON.stringify(r)})'><i class="fas fa-edit"></i></button><button class="btn btn-outline-danger" onclick="deleteItem('policy', ${r.id})"><i class="fas fa-trash"></i></button></div>` }] }),
-            holidays: $('#holidaysTable').DataTable({ responsive: true, ajax: { url: '/hrms/api/api_policies.php?action=get_holidays', dataSrc: 'data' }, columns: [{ data: 'holiday_date', render: d => new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) }, { data: 'holiday_name' }, { data: null, orderable: false, render: (d, t, r) => `<button class="btn btn-sm btn-outline-danger" onclick="deleteItem('holiday', ${r.id})"><i class="fas fa-trash"></i></button>` }], order: [[0, 'asc']] }),
-            documents: $('#documentsTable').DataTable({ responsive: true, ajax: { url: '/hrms/api/api_policies.php?action=get_documents', dataSrc: 'data' }, columns: [{ data: 'document_name' }, { data: 'uploaded_at', render: d => new Date(d).toLocaleDateString() }, { data: null, orderable: false, render: (d, t, r) => `<div class="btn-group btn-group-sm"><a href="${r.file_path}" target="_blank" class="btn btn-outline-primary"><i class="fas fa-download"></i></a><button class="btn btn-outline-danger" onclick="deleteItem('document', ${r.id})"><i class="fas fa-trash"></i></button></div>` }] })
+            policies: $('#policiesTable').DataTable({ responsive: true, ajax: { url: '/hrms/api/api_policies.php?action=get_policies', dataSrc: 'data' }, columns: [{ data: 'leave_type' }, { data: 'days_per_year', className: 'text-center' }, { data: 'is_accruable', className: 'text-center', render: d => parseInt(d) ? '<i class="ti ti-circle-check text-success"></i>' : '<i class="ti ti-x text-danger"></i>' }, { data: null, orderable: false, render: (d, t, r) => `<div class="btn-group btn-group-sm"><button class="btn btn-outline-primary" onclick='preparePolicyModal(${JSON.stringify(r)})'><i class="ti ti-edit"></i></button><button class="btn btn-outline-danger" onclick="deleteItem('policy', ${r.id})"><i class="ti ti-trash"></i></button></div>` }] }),
+            holidays: $('#holidaysTable').DataTable({ responsive: true, ajax: { url: '/hrms/api/api_policies.php?action=get_holidays', dataSrc: 'data' }, columns: [{ data: 'holiday_date', render: d => new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) }, { data: 'holiday_name' }, { data: null, orderable: false, render: (d, t, r) => `<button class="btn btn-sm btn-outline-danger" onclick="deleteItem('holiday', ${r.id})"><i class="ti ti-trash"></i></button>` }], order: [[0, 'asc']] }),
+            documents: $('#documentsTable').DataTable({ responsive: true, ajax: { url: '/hrms/api/api_policies.php?action=get_documents', dataSrc: 'data' }, columns: [{ data: 'document_name' }, { data: 'uploaded_at', render: d => new Date(d).toLocaleDateString() }, { data: null, orderable: false, render: (d, t, r) => `<div class="btn-group btn-group-sm"><a href="${r.file_path}" target="_blank" class="btn btn-outline-primary"><i class="ti ti-download"></i></a><button class="btn btn-outline-danger" onclick="deleteItem('document', ${r.id})"><i class="ti ti-trash"></i></button></div>` }] })
         });
 
         $('#policyForm').on('submit', handleFormSubmit('policy', 'add_edit_policy'));

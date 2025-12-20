@@ -21,7 +21,7 @@ require_once '../components/layout/header.php';
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
-        <h2 class="h3 mb-4"><i class="fas fa-cogs me-2"></i>System Configuration</h2>
+        <h2 class="h3 mb-4"><i class="ti ti-settings me-2"></i>System Configuration</h2>
 
         <div class="row">
             <div class="col-lg-7 mb-4">
@@ -58,7 +58,7 @@ require_once '../components/layout/header.php';
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h6 class="m-0">Master Holiday List</h6>
                             <button class="btn btn-primary btn-sm" onclick="prepareHolidayModal()"><i
-                                    class="fas fa-plus me-1"></i> Add Manually</button>
+                                    class="ti ti-plus me-1"></i> Add Manually</button>
                         </div>
                         <div class="table-responsive">
                             <table id="holidaysTable" class="table table-sm" width="100%">
@@ -144,8 +144,8 @@ require_once '../components/layout/header.php';
                 {
                     data: null, orderable: false, render: (d, t, r) => `
                 <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-primary" onclick='prepareHolidayModal(${JSON.stringify(r)})'><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-outline-danger" onclick="deleteHoliday(${r.id})"><i class="fas fa-trash"></i></button>
+                    <button class="btn btn-outline-primary" onclick='prepareHolidayModal(${JSON.stringify(r)})'><i class="ti ti-edit"></i></button>
+                    <button class="btn btn-outline-danger" onclick="deleteHoliday(${r.id})"><i class="ti ti-trash"></i></button>
                 </div>`
                 }
             ]

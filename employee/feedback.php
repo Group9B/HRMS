@@ -65,7 +65,7 @@ require_once '../components/layout/header.php';
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-            <h2 class="h3 mb-0"><i class="fas fa-comment-dots me-2"></i>Feedback & Suggestions</h2>
+            <h2 class="h3 mb-0"><i class="ti ti-message me-2"></i>Feedback & Suggestions</h2>
         </div>
 
         <?php if (isset($_SESSION['success'])): ?>
@@ -118,7 +118,7 @@ require_once '../components/layout/header.php';
                             </div>
 
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-paper-plane me-2"></i>Submit Feedback
+                                <i class="ti ti-send me-2"></i>Submit Feedback
                             </button>
                         </form>
                     </div>
@@ -142,7 +142,7 @@ require_once '../components/layout/header.php';
 
                         <div class="alert alert-info">
                             <small>
-                                <i class="fas fa-info-circle me-1"></i>
+                                <i class="ti ti-info-circle me-1"></i>
                                 You can submit feedback anonymously or with your name attached.
                                 All feedback is reviewed and appropriate action is taken when necessary.
                             </small>
@@ -161,7 +161,7 @@ require_once '../components/layout/header.php';
                     <div class="card-body">
                         <?php if (empty($feedback_history)): ?>
                             <div class="text-center py-4">
-                                <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
+                                <i class="ti ti-message-circle-off fa-3x text-muted mb-3"></i>
                                 <h6 class="text-muted">No feedback submitted yet</h6>
                                 <p class="text-muted">Your feedback history will appear here once you submit feedback.</p>
                             </div>

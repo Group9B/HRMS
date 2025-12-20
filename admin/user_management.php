@@ -37,10 +37,10 @@ require_once '../components/layout/header.php';
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-            <h2 class="h3 mb-0 text-gray-800"><i class="fas fa-users me-2"></i>User Management</h2>
+            <h2 class="h3 mb-0 text-gray-800"><i class="ti ti-users me-2"></i>User Management</h2>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userModal"
                 onclick="prepareAddModal()">
-                <i class="fas fa-plus me-2"></i>Add User
+                <i class="ti ti-plus me-2"></i>Add User
             </button>
         </div>
 
@@ -82,11 +82,11 @@ require_once '../components/layout/header.php';
                                             <button type="button" class="btn btn-sm btn-primary"
                                                 onclick='prepareEditModal(<?= json_encode($user); ?>)'
                                                 data-bs-toggle="modal" data-bs-target="#userModal">
-                                                <i class="fas fa-edit"></i>
+                                                <i class="ti ti-edit"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-danger"
                                                 onclick="deleteUser(<?= $user['id']; ?>)">
-                                                <i class="fas fa-trash"></i>
+                                                <i class="ti ti-trash"></i>
                                             </button>
                                         </div>
                                     </td>
@@ -239,8 +239,8 @@ require_once '../components/layout/header.php';
             <td class="d-none d-xl-table-cell">${joinedDate}</td>
             <td>
                 <div class="btn-group">
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick='prepareEditModal(${JSON.stringify(user)})' data-bs-toggle="modal" data-bs-target="#userModal"><i class="fas fa-edit"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteUser(${user.id})"><i class="fas fa-trash"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick='prepareEditModal(${JSON.stringify(user)})' data-bs-toggle="modal" data-bs-target="#userModal"><i class="ti ti-edit"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteUser(${user.id})"><i class="ti ti-trash"></i></button>
                 </div>
             </td>
         `;

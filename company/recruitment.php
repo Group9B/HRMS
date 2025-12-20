@@ -20,8 +20,8 @@ require_once '../components/layout/header.php';
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="h3 mb-0"><i class="fas fa-briefcase me-2"></i>Recruitment</h2>
-            <button class="btn btn-primary" onclick="prepareJobModal()"><i class="fas fa-plus me-1"></i> Post New
+            <h2 class="h3 mb-0"><i class="ti ti-briefcase me-2"></i>Recruitment</h2>
+            <button class="btn btn-primary" onclick="prepareJobModal()"><i class="ti ti-plus me-1"></i> Post New
                 Job</button>
         </div>
 
@@ -178,9 +178,9 @@ require_once '../components/layout/header.php';
                 {
                     data: null, orderable: false, render: (d, t, r) => `
                 <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-secondary" onclick='copyJobLink(${r.id})' title="Copy Application Link"><i class="fas fa-link"></i></button>
-                    <button class="btn btn-outline-info" onclick='viewApplicants(${r.id}, "${escapeHTML(r.title)}")' title="View Applicants"><i class="fas fa-users"></i></button>
-                    <button class="btn btn-outline-primary" onclick='prepareJobModal(${JSON.stringify(r)})'><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-outline-secondary" onclick='copyJobLink(${r.id})' title="Copy Application Link"><i class="ti ti-link"></i></button>
+                    <button class="btn btn-outline-info" onclick='viewApplicants(${r.id}, "${escapeHTML(r.title)}")' title="View Applicants"><i class="ti ti-users"></i></button>
+                    <button class="btn btn-outline-primary" onclick='prepareJobModal(${JSON.stringify(r)})'><i class="ti ti-edit"></i></button>
                 </div>`
                 }
             ]

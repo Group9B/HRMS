@@ -22,8 +22,8 @@ require_once '../components/layout/header.php';
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-            <h2 class="h3 mb-0"><i class="fas fa-chart-line me-2"></i>Team Performance</h2>
-            <button class="btn btn-primary" onclick="prepareAddModal()"><i class="fas fa-plus me-2"></i>Add
+            <h2 class="h3 mb-0"><i class="ti ti-chart-line me-2"></i>Team Performance</h2>
+            <button class="btn btn-primary" onclick="prepareAddModal()"><i class="ti ti-plus me-2"></i>Add
                 Review</button>
         </div>
 
@@ -151,9 +151,9 @@ require_once '../components/layout/header.php';
                 {
                     data: null, orderable: false, render: (d, t, r) => `
                 <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-info" onclick="viewPerformance(${r.id})"><i class="fas fa-eye"></i></button>
-                    <button class="btn btn-outline-primary" onclick="prepareEditModal(${r.id})"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-outline-danger" onclick="deletePerformance(${r.id})"><i class="fas fa-trash"></i></button>
+                    <button class="btn btn-outline-info" onclick="viewPerformance(${r.id})"><i class="ti ti-eye"></i></button>
+                    <button class="btn btn-outline-primary" onclick="prepareEditModal(${r.id})"><i class="ti ti-edit"></i></button>
+                    <button class="btn btn-outline-danger" onclick="deletePerformance(${r.id})"><i class="ti ti-trash"></i></button>
                 </div>`
                 }]
         });

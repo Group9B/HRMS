@@ -27,14 +27,14 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
 <div class="d-flex">
   <?php require_once '../components/layout/sidebar.php'; ?>
   <div class="p-3 p-md-4" style="flex: 1;">
-    <h2 class="h3 mb-4 text-gray-800"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+    <h2 class="h3 mb-4 text-gray-800"><i class="ti ti-dashboard me-2"></i>Dashboard</h2>
 
     <!-- Stat Cards Row -->
     <div class="row">
       <div class="col-xl-3 col-md-6 mb-4">
         <div class="card stat-card shadow-sm">
           <div class="card-body">
-            <div class="icon-circle bg-primary"><i class="fas fa-building"></i></div>
+            <div class="icon-circle bg-primary"><i class="ti ti-building"></i></div>
             <div>
               <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Active Companies</div>
               <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $active_companies ?></div>
@@ -45,7 +45,7 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
       <div class="col-xl-3 col-md-6 mb-4">
         <div class="card stat-card shadow-sm">
           <div class="card-body">
-            <div class="icon-circle bg-success"><i class="fas fa-users-cog"></i></div>
+            <div class="icon-circle bg-success"><i class="ti ti-users-group"></i></div>
             <div>
               <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Employees</div>
               <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $total_employees ?></div>
@@ -56,7 +56,7 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
       <div class="col-xl-3 col-md-6 mb-4">
         <div class="card stat-card shadow-sm">
           <div class="card-body">
-            <div class="icon-circle bg-info"><i class="fas fa-plane-departure"></i></div>
+            <div class="icon-circle bg-info"><i class="ti ti-plane"></i></div>
             <div>
               <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Pending Leaves</div>
               <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $pending_leaves ?></div>
@@ -67,7 +67,7 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
       <div class="col-xl-3 col-md-6 mb-4">
         <div class="card stat-card shadow-sm">
           <div class="card-body">
-            <div class="icon-circle bg-warning"><i class="fas fa-life-ring"></i></div>
+            <div class="icon-circle bg-warning"><i class="ti ti-help"></i></div>
             <div>
               <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Open Support Tickets</div>
               <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $open_tickets ?></div>
@@ -110,8 +110,8 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
           </div>
           <div class="card-body quick-actions">
             <div class="d-grid gap-2">
-              <a href="companies.php" class="btn btn-primary"><i class="fas fa-plus"></i> Add New Company</a>
-              <a href="user_management.php" class="btn btn-success"><i class="fas fa-user-plus"></i> Create Admin
+              <a href="companies.php" class="btn btn-primary"><i class="ti ti-plus"></i> Add New Company</a>
+              <a href="user_management.php" class="btn btn-success"><i class="ti ti-user-plus"></i> Create Admin
                 User</a>
             </div>
           </div>

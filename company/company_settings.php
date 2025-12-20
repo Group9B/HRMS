@@ -24,7 +24,7 @@ require_once '../components/layout/header.php';
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
-        <h2 class="h3 mb-4 text-gray-800"><i class="fas fa-building me-2"></i>Company Profile & Settings</h2>
+        <h2 class="h3 mb-4 text-gray-800"><i class="ti ti-building me-2"></i>Company Profile & Settings</h2>
 
         <div class="card shadow-sm">
             <div class="card-header">
@@ -64,7 +64,7 @@ require_once '../components/layout/header.php';
                     <hr class="my-4">
 
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-2"></i>Save Changes
+                        <i class="ti ti-device-floppy me-2"></i>Save Changes
                     </button>
                 </form>
             </div>

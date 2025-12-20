@@ -573,7 +573,7 @@ function render_todo_list_widget(string $card_title = 'My To-Do List'): string
         <div class="card-body">
             <form id="todo-form" class="mb-3 d-flex gap-2">
                 <input type="text" name="task" class="form-control" placeholder="Add a new task..." required>
-                <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i></button>
+                <button type="submit" class="btn btn-primary"><i class="ti ti-plus"></i></button>
             </form>
             <ul id="todo-list" class="list-group list-group-flush">
                 <!-- Tasks will be loaded here by JavaScript -->

@@ -20,9 +20,7 @@ if (isLoggedIn()) {
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title><?php echo isset($title) ? $title : 'StaffSync HRMS'; ?></title>
         <link rel="icon" href="/hrms/assets/img/SS.png" type="image/png">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
-            integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
-            crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
         <link rel="stylesheet" href="/hrms/assets/css/bootstrap.css">
         <link rel="stylesheet" href="/hrms/assets/css/datatable.css">
         <link rel="stylesheet" href="/hrms/assets/css/datatable_bootstrap_responsive.css">
@@ -53,7 +51,7 @@ if (isLoggedIn()) {
                 <div class="wrapper d-flex align-items-center justify-content-start">
                     <?php if (isLoggedIn()): ?>
                         <button class="btn fs-2 d-sm-none fa-color" id="sidebarToggle" type="button">
-                            <i class="fas fa-bars"></i>
+                            <i class="ti ti-menu-2"></i>
                         </button>
                     <?php endif; ?>
                     <div class="logo">
@@ -72,7 +70,7 @@ if (isLoggedIn()) {
                                 <div class="dropdown">
                                     <button class="btn dropdown-toggle" type="button" id="notificationButton"
                                         data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fas fa-bell svg"></i>
+                                        <i class="ti ti-bell svg"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationButton">
                                         <li><a class="dropdown-item" href="#">New employee added</a></li>

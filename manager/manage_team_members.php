@@ -79,16 +79,16 @@ require_once '../components/layout/header.php';
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h2 class="h3 text-gray-800">
-                    <i class="fas fa-users me-2"></i>Manage Team Members
+                    <i class="ti ti-users me-2"></i>Manage Team Members
                 </h2>
                 <p class="text-muted mb-0">Team: <strong><?= htmlspecialchars($team['name']) ?></strong></p>
             </div>
             <div>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMembersModal">
-                    <i class="fas fa-user-plus me-2"></i>Add Members
+                    <i class="ti ti-user-plus me-2"></i>Add Members
                 </button>
                 <a href="teams.php" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Teams
+                    <i class="ti ti-arrow-left me-2"></i>Back to Teams
                 </a>
             </div>
         </div>
@@ -100,7 +100,8 @@ require_once '../components/layout/header.php';
                     <div class="col-md-8">
                         <h5 class="card-title"><?= htmlspecialchars($team['name']) ?></h5>
                         <p class="card-text text-muted">
-                            <?= htmlspecialchars($team['description'] ?: 'No description provided') ?></p>
+                            <?= htmlspecialchars($team['description'] ?: 'No description provided') ?>
+                        </p>
                         <div class="d-flex gap-4">
                             <div>
                                 <small class="text-muted">Created:</small>
@@ -115,10 +116,10 @@ require_once '../components/layout/header.php';
                     <div class="col-md-4 text-end">
                         <div class="btn-group">
                             <button class="btn btn-outline-primary" onclick="editTeamInfo()">
-                                <i class="fas fa-edit me-1"></i>Edit Team
+                                <i class="ti ti-edit me-1"></i>Edit Team
                             </button>
                             <button class="btn btn-outline-danger" onclick="deleteTeam()">
-                                <i class="fas fa-trash me-1"></i>Delete Team
+                                <i class="ti ti-trash me-1"></i>Delete Team
                             </button>
                         </div>
                     </div>
@@ -170,12 +171,12 @@ require_once '../components/layout/header.php';
                                             <div class="btn-group btn-group-sm">
                                                 <button class="btn btn-outline-info"
                                                     onclick="viewMember(<?= $member['employee_id'] ?>)" title="View Details">
-                                                    <i class="fas fa-eye"></i>
+                                                    <i class="ti ti-eye"></i>
                                                 </button>
                                                 <button class="btn btn-outline-danger"
                                                     onclick="removeMember(<?= $member['employee_id'] ?>)"
                                                     title="Remove from Team">
-                                                    <i class="fas fa-user-minus"></i>
+                                                    <i class="ti ti-user-minus"></i>
                                                 </button>
                                             </div>
                                         </td>
@@ -186,11 +187,12 @@ require_once '../components/layout/header.php';
                     </div>
                 <?php else: ?>
                     <div class="text-center text-muted p-5">
-                        <i class="fas fa-users fa-3x mb-3"></i>
+                        <i class="ti ti-users" style="font-size: 3rem;"></i>
+                        <div class="mb-3"></div>
                         <h5>No Members in This Team</h5>
                         <p>Add members to start building your team.</p>
                         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMembersModal">
-                            <i class="fas fa-user-plus me-2"></i>Add Members
+                            <i class="ti ti-user-plus me-2"></i>Add Members
                         </button>
                     </div>
                 <?php endif; ?>
@@ -229,7 +231,7 @@ require_once '../components/layout/header.php';
                         </div>
                         <?php if (empty($available_employees)): ?>
                             <div class="text-center text-muted p-3">
-                                <i class="fas fa-info-circle me-2"></i>
+                                <i class="ti ti-info-circle me-2"></i>
                                 All available employees are already in this team.
                             </div>
                         <?php endif; ?>

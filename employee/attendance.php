@@ -31,7 +31,7 @@ require_once '../components/layout/header.php';
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-            <h2 class="h3 mb-0"><i class="fas fa-calendar-check me-2"></i>My Attendance</h2>
+            <h2 class="h3 mb-0"><i class="ti ti-calendar-check me-2"></i>My Attendance</h2>
             <form class="d-flex align-items-center gap-2" method="get">
                 <div class="input-group">
                     <span class="input-group-text">Month</span>

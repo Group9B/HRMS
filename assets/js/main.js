@@ -200,10 +200,10 @@ function initializeTodoList(formSelector, listSelector) {
                                 <div class="btn-group">
                                     ${
 										!isCompleted
-											? '<button class="btn btn-sm btn-success complete-btn"><i class="fas fa-check"></i></button>'
+											? '<button class="btn btn-sm btn-success complete-btn"><i class="ti ti-check"></i></button>'
 											: ""
 									}
-                                    <button class="btn btn-sm btn-danger delete-btn"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-sm btn-danger delete-btn"><i class="ti ti-trash"></i></button>
                                 </div>
                             </li>`;
 						todoList.append(li);
@@ -388,7 +388,7 @@ function showConfirmationModal(
 	callback,
 	title = "Confirm Action",
 	btnText = "Confirm",
-	btnClass = "btn-primary"
+	btnClass = "btn-danger"
 ) {
 	if (!confirmationModalInstance) {
 		console.error("Confirmation modal not initialized");
@@ -411,4 +411,91 @@ function showConfirmationModal(
 
 	confirmationCallback = callback;
 	confirmationModalInstance.show();
+}
+
+/**
+ * Creates a reusable action dropdown menu for table rows
+ * @param {Object} config - Configuration object
+ * @param {Function} config.onEdit - Edit callback function
+ * @param {Function} config.onDelete - Delete callback function
+ * @param {Function} config.onManage - Manage callback function (optional)
+ * @param {Object} options - Additional options
+ * @param {string} options.editTooltip - Tooltip for edit button (default: "Edit")
+ * @param {string} options.deleteTooltip - Tooltip for delete button (default: "Delete")
+ * @param {string} options.manageTooltip - Tooltip for manage button (default: "Manage")
+ * @returns {string} - HTML string for the dropdown menu
+ */
+function createActionDropdown(config, options = {}) {
+	const defaultOptions = {
+		editTooltip: "Edit",
+		deleteTooltip: "Delete",
+		manageTooltip: "Manage",
+		editIcon: "ti ti-edit",
+		deleteIcon: "ti ti-trash",
+		manageIcon: "ti ti-users",
+	};
+	const opts = { ...defaultOptions, ...options };
+
+	// Create unique ID for this dropdown to store callbacks
+	const uniqueId = `dropdown_${Math.random().toString(36).substr(2, 9)}`;
+
+	// Store callbacks in window object for access from HTML
+	window[`_actionCallbacks_${uniqueId}`] = {
+		onEdit: config.onEdit,
+		onDelete: config.onDelete,
+		onManage: config.onManage,
+	};
+
+	let dropdownHtml = `
+		<div class="dropdown" data-action-id="${uniqueId}">
+			<button class="btn btn-sm rounded-5 dropdown-toggle action" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+				<i class="ti ti-dots-vertical"></i>
+			</button>
+			<ul class="dropdown-menu dropdown-menu-end">
+	`;
+
+	// Manage action (optional, usually for teams/groups)
+	if (config.onManage) {
+		dropdownHtml += `
+				<li>
+					<a class="dropdown-item manage-action" href="#" onclick="window._actionCallbacks_${uniqueId}.onManage(); return false;" title="${opts.manageTooltip}">
+						<i class="${opts.manageIcon} me-2"></i>${opts.manageTooltip}
+					</a>
+				</li>
+		`;
+	}
+
+	// Edit action
+	if (config.onEdit) {
+		dropdownHtml += `
+				<li>
+					<a class="dropdown-item edit-action" href="#" onclick="window._actionCallbacks_${uniqueId}.onEdit(); return false;" title="${opts.editTooltip}">
+						<i class="${opts.editIcon} me-2"></i>${opts.editTooltip}
+					</a>
+				</li>
+		`;
+	}
+
+	// Divider before delete
+	if (config.onDelete && (config.onEdit || config.onManage)) {
+		dropdownHtml += `<li><hr class="dropdown-divider"></li>`;
+	}
+
+	// Delete action
+	if (config.onDelete) {
+		dropdownHtml += `
+				<li>
+					<a class="dropdown-item delete-action text-danger" href="#" onclick="window._actionCallbacks_${uniqueId}.onDelete(); return false;" title="${opts.deleteTooltip}">
+						<i class="${opts.deleteIcon} me-2"></i>${opts.deleteTooltip}
+					</a>
+				</li>
+		`;
+	}
+
+	dropdownHtml += `
+			</ul>
+		</div>
+	`;
+
+	return dropdownHtml;
 }
