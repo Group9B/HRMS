@@ -22,20 +22,100 @@ require_once '../components/layout/header.php';
                             class="ti ti-chevron-right"></i></button>
                 </div>
                 <div class="d-flex align-items-center flex-wrap gap-2 my-1">
+                    <div class="badge bg-info-subtle text-info-emphasis"><i
+                            class="ti ti-calendar-off me-1"></i>Holidays: <span id="holidayBadge">0</span></div>
                     <button class="btn bg-dark-subtle btn-sm" id="openBulkModalBtn"><i
                             class="ti ti-loader-3 me-2"></i>Bulk
                         Actions</button>
                     <input type="search" id="employeeSearch" class="form-control form-control-sm"
-                        placeholder="Search Employee..." style="width: 200px;">
+                        placeholder="Search Department or Employee..." style="width: 200px;">
                 </div>
             </div>
         </div>
 
-        <div class="row attendance-dashboard mb-4" id="dashboardStats"></div>
-        <div id="holidaysAlert" style="display:none;" class="alert alert-info mb-4">
-            <i class="ti ti-calendar-off me-2"></i><strong>Holidays This Month: </strong><span
-                id="holidayCount">0</span>
+        <div class="accordion shadow-sm mb-4" id="dashboardAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#statsCollapse">
+                        <i class="ti ti-chart-bar me-2"></i> <strong>Dashboard Statistics</strong>
+                    </button>
+                </h2>
+                <div id="statsCollapse" class="accordion-collapse collapse show" data-bs-parent="#dashboardAccordion">
+                    <div class="accordion-body">
+                        <div class="row" id="dashboardStats"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#chartsCollapse">
+                        <i class="ti ti-chart-line me-2"></i> <strong>Analytics & Charts</strong>
+                    </button>
+                </h2>
+                <div id="chartsCollapse" class="accordion-collapse collapse" data-bs-parent="#dashboardAccordion">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-lg-6 mb-3">
+                                <div class="card shadow-sm">
+                                    <div class="card-header">
+                                        <h6 class="m-0 font-weight-bold">Attendance by Status</h6>
+                                    </div>
+                                    <div class="card-body" style="height: 300px;">
+                                        <canvas id="attendanceStatusChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 mb-3">
+                                <div class="card shadow-sm">
+                                    <div class="card-header">
+                                        <h6 class="m-0 font-weight-bold">Department Attendance %</h6>
+                                    </div>
+                                    <div class="card-body" style="height: 300px;">
+                                        <canvas id="departmentAttendanceChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-4 mb-3">
+                                <div class="card shadow-sm">
+                                    <div class="card-header">
+                                        <h6 class="m-0 font-weight-bold">Attendance Distribution</h6>
+                                    </div>
+                                    <div class="card-body" style="height: 300px;">
+                                        <canvas id="attendanceDistributionChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 mb-3">
+                                <div class="card shadow-sm">
+                                    <div class="card-header">
+                                        <h6 class="m-0 font-weight-bold">Daily Trend</h6>
+                                    </div>
+                                    <div class="card-body" style="height: 300px;">
+                                        <canvas id="dailyTrendChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 mb-3">
+                                <div class="card shadow-sm">
+                                    <div class="card-header">
+                                        <h6 class="m-0 font-weight-bold">Top Employees (Attendance)</h6>
+                                    </div>
+                                    <div class="card-body" style="height: 300px;">
+                                        <canvas id="topEmployeesChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+
         <div id="loadingSpinner" class="text-center p-5">
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"><span
                     class="visually-hidden">Loading...</span></div>
@@ -47,7 +127,8 @@ require_once '../components/layout/header.php';
 
         <!-- Back Button (Hidden by default) -->
         <div id="backToDepartments" style="display:none;" class="mb-3">
-            <button class="btn btn-secondary btn-sm"><i class="ti ti-arrow-left me-2"></i>Back to Departments</button>
+            <button class="btn btn-secondary btn-sm"><i class="ti ti-arrow-left me-2"></i>Back to
+                Departments</button>
         </div>
     </div>
 </div>
@@ -60,6 +141,10 @@ require_once '../components/layout/header.php';
 
     .dept-card:hover {
         transform: translateY(-3px);
+    }
+
+    .day-square.empty {
+        cursor: not-allowed !important;
     }
 
     .skeleton-line {
@@ -138,6 +223,11 @@ require_once '../components/layout/header.php';
     let allAttendanceData = null;
     let currentViewMode = 'departments'; // 'departments' or 'employees'
     let selectedDepartmentId = null;
+    let attendanceStatusChartInstance = null;
+    let departmentAttendanceChartInstance = null;
+    let attendanceDistributionChartInstance = null;
+    let dailyTrendChartInstance = null;
+    let topEmployeesChartInstance = null;
     const attendanceModal = new bootstrap.Modal('#attendanceModal');
     const bulkActionsModal = new bootstrap.Modal('#bulkActionsModal');
 
@@ -173,12 +263,36 @@ require_once '../components/layout/header.php';
             const formData = new FormData(this);
             formData.append('status', status);
             fetch('/hrms/api/api_attendance.php', { method: 'POST', body: formData }).then(r => r.json()).then(data => {
-                if (data.success) { showToast(data.message, 'success'); attendanceModal.hide(); loadAttendanceData(); }
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    attendanceModal.hide();
+                    // Reload attendance data for current view
+                    const monthString = currentMonth.toISOString().slice(0, 7);
+                    fetch(`/hrms/api/api_attendance.php?action=get_attendance_data&month=${monthString}`)
+                        .then(res => res.json())
+                        .then(result => {
+                            if (result.error || !result.employees) return;
+                            allAttendanceData = result;
+                            if (currentViewMode === 'employees') {
+                                const deptEmployees = result.employees.filter(emp => (emp.department_id || 'unassigned') === selectedDepartmentId);
+                                renderEmployeeCards({
+                                    employees: deptEmployees,
+                                    month_details: result.month_details,
+                                    company_holidays: result.company_holidays,
+                                    saturday_policy: result.saturday_policy,
+                                    employee_leaves: result.employee_leaves,
+                                    company_created_at: result.company_created_at
+                                });
+                            } else {
+                                renderDepartmentCards(result);
+                            }
+                        });
+                }
                 else { showToast(data.message || 'An error occurred.', 'error'); }
             });
         });
 
-        $(document).on('click', '.day-square:not(.status-disabled)', function () {
+        $(document).on('click', '.day-square:not(.status-disabled):not(.empty)', function () {
             const el = $(this);
             openAttendanceModal(el.data('employee-id'), el.data('employee-name'), el.data('date'));
         });
@@ -195,7 +309,6 @@ require_once '../components/layout/header.php';
         $('#currentMonth').text(currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' }));
         $('#loadingSpinner').show();
         $('#departmentGrid, #employeeGrid, #noResults').hide();
-        $('#dashboardStats').empty();
         currentViewMode = 'departments';
         selectedDepartmentId = null;
         $('#backToDepartments').hide();
@@ -204,6 +317,27 @@ require_once '../components/layout/header.php';
             .then(res => res.json()).then(result => {
                 if (result.error || !result.employees) { showToast(result.error || 'Failed to load data.', 'error'); $('#noResults').show(); return; }
                 allAttendanceData = result;
+
+                // Check if attendance tracking has begun
+                const viewingDate = new Date(result.month_details.year, result.month_details.month - 1, 1);
+                const companyCreationDate = new Date(result.company_created_at);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const firstDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+                if (viewingDate < companyCreationDate && viewingDate.getMonth() !== companyCreationDate.getMonth()) {
+                    $('#noResults').html('<i class="ti ti-info-circle me-2"></i>Attendance tracking began after your company was created.').show();
+                    $('#dashboardAccordion').hide();
+                    return;
+                }
+
+                if (viewingDate > firstDayOfCurrentMonth) {
+                    $('#noResults').html('<i class="ti ti-info-circle me-2"></i>No attendance data available for upcoming months.').show();
+                    $('#dashboardAccordion').hide();
+                    return;
+                }
+
+                $('#dashboardAccordion').show();
                 renderDashboard(result.summary);
                 renderDepartmentCards(result);
                 $('#employeeSearch').val('');
@@ -211,18 +345,284 @@ require_once '../components/layout/header.php';
             .finally(() => { $('#loadingSpinner').hide(); });
     }
 
+
     function renderDashboard(summary) {
         const stats = [
-            { label: 'Attendance (Month)', value: `${summary.overall_percentage}%`, color: 'primary', icon: 'percent' },
-            { label: 'Total Present', value: summary.total_present, color: 'success', icon: 'circle-check' },
-            { label: 'Total Absent', value: summary.total_absent, color: 'danger', icon: 'x' },
-            { label: 'Total On Leave', value: summary.total_leave, color: 'warning', icon: 'plane' }
+            { label: 'Attendance Rate', value: `${summary.overall_percentage}%`, color: 'primary-subtle', icon: 'percent', textColor: 'primary' },
+            { label: 'Total Present', value: summary.total_present, color: 'success-subtle', icon: 'circle-check', textColor: 'success' },
+            { label: 'Total Absent', value: summary.total_absent, color: 'danger-subtle', icon: 'x', textColor: 'danger' },
+            { label: 'Total On Leave', value: summary.total_leave, color: 'warning-subtle', icon: 'plane', textColor: 'warning' }
         ];
         let statsHtml = '';
         stats.forEach(stat => {
-            statsHtml += `<div class="col-xl-3 col-md-6 mb-4"><div class="card border-start border-${stat.color} border-4 shadow-sm h-100 py-2"><div class="card-body"><div class="row g-0 align-items-center"><div class="col"><div class="text-xs fw-bold text-${stat.color} text-uppercase mb-1">${stat.label}</div><div class="h5 mb-0 fw-bold text-body">${stat.value}</div></div><div class="col-auto"><i class="ti ti-${stat.icon} fa-2x text-body-tertiary"></i></div></div></div></div></div>`;
+            statsHtml += `<div class="col-xl-3 col-md-6 mb-3">
+                <div class="card shadow-sm bg-${stat.color}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-xs font-weight-bold text-uppercase mb-1">${stat.label}</div>
+                                <div class="h5 mb-0 font-weight-bold" style="color: var(--bs-${stat.textColor});">${stat.value}</div>
+                            </div>
+                            <i class="ti ti-${stat.icon} text-${stat.textColor}" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
         });
         $('#dashboardStats').html(statsHtml);
+
+        // Render all charts
+        renderAttendanceCharts(summary);
+        renderDistributionChart(summary);
+        renderDailyTrendChart();
+        renderTopEmployeesChart();
+    }
+
+    function renderAttendanceCharts(summary) {
+        // Attendance by Status Chart
+        const statusCtx = document.getElementById('attendanceStatusChart');
+        if (statusCtx) {
+            const ctx = statusCtx.getContext('2d');
+            if (attendanceStatusChartInstance) {
+                attendanceStatusChartInstance.destroy();
+            }
+            attendanceStatusChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Present', 'Absent', 'Half-Day', 'Leave', 'Holiday'],
+                    datasets: [{
+                        label: 'Count',
+                        data: [
+                            summary.total_present || 0,
+                            summary.total_absent || 0,
+                            summary.total_halfday || 0,
+                            summary.total_leave || 0,
+                            summary.total_holiday || 0
+                        ],
+                        backgroundColor: [
+                            '#28A745', '#DC3545', '#17A2B8', '#FFC107', '#6F42C1'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: { legend: { display: false } },
+                    scales: { x: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // Department Attendance Chart (will be populated when we have department data)
+        const deptCtx = document.getElementById('departmentAttendanceChart');
+        if (deptCtx && allAttendanceData && allAttendanceData.employees) {
+            const ctx = deptCtx.getContext('2d');
+            if (departmentAttendanceChartInstance) {
+                departmentAttendanceChartInstance.destroy();
+            }
+
+            // Calculate attendance percentage by department
+            const deptMap = {};
+            allAttendanceData.employees.forEach(emp => {
+                const deptId = emp.department_id || 'unassigned';
+                const deptName = emp.department_name || 'Unassigned';
+                if (!deptMap[deptId]) {
+                    deptMap[deptId] = { name: deptName, present: 0, total: 0 };
+                }
+                Object.entries(emp.attendance).forEach(([date, record]) => {
+                    if (record.status === 'present' || record.status === 'half-day') {
+                        deptMap[deptId].present += record.status === 'half-day' ? 0.5 : 1;
+                    }
+                    deptMap[deptId].total += 1;
+                });
+            });
+
+            const deptLabels = Object.values(deptMap).map(d => d.name);
+            const deptPercentages = Object.values(deptMap).map(d => d.total > 0 ? Math.round((d.present / d.total) * 100) : 0);
+
+            departmentAttendanceChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: deptLabels,
+                    datasets: [{
+                        data: deptPercentages,
+                        backgroundColor: [
+                            '#28A745', '#17A2B8', '#FFC107', '#DC3545', '#6F42C1', '#FD7E14'
+                        ],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return context.label + ': ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function renderDistributionChart(summary) {
+        const distCtx = document.getElementById('attendanceDistributionChart');
+        if (distCtx) {
+            const ctx = distCtx.getContext('2d');
+            if (attendanceDistributionChartInstance) {
+                attendanceDistributionChartInstance.destroy();
+            }
+            attendanceDistributionChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Present', 'Absent', 'Half-Day', 'Leave', 'Holiday'],
+                    datasets: [{
+                        data: [
+                            summary.total_present || 0,
+                            summary.total_absent || 0,
+                            summary.total_halfday || 0,
+                            summary.total_leave || 0,
+                            summary.total_holiday || 0
+                        ],
+                        backgroundColor: [
+                            '#28A745', '#DC3545', '#17A2B8', '#FFC107', '#6F42C1'
+                        ],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+    }
+
+    function renderDailyTrendChart() {
+        const trendCtx = document.getElementById('dailyTrendChart');
+        if (trendCtx && allAttendanceData) {
+            const ctx = trendCtx.getContext('2d');
+            if (dailyTrendChartInstance) {
+                dailyTrendChartInstance.destroy();
+            }
+
+            // Calculate daily attendance counts
+            const dailyMap = {};
+            const days = allAttendanceData.month_details.days_in_month;
+            for (let day = 1; day <= days; day++) {
+                const dateObj = new Date(allAttendanceData.month_details.year, allAttendanceData.month_details.month - 1, day);
+                const dateStr = dateObj.toISOString().slice(0, 10);
+                dailyMap[dateStr] = { present: 0, absent: 0 };
+            }
+
+            allAttendanceData.employees.forEach(emp => {
+                Object.entries(emp.attendance).forEach(([date, record]) => {
+                    if (dailyMap[date]) {
+                        if (record.status === 'present' || record.status === 'half-day') {
+                            dailyMap[date].present++;
+                        } else if (record.status === 'absent') {
+                            dailyMap[date].absent++;
+                        }
+                    }
+                });
+            });
+
+            const dates = Object.keys(dailyMap).sort();
+            const presentData = dates.map(d => dailyMap[d].present);
+            const absentData = dates.map(d => dailyMap[d].absent);
+
+            dailyTrendChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates.map(d => new Date(d).getDate()),
+                    datasets: [
+                        {
+                            label: 'Present',
+                            data: presentData,
+                            borderColor: '#28A745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Absent',
+                            data: absentData,
+                            borderColor: '#DC3545',
+                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+    }
+
+    function renderTopEmployeesChart() {
+        const empCtx = document.getElementById('topEmployeesChart');
+        if (empCtx && allAttendanceData && allAttendanceData.employees) {
+            const ctx = empCtx.getContext('2d');
+            if (topEmployeesChartInstance) {
+                topEmployeesChartInstance.destroy();
+            }
+
+            // Calculate attendance % for each employee
+            const empAttendance = allAttendanceData.employees.map(emp => {
+                let present = 0, total = 0;
+                Object.entries(emp.attendance).forEach(([date, record]) => {
+                    if (record.status === 'present' || record.status === 'half-day') {
+                        present += record.status === 'half-day' ? 0.5 : 1;
+                    }
+                    total += 1;
+                });
+                return {
+                    name: emp.name,
+                    percentage: total > 0 ? Math.round((present / total) * 100) : 0
+                };
+            }).sort((a, b) => b.percentage - a.percentage).slice(0, 8);
+
+            topEmployeesChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: empAttendance.map(e => e.name),
+                    datasets: [{
+                        label: 'Attendance %',
+                        data: empAttendance.map(e => e.percentage),
+                        backgroundColor: '#28A745'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { beginAtZero: true, max: 100 }
+                    }
+                }
+            });
+        }
     }
 
     function renderDepartmentCards(data) {
@@ -230,10 +630,14 @@ require_once '../components/layout/header.php';
         const grid = $('#departmentGrid');
         grid.html('');
 
-        // Display holidays once at the top
+        // Display holidays count in header badge
         const totalMonthHolidays = Object.keys(company_holidays).length;
-        $('#holidayCount').text(totalMonthHolidays);
-        $('#holidaysAlert').show();
+        $('#holidayBadge').text(totalMonthHolidays);
+
+        // Re-render all charts with updated data
+        renderDepartmentAttendanceChart();
+        renderDailyTrendChart();
+        renderTopEmployeesChart();
 
         // Group employees by department
         const departmentMap = {};
@@ -337,6 +741,64 @@ require_once '../components/layout/header.php';
         }, { rootMargin: '50px' });
 
         document.querySelectorAll('[data-dept-id]').forEach(el => observer.observe(el));
+    }
+
+    function renderDepartmentAttendanceChart() {
+        const deptCtx = document.getElementById('departmentAttendanceChart');
+        if (deptCtx && allAttendanceData && allAttendanceData.employees) {
+            const ctx = deptCtx.getContext('2d');
+            if (departmentAttendanceChartInstance) {
+                departmentAttendanceChartInstance.destroy();
+            }
+
+            // Calculate attendance percentage by department
+            const deptMap = {};
+            allAttendanceData.employees.forEach(emp => {
+                const deptId = emp.department_id || 'unassigned';
+                const deptName = emp.department_name || 'Unassigned';
+                if (!deptMap[deptId]) {
+                    deptMap[deptId] = { name: deptName, present: 0, total: 0 };
+                }
+                Object.entries(emp.attendance).forEach(([date, record]) => {
+                    if (record.status === 'present' || record.status === 'half-day') {
+                        deptMap[deptId].present += record.status === 'half-day' ? 0.5 : 1;
+                    }
+                    deptMap[deptId].total += 1;
+                });
+            });
+
+            const deptLabels = Object.values(deptMap).map(d => d.name);
+            const deptPercentages = Object.values(deptMap).map(d => d.total > 0 ? Math.round((d.present / d.total) * 100) : 0);
+
+            departmentAttendanceChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: deptLabels,
+                    datasets: [{
+                        data: deptPercentages,
+                        backgroundColor: [
+                            '#28A745', '#17A2B8', '#FFC107', '#DC3545', '#6F42C1', '#FD7E14'
+                        ],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return context.label + ': ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
     }
 
     function showEmployeeView(departmentId, departmentName) {
@@ -446,9 +908,11 @@ require_once '../components/layout/header.php';
                 const dayOfWeek = dateObj.getDay();
                 const isWeekendOff = (dayOfWeek === 0) || (dayOfWeek === 6 && isSaturdayHoliday(day, saturday_policy));
 
+                const companyCreatedAtDate = company_created_at.split('T')[0];
+
                 const isDisabled = dateObj > today ||
                     dateStr < emp.date_of_joining ||
-                    dateStr < company_created_at ||
+                    dateStr < companyCreatedAtDate ||
                     isWeekendOff ||
                     status === 'holiday' ||
                     status === 'leave';
