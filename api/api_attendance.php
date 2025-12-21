@@ -93,9 +93,24 @@ switch ($action) {
                 }
                 if ($row['date']) {
                     $employees[$row['employee_id']]['attendance'][$row['date']] = ['status' => $row['status']];
-                    $key = 'total_' . $row['status'];
+                    $key = 'total_' . str_replace('-', '_', $row['status']);
                     if (array_key_exists($key, $summary)) {
                         $summary[$key]++;
+                    }
+                }
+            }
+
+            foreach ($employee_leaves as $emp_id => $dates) {
+                foreach ($dates as $date => $is_leave) {
+                    $has_attendance = false;
+                    foreach ($result['data'] as $row) {
+                        if ($row['employee_id'] == $emp_id && $row['date'] == $date && $row['status']) {
+                            $has_attendance = true;
+                            break;
+                        }
+                    }
+                    if (!$has_attendance) {
+                        $summary['total_leave']++;
                     }
                 }
             }

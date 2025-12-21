@@ -23,7 +23,9 @@ require_once '../components/layout/header.php';
                 </div>
                 <div class="d-flex align-items-center flex-wrap gap-2 my-1">
                     <div class="badge bg-info-subtle text-info-emphasis"><i
-                            class="ti ti-calendar-off me-1"></i>Holidays: <span id="holidayBadge">0</span></div>
+                            class="ti ti-calendar-off me-1"></i>Holidays:
+                        <span id="holidayBadge">0</span>
+                    </div>
                     <button class="btn bg-dark-subtle btn-sm" id="openBulkModalBtn"><i
                             class="ti ti-loader-3 me-2"></i>Bulk
                         Actions</button>
@@ -271,7 +273,9 @@ require_once '../components/layout/header.php';
                     fetch(`/hrms/api/api_attendance.php?action=get_attendance_data&month=${monthString}`)
                         .then(res => res.json())
                         .then(result => {
-                            if (result.error || !result.employees) return;
+                            if (result.error || !result.employees) {
+                                return;
+                            }
                             allAttendanceData = result;
                             if (currentViewMode === 'employees') {
                                 const deptEmployees = result.employees.filter(emp => (emp.department_id || 'unassigned') === selectedDepartmentId);
@@ -286,10 +290,11 @@ require_once '../components/layout/header.php';
                             } else {
                                 renderDepartmentCards(result);
                             }
-                        });
+                        })
+                        .catch(err => { });
                 }
                 else { showToast(data.message || 'An error occurred.', 'error'); }
-            });
+            }).catch(err => { });
         });
 
         $(document).on('click', '.day-square:not(.status-disabled):not(.empty)', function () {
@@ -318,7 +323,6 @@ require_once '../components/layout/header.php';
                 if (result.error || !result.employees) { showToast(result.error || 'Failed to load data.', 'error'); $('#noResults').show(); return; }
                 allAttendanceData = result;
 
-                // Check if attendance tracking has begun
                 const viewingDate = new Date(result.month_details.year, result.month_details.month - 1, 1);
                 const companyCreationDate = new Date(result.company_created_at);
                 const today = new Date();
@@ -348,9 +352,9 @@ require_once '../components/layout/header.php';
 
     function renderDashboard(summary) {
         const stats = [
-            { label: 'Attendance Rate', value: `${summary.overall_percentage}%`, color: 'primary-subtle', icon: 'percent', textColor: 'primary' },
+            { label: 'Attendance Rate', value: `${summary.overall_percentage}%`, color: 'primary-subtle', icon: 'square-rounded-percentage', textColor: 'primary' },
             { label: 'Total Present', value: summary.total_present, color: 'success-subtle', icon: 'circle-check', textColor: 'success' },
-            { label: 'Total Absent', value: summary.total_absent, color: 'danger-subtle', icon: 'x', textColor: 'danger' },
+            { label: 'Total Absent', value: summary.total_absent, color: 'danger-subtle', icon: 'square-rounded-x', textColor: 'danger' },
             { label: 'Total On Leave', value: summary.total_leave, color: 'warning-subtle', icon: 'plane', textColor: 'warning' }
         ];
         let statsHtml = '';
@@ -379,7 +383,6 @@ require_once '../components/layout/header.php';
     }
 
     function renderAttendanceCharts(summary) {
-        // Attendance by Status Chart
         const statusCtx = document.getElementById('attendanceStatusChart');
         if (statusCtx) {
             const ctx = statusCtx.getContext('2d');
@@ -389,18 +392,17 @@ require_once '../components/layout/header.php';
             attendanceStatusChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Present', 'Absent', 'Half-Day', 'Leave', 'Holiday'],
+                    labels: ['Present', 'Absent', 'Half-Day', 'Leave'],
                     datasets: [{
                         label: 'Count',
                         data: [
                             summary.total_present || 0,
                             summary.total_absent || 0,
-                            summary.total_halfday || 0,
-                            summary.total_leave || 0,
-                            summary.total_holiday || 0
+                            summary.total_half_day || 0,
+                            summary.total_leave || 0
                         ],
                         backgroundColor: [
-                            '#28A745', '#DC3545', '#17A2B8', '#FFC107', '#6F42C1'
+                            '#8BAE66', '#F2613F', '#007880', '#FEC260'
                         ]
                     }]
                 },
@@ -448,7 +450,7 @@ require_once '../components/layout/header.php';
                     datasets: [{
                         data: deptPercentages,
                         backgroundColor: [
-                            '#28A745', '#17A2B8', '#FFC107', '#DC3545', '#6F42C1', '#FD7E14'
+                            '#8BAE66', '#007880', '#FEC260', '#F2613F', '#6d68de', '#fd7e14'
                         ],
                         borderColor: '#fff',
                         borderWidth: 2
@@ -482,17 +484,16 @@ require_once '../components/layout/header.php';
             attendanceDistributionChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Present', 'Absent', 'Half-Day', 'Leave', 'Holiday'],
+                    labels: ['Present', 'Absent', 'Half-Day', 'Leave'],
                     datasets: [{
                         data: [
                             summary.total_present || 0,
                             summary.total_absent || 0,
-                            summary.total_halfday || 0,
-                            summary.total_leave || 0,
-                            summary.total_holiday || 0
+                            summary.total_half_day || 0,
+                            summary.total_leave || 0
                         ],
                         backgroundColor: [
-                            '#28A745', '#DC3545', '#17A2B8', '#FFC107', '#6F42C1'
+                            '#8BAE66', '#F2613F', '#007880', '#FEC260'
                         ],
                         borderColor: '#fff',
                         borderWidth: 2
@@ -550,15 +551,15 @@ require_once '../components/layout/header.php';
                         {
                             label: 'Present',
                             data: presentData,
-                            borderColor: '#28A745',
-                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            borderColor: '#8BAE66',
+                            backgroundColor: 'rgba(117, 183, 152, 0.1)',
                             tension: 0.4
                         },
                         {
                             label: 'Absent',
                             data: absentData,
-                            borderColor: '#DC3545',
-                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            borderColor: '#F2613F',
+                            backgroundColor: 'rgba(234, 133, 142, 0.1)',
                             tension: 0.4
                         }
                     ]
@@ -607,7 +608,7 @@ require_once '../components/layout/header.php';
                     datasets: [{
                         label: 'Attendance %',
                         data: empAttendance.map(e => e.percentage),
-                        backgroundColor: '#28A745'
+                        backgroundColor: '#8BAE66'
                     }]
                 },
                 options: {
@@ -693,11 +694,15 @@ require_once '../components/layout/header.php';
                             if (status === 'present') totalPresent++;
                             else if (status === 'absent') totalAbsent++;
                             else if (status === 'half-day') totalHalfDay++;
+                            else if (status === 'leave') totalLeave++;
                         });
 
+                        // Also count approved leaves that don't have an attendance record
                         if (employee_leaves[emp.id]) {
                             Object.keys(employee_leaves[emp.id]).forEach(dateStr => {
-                                if (emp.attendance[dateStr]?.status !== 'leave') totalLeave++;
+                                if (!emp.attendance[dateStr]) {
+                                    totalLeave++;
+                                }
                             });
                         }
                     });
@@ -777,7 +782,7 @@ require_once '../components/layout/header.php';
                     datasets: [{
                         data: deptPercentages,
                         backgroundColor: [
-                            '#28A745', '#17A2B8', '#FFC107', '#DC3545', '#6F42C1', '#FD7E14'
+                            '#8BAE66', '#007880', '#FEC260', '#F2613F', '#6d68de', '#fd7e14'
                         ],
                         borderColor: '#fff',
                         borderWidth: 2
@@ -891,8 +896,13 @@ require_once '../components/layout/header.php';
             }
 
             for (let day = 1; day <= month_details.days_in_month; day++) {
+                // Create date in local timezone and convert to YYYY-MM-DD without timezone conversion
                 const dateObj = new Date(month_details.year, month_details.month - 1, day);
-                const dateStr = dateObj.toISOString().slice(0, 10);
+                // Use local date components instead of ISO string to avoid timezone shifts
+                const year = dateObj.getFullYear();
+                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const date = String(dateObj.getDate()).padStart(2, '0');
+                const dateStr = `${year}-${month}-${date}`;
 
                 let status = emp.attendance[dateStr]?.status || 'empty';
                 let classes = 'day-square';
@@ -910,12 +920,13 @@ require_once '../components/layout/header.php';
 
                 const companyCreatedAtDate = company_created_at.split('T')[0];
 
+                // Can only be disabled for: future dates, before joining date, before company creation, weekends (with no recorded attendance), holidays, or leaves
                 const isDisabled = dateObj > today ||
                     dateStr < emp.date_of_joining ||
                     dateStr < companyCreatedAtDate ||
-                    isWeekendOff ||
-                    status === 'holiday' ||
-                    status === 'leave';
+                    (isWeekendOff && status === 'empty') ||
+                    (status === 'holiday' && !emp.attendance[dateStr]) ||
+                    (status === 'leave' && !emp.attendance[dateStr]);
 
                 classes += ` status-${status}`;
                 if (isWeekendOff && status === 'empty') {
@@ -924,9 +935,6 @@ require_once '../components/layout/header.php';
                 }
                 if (isDisabled) {
                     classes += ' status-disabled';
-                }
-                if (status === 'holiday') {
-                    classes = classes.replace(' status-disabled', '');
                 }
 
                 if (status !== 'empty') {

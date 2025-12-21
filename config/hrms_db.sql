@@ -575,6 +575,7 @@ ALTER TABLE `activity_logs`
 --
 ALTER TABLE `attendance`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_employee_date` (`employee_id`, `date`),
   ADD KEY `employee_id` (`employee_id`);
 
 --
