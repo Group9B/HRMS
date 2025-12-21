@@ -186,6 +186,13 @@ require_once '../components/layout/header.php';
                         </div>
                     </div>
                     <div class="card-body">
+                        <?php if (empty($departments)): ?>
+                            <div class="alert alert-warning alert-dismissible fade show">
+                                <strong>No Departments Found</strong>
+                                <p>Please add departments in Organization Management section first.</p>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        <?php endif; ?>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle" id="designationsTable" width="100%">
                                 <thead>
@@ -344,37 +351,38 @@ require_once '../components/layout/header.php';
         const modals = {};
         let departmentsData = <?php echo json_encode($departments); ?>;
         let currentSection = 'departments';
+        const loadedTabs = new Set(['dashboard']); // Track which tabs have been loaded
 
         $(document).ready(function () {
             modals.org = new bootstrap.Modal(document.getElementById('orgModal'));
             modals.members = new bootstrap.Modal(document.getElementById('manageMembersModal'));
 
-            ['department', 'designation', 'team', 'shift'].forEach(type => {
-                const columns = getTableColumns(type);
-                tables[type] = $(`#${type}sTable`).DataTable({
-                    responsive: true,
-                    autoWidth: false,
-                    ajax: { url: `/hrms/api/organization.php?action=get_${type}s`, dataSrc: 'data' },
-                    columns: columns,
-                    pageLength: 10,
-                    dom: '<"d-flex justify-content-between align-items-center mb-3"lf>rtip'
-                });
-            });
+            // Initialize only dashboard charts initially
+            initializeCharts();
 
             $('#orgForm').on('submit', handleFormSubmit);
             $('#addMemberForm').on('submit', handleAddMember);
 
-            // Initialize Charts
-            initializeCharts();
-
-            // Adjust table columns when tabs are shown
+            // Handle tab switching for lazy loading
             document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
                 tab.addEventListener('shown.bs.tab', function (e) {
                     const target = e.target.getAttribute('data-bs-target');
                     const sectionId = target.replace('#', '').replace('Section', '');
+                    
+                    // Load table data only if not already loaded
+                    if (!loadedTabs.has(sectionId)) {
+                        loadedTabs.add(sectionId);
+                        initializeTableForSection(sectionId);
+                    } else if (tables[sectionId]) {
+                        // Reload data to get fresh content
+                        tables[sectionId].ajax.reload(null, false);
+                    }
+                    
+                    // Adjust table columns
                     if (tables[sectionId]) {
                         tables[sectionId].columns.adjust();
                     }
+                    
                     // Trigger chart resize on tab show
                     if (sectionId === 'dashboard') {
                         window.deptChart?.resize();
@@ -383,6 +391,43 @@ require_once '../components/layout/header.php';
                 });
             });
         });
+
+        function initializeTableForSection(sectionId) {
+            if (sectionId === 'dashboard') return; // Dashboard doesn't need a table
+            
+            const type = sectionId.replace('s', '').replace('Designation', 'designation').replace('Team', 'team').replace('Shift', 'shift').replace('Department', 'department');
+            // Map sectionId to type
+            const typeMap = {
+                'department': 'department',
+                'designation': 'designation',
+                'team': 'team',
+                'shift': 'shift'
+            };
+            
+            const actualType = Object.keys(typeMap).find(key => key === sectionId.replace(/s$/, '').replace('s', ''));
+            if (!actualType) {
+                const simplified = sectionId === 'departments' ? 'department' : 
+                                  sectionId === 'designations' ? 'designation' : 
+                                  sectionId === 'teams' ? 'team' : 'shift';
+                initTableForType(simplified);
+            } else {
+                initTableForType(actualType);
+            }
+        }
+
+        function initTableForType(type) {
+            if (tables[type]) return; // Already initialized
+            
+            const columns = getTableColumns(type);
+            tables[type] = $(`#${type}sTable`).DataTable({
+                responsive: true,
+                autoWidth: false,
+                ajax: { url: `/hrms/api/organization.php?action=get_${type}s`, dataSrc: 'data' },
+                columns: columns,
+                pageLength: 10,
+                dom: '<"d-flex justify-content-between align-items-center mb-3"lf>rtip'
+            });
+        }
 
         function getTableColumns(type) {
             const actions = (d, t, r) => {
@@ -497,7 +542,7 @@ require_once '../components/layout/header.php';
                 const selected = data.department_id == dept.id ? 'selected' : '';
                 deptOptions += `<option value="${dept.id}" ${selected}>${escapeHTML(dept.name)}</option>`;
             });
-            const deptField = `<div class="mb-3"><label class="form-label">Department <span class="text-danger">*</span></label><select class="form-select" name="department_id" required>${deptOptions}</select></div>`;
+            const deptField = `<div class="mb-3"><label class="form-label">Department <span class="text-danger">*</span></label><select class="form-select" name="department_id" ${departmentsData.length === 0 ? 'disabled' : ''} required>${deptOptions}</select></div>`;
 
             // Convert 24-hour time to 12-hour format for display
             const convertTo12Hour = (time24) => {
@@ -558,6 +603,10 @@ require_once '../components/layout/header.php';
         }
 
         function prepareAddModal(type) {
+            if (type === 'designation' && departmentsData.length === 0) {
+                showToast('Please add at least one department first.', 'error');
+                return;
+            }
             $('#orgForm').trigger("reset");
             $('#orgModalLabel').text(`Add ${capitalize(type)}`);
             $('#orgAction').val(`add_edit_${type}`);
@@ -682,7 +731,10 @@ require_once '../components/layout/header.php';
                     if (data.success) {
                         showToast(data.message, 'success');
                         modals.org.hide();
-                        if (type === 'department') refreshDepartments();
+                        if (type === 'department') {
+                            refreshDepartments();
+                            tables.designation.ajax.reload();
+                        }
                         Object.values(tables).forEach(table => table.ajax.reload());
                     } else { showToast(data.message, 'error'); }
                 });
@@ -700,6 +752,10 @@ require_once '../components/layout/header.php';
                             if (data.success) {
                                 showToast(data.message, 'success');
                                 tables[type].ajax.reload();
+                                if (type === 'department') {
+                                    refreshDepartments();
+                                    tables.designation.ajax.reload();
+                                }
                             } else { showToast(data.message, 'error'); }
                         });
                 },
@@ -762,7 +818,13 @@ require_once '../components/layout/header.php';
         function refreshDepartments() {
             fetch('/hrms/api/organization.php?action=get_departments')
                 .then(res => res.json())
-                .then(result => { if (result.data) departmentsData = result.data; });
+                .then(result => { 
+                    if (result.data) departmentsData = result.data;
+                    // Reload designations table immediately if loaded
+                    if (tables.designation && loadedTabs.has('designation')) {
+                        tables.designation.ajax.reload(null, false);
+                    }
+                });
         }
 
         function formatTime(timeStr) {

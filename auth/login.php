@@ -100,12 +100,12 @@ require_once "../components/layout/header.php";
                                 <label for="passwordInput" class="form-label">Password</label>
                                 <div class="input-group">
 
-                                    <span class="input-group-text" id="basic-addon1">⚿</span>
+                                    <span class="input-group-text" id="basic-addon1"><i class="ti ti-lock"></i></span>
                                     <input type="password" class="form-control" name="password" id="passwordInput"
                                         placeholder="Enter password" style="border-right: none;" required>
                                     <button class="btn btn-outline-secondary" type="button" id="togglePassword"
                                         style="border-left: none;">
-                                        <i class="ti ti-eye" id="icon"></i>
+                                        <i class="ti ti-eye fs-4" id="icon"></i>
                                     </button>
                                 </div>
                             </div>

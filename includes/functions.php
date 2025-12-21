@@ -97,13 +97,13 @@ function renderPayslipHTML(string $templateHtml, array $data): string
 
 /**
  * Generates a unique, sequential employee code for a given company.
- * The format is [DynamicPrefix]-[JoiningYear]-[PaddedSequentialNumber].
- * Example: TPL-2025-001 for "Test Pvt. Ltd."
+ * The format is [DynamicPrefix]-[Year]-[SequentialNumber].
+ * Example: TPL-2025-001, TPL-2025-002 for "Test Pvt. Ltd."
  *
  * @param mysqli $mysqli The database connection object.
  * @param int $company_id The ID of the company for which to generate the code.
  * @param string $date_of_joining The employee's date of joining (e.g., '2025-09-24').
- * @return string|null The newly generated employee code, or null on error.
+ * @return string The generated employee code.
  */
 function generateEmployeeCode($mysqli, $company_id, $date_of_joining)
 {
@@ -116,7 +116,7 @@ function generateEmployeeCode($mysqli, $company_id, $date_of_joining)
     if ($name_result['success'] && !empty($name_result['data'])) {
         $company_name = $name_result['data'][0]['name'];
 
-        // --- NEW LOGIC TO DYNAMICALLY CREATE A PREFIX ---
+        // LOGIC TO DYNAMICALLY CREATE A PREFIX
         $words = preg_split("/[\s,.-]+/", $company_name); // Split by spaces, commas, dots, hyphens
         $prefix = "";
         if (count($words) > 1) {
@@ -140,36 +140,28 @@ function generateEmployeeCode($mysqli, $company_id, $date_of_joining)
     // Step 2: Extract the year from the joining date.
     $joining_year = date('Y', strtotime($date_of_joining));
 
-    // Step 3: Find the highest existing employee code for the same company and year.
-    $code_pattern = $company_prefix . '-' . $joining_year . '-%';
-
-    $last_code_sql = "
-        SELECT e.employee_code
+    // Step 3: Get total employees created this year for this company.
+    // Join with users table to get company_id since employees.department_id is often NULL
+    $count_sql = "
+        SELECT COUNT(*) as total_count
         FROM employees e
-        INNER JOIN departments d ON e.department_id = d.id
-        WHERE d.company_id = ? AND e.employee_code LIKE ?
-        ORDER BY e.id DESC
-        LIMIT 1";
+        INNER JOIN users u ON e.user_id = u.id
+        WHERE u.company_id = ? AND YEAR(e.created_at) = ?";
 
-    $last_code_result = query($mysqli, $last_code_sql, [$company_id, $code_pattern]);
+    $max_result = query($mysqli, $count_sql, [$company_id, $joining_year]);
 
-    $next_sequence_num = 1;
-    if ($last_code_result['success'] && !empty($last_code_result['data'])) {
-        $last_code = $last_code_result['data'][0]['employee_code'];
-        $last_sequence_part = substr($last_code, strrpos($last_code, '-') + 1);
-        if (is_numeric($last_sequence_part)) {
-            $next_sequence_num = (int) $last_sequence_part + 1;
-        }
+    $next_sequence = 1;
+    if ($max_result['success'] && !empty($max_result['data'])) {
+        $count = (int) $max_result['data'][0]['total_count'];
+        $next_sequence = $count + 1;
     }
 
-    // Step 4: Format the next sequence number with 3 leading zeros.
-    $padded_sequence = str_pad($next_sequence_num, 3, '0', STR_PAD_LEFT);
+    // Step 4: Format with leading zeros (001, 002, 003, etc.)
+    $padded_sequence = str_pad($next_sequence, 3, '0', STR_PAD_LEFT);
 
-    // Step 5: Assemble and return the final, unique employee code.
+    // Step 5: Return the employee code.
     return "{$company_prefix}-{$joining_year}-{$padded_sequence}";
-}
-
-/**
+}/**
  * Fetch company details by id
  */
 function getCompanyById(mysqli $mysqli, int $companyId): ?array

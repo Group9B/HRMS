@@ -161,8 +161,8 @@ function initializePasswordToggle(inputId, toggleBtnId) {
 					? "text"
 					: "password";
 			passwordinp.setAttribute("type", type);
-			this.querySelector("i").classList.toggle("fa-eye");
-			this.querySelector("i").classList.toggle("fa-eye-slash");
+			this.querySelector("i").classList.toggle("ti-eye");
+			this.querySelector("i").classList.toggle("ti-eye-off");
 		});
 	}
 }
@@ -399,7 +399,7 @@ function showConfirmationModal(
 		return;
 	}
 
-	document.getElementById("confirmationMessage").textContent = message;
+	document.getElementById("confirmationMessage").innerHTML = message;
 	document.getElementById("confirmationModalLabel").textContent = title;
 
 	const confirmBtn = document.getElementById("confirmActionBtn");
@@ -433,10 +433,12 @@ function createActionDropdown(config, options = {}) {
 		deleteTooltip: "Delete",
 		manageTooltip: "Manage",
 		viewLinkTooltip: "Copy Link",
+		closeTooltip: "Close",
 		editIcon: "ti ti-edit",
 		deleteIcon: "ti ti-trash",
 		manageIcon: "ti ti-users",
 		viewLinkIcon: "ti ti-link",
+		closeIcon: "ti ti-circle-x",
 	};
 	const opts = { ...defaultOptions, ...options };
 
@@ -449,6 +451,7 @@ function createActionDropdown(config, options = {}) {
 		onDelete: config.onDelete,
 		onManage: config.onManage,
 		onViewLink: config.onViewLink,
+		onClose: config.onClose,
 	};
 
 	let dropdownHtml = `
@@ -492,10 +495,24 @@ function createActionDropdown(config, options = {}) {
 		`;
 	}
 
+	// Close action (optional)
+	if (config.onClose) {
+		dropdownHtml += `
+				<li>
+					<a class="dropdown-item close-action text-warning" href="#" onclick="window._actionCallbacks_${uniqueId}.onClose(); return false;" title="${opts.closeTooltip}">
+						<i class="${opts.closeIcon} me-2"></i>${opts.closeTooltip}
+					</a>
+				</li>
+		`;
+	}
+
 	// Divider before delete
 	if (
 		config.onDelete &&
-		(config.onEdit || config.onManage || config.onViewLink)
+		(config.onEdit ||
+			config.onManage ||
+			config.onViewLink ||
+			config.onClose)
 	) {
 		dropdownHtml += `<li><hr class="dropdown-divider"></li>`;
 	}

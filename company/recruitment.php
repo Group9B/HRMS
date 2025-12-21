@@ -19,15 +19,179 @@ require_once '../components/layout/header.php';
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="h3 mb-0"><i class="ti ti-briefcase me-2"></i>Recruitment</h2>
-            <button class="btn btn-primary" onclick="prepareJobModal()"><i class="ti ti-plus me-1"></i> Post New
-                Job</button>
+        <div class="accordion shadow-sm mb-4" id="dashboardAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#statsCollapse">
+                        <i class="ti ti-chart-bar me-2"></i> <strong>Dashboard Statistics</strong>
+                    </button>
+                </h2>
+                <div id="statsCollapse" class="accordion-collapse collapse" data-bs-parent="#dashboardAccordion">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-xl-3 col-md-6 mb-3">
+                                <div class="card shadow-sm bg-primary-subtle">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <div class="text-xs font-weight-bold text-uppercase mb-1">Total Jobs
+                                                </div>
+                                                <div class="h5 mb-0 font-weight-bold" id="totalJobs">0</div>
+                                            </div>
+                                            <i class="ti ti-briefcase text-primary"
+                                                style="font-size: 2.5rem; opacity: 0.5;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-3">
+                                <div class="card shadow-sm bg-info-subtle">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <div class="text-xs font-weight-bold text-uppercase mb-1">Total
+                                                    Applications</div>
+                                                <div class="h5 mb-0 font-weight-bold" id="totalApplications">0</div>
+                                            </div>
+                                            <i class="ti ti-file-text text-info"
+                                                style="font-size: 2.5rem; opacity: 0.5;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-3">
+                                <div class="card shadow-sm bg-success-subtle">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <div class="text-xs font-weight-bold text-uppercase mb-1">Hired This
+                                                    Month</div>
+                                                <div class="h5 mb-0 font-weight-bold" id="hiredThisMonth">0</div>
+                                            </div>
+                                            <i class="ti ti-user-check text-success"
+                                                style="font-size: 2.5rem; opacity: 0.5;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-3">
+                                <div class="card shadow-sm bg-warning-subtle">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <div class="text-xs font-weight-bold text-uppercase mb-1">Open Positions
+                                                </div>
+                                                <div class="h5 mb-0 font-weight-bold" id="openPositions">0</div>
+                                            </div>
+                                            <i class="ti ti-alert-circle text-warning"
+                                                style="font-size: 2.5rem; opacity: 0.5;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Item -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#chartsCollapse">
+                        <i class="ti ti-chart-line me-2"></i> <strong>Analytics & Charts</strong>
+                    </button>
+                </h2>
+                <div id="chartsCollapse" class="accordion-collapse collapse" data-bs-parent="#dashboardAccordion">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-lg-6 mb-3">
+                                <div class="card shadow-sm">
+                                    <div class="card-header">
+                                        <h6 class="m-0 font-weight-bold">Applications by Status</h6>
+                                    </div>
+                                    <div class="card-body" style="height: 300px;">
+                                        <canvas id="applicationStatusChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 mb-3">
+                                <div class="card shadow-sm">
+                                    <div class="card-header">
+                                        <h6 class="m-0 font-weight-bold">Job Status Overview</h6>
+                                    </div>
+                                    <div class="card-body" style="height: 300px;">
+                                        <canvas id="jobStatusChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shortlisted Candidates Item -->
+            <div class="accordion-item" id="shortlistedAccordionItem" style="display: none;">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#shortlistedCollapse">
+                        <i class="ti ti-star me-2"></i> <strong>Shortlisted Candidates</strong>
+                    </button>
+                </h2>
+                <div id="shortlistedCollapse" class="accordion-collapse collapse" data-bs-parent="#dashboardAccordion">
+                    <div class="accordion-body">
+                        <table class="table table-sm" id="shortlistedTable" width="100%">
+                            <thead>
+                                <tr>
+                                    <th>Candidate</th>
+                                    <th>Contact</th>
+                                    <th>Job Applied</th>
+                                    <th>Applied On</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scheduled Interviews Item -->
+            <div class="accordion-item" id="interviewsAccordionItem" style="display: none;">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#interviewsCollapse">
+                        <i class="ti ti-calendar me-2"></i> <strong>Scheduled Interviews</strong>
+                    </button>
+                </h2>
+                <div id="interviewsCollapse" class="accordion-collapse collapse" data-bs-parent="#dashboardAccordion">
+                    <div class="accordion-body">
+                        <table class="table table-sm" id="interviewsTable" width="100%">
+                            <thead>
+                                <tr>
+                                    <th>Candidate</th>
+                                    <th>Job Applied</th>
+                                    <th>Interview Date</th>
+                                    <th>Mode</th>
+                                    <th>Interviewer</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
 
+        <!-- Job Postings -->
         <div class="card shadow-sm">
             <div class="card-header">
-                <h6 class="m-0 font-weight-bold">Job Postings</h6>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+                    <h6 class="m-0 font-weight-bold">Job Postings</h6><button class="btn btn-primary btn-sm"
+                        onclick="prepareJobModal()"><i class="ti ti-plus me-1"></i> Post New
+                        Job</button>
+                </div>
             </div>
             <div class="card-body">
                 <table class="table table-hover" id="jobsTable" width="100%">
@@ -47,7 +211,6 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
-<!-- Job Modal -->
 <div class="modal fade" id="jobModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -57,11 +220,21 @@ require_once '../components/layout/header.php';
                         data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body"><input type="hidden" name="id" id="jobId">
+                    <?php if (empty($departments)): ?>
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <i class="ti ti-alert-circle me-2"></i>
+                            <strong>No Departments Found</strong>
+                            <p class="mb-0 mt-2">Please add departments in the <strong>Organization Management</strong>
+                                section before posting a job.</p>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    <?php endif; ?>
                     <div class="row">
-                        <div class="col-md-6 mb-3"><label class="form-label">Job Title *</label><input type="text"
-                                class="form-control" name="title" required></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Job Title <span
+                                    class="text-danger">*</span></label><input type="text" class="form-control"
+                                name="title" required></div>
                         <div class="col-md-6 mb-3"><label class="form-label">Department</label><select
-                                class="form-select" name="department_id">
+                                class="form-select" name="department_id" <?= empty($departments) ? 'disabled' : '' ?>>
                                 <option value="">-- Select --</option><?php foreach ($departments as $dept): ?>
                                     <option value="<?= $dept['id'] ?>"><?= htmlspecialchars($dept['name']) ?></option>
                                 <?php endforeach; ?>
@@ -79,8 +252,9 @@ require_once '../components/layout/header.php';
                             </select></div>
                         <div class="col-md-3 mb-3"><label class="form-label">Location</label><input type="text"
                                 class="form-control" name="location"></div>
-                        <div class="col-md-3 mb-3"><label class="form-label">Openings *</label><input type="number"
-                                class="form-control" name="openings" min="1" value="1" required></div>
+                        <div class="col-md-3 mb-3"><label class="form-label">Openings <span
+                                    class="text-danger">*</span></label><input type="number" class="form-control"
+                                name="openings" min="1" value="1" required></div>
                         <div class="col-md-3 mb-3"><label class="form-label">Status</label><select class="form-select"
                                 name="status">
                                 <option value="open">Open</option>
@@ -218,6 +392,11 @@ require_once '../components/layout/header.php';
             interview: new bootstrap.Modal('#interviewModal')
         };
 
+        // Initialize dashboard
+        loadDashboardData();
+        loadShortlistedCandidates();
+        loadScheduledInterviews();
+
         tables.jobs = $('#jobsTable').DataTable({
             ajax: { url: '/hrms/api/api_recruitment.php?action=get_jobs', dataSrc: 'data' },
             responsive: true,
@@ -227,19 +406,33 @@ require_once '../components/layout/header.php';
                 { data: 'application_count', className: 'text-center' },
                 { data: 'status', render: d => `<span class="badge text-bg-${d === 'open' ? 'success' : 'secondary'}">${capitalize(d)}</span>` },
                 {
-                    data: null, orderable: false, className: 'text-end', width: '10%', render: (d, t, r) => createActionDropdown(
-                        {
-                            onEdit: () => prepareJobModal(r),
+                    data: null, orderable: false, className: 'text-end', width: '10%', render: (d, t, r) => {
+                        const hasApplicants = r.application_count > 0;
+                        const callbacks = {
                             onManage: () => viewApplicants(r.id, r.title),
-                            onDelete: () => deleteJob(r.id, r.title),
                             onViewLink: () => copyJobLink(r.id),
-                        },
-                        {
-                            editTooltip: 'Edit Job',
+                        };
+                        const tooltips = {
                             manageTooltip: 'View Applicants',
-                            deleteTooltip: 'Delete Job',
+                            viewLinkTooltip: 'Copy Link',
+                        };
+
+                        // Only add edit and delete if no applicants
+                        if (!hasApplicants) {
+                            callbacks.onEdit = () => prepareJobModal(r);
+                            callbacks.onDelete = () => deleteJob(r.id, r.title);
+                            tooltips.editTooltip = 'Edit Job';
+                            tooltips.deleteTooltip = 'Delete Job';
+                        } else {
+                            // Add close opening button if applicants exist and job is still open
+                            if (r.status === 'open') {
+                                callbacks.onClose = () => closeJobOpening(r.id, r.title);
+                                tooltips.closeTooltip = 'Close Job Opening';
+                            }
                         }
-                    )
+
+                        return createActionDropdown(callbacks, tooltips);
+                    }
                 }
             ]
         });
@@ -247,6 +440,209 @@ require_once '../components/layout/header.php';
         $('#jobForm').on('submit', handleJobFormSubmit);
         $('#interviewForm').on('submit', handleInterviewFormSubmit);
     });
+
+    // Dashboard Functions
+    let applicationStatusChartInstance = null;
+    let jobStatusChartInstance = null;
+
+    function loadDashboardData() {
+        fetch('/hrms/api/api_recruitment.php?action=get_dashboard_stats')
+            .then(res => res.json())
+            .then(result => {
+                console.log('Dashboard stats:', result);
+                if (result.success) {
+                    const stats = result.data;
+                    $('#totalJobs').text(stats.total_jobs || 0);
+                    $('#totalApplications').text(stats.total_applications || 0);
+                    $('#hiredThisMonth').text(stats.hired_this_month || 0);
+                    $('#openPositions').text(stats.open_positions || 0);
+
+                    // Application Status Chart
+                    const statusCtx = document.getElementById('applicationStatusChart');
+                    if (statusCtx) {
+                        const ctx = statusCtx.getContext('2d');
+                        if (applicationStatusChartInstance) {
+                            applicationStatusChartInstance.destroy();
+                        }
+                        applicationStatusChartInstance = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: ['Pending', 'Shortlisted', 'Interviewed', 'Offered', 'Hired', 'Rejected'],
+                                datasets: [{
+                                    label: 'Applications',
+                                    data: [
+                                        stats.pending || 0,
+                                        stats.shortlisted || 0,
+                                        stats.interviewed || 0,
+                                        stats.offered || 0,
+                                        stats.hired || 0,
+                                        stats.rejected || 0
+                                    ],
+                                    backgroundColor: [
+                                        '#FFC107', '#17A2B8', '#6F42C1', '#FD7E14', '#28A745', '#DC3545'
+                                    ]
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                indexAxis: 'y',
+                                plugins: { legend: { display: false } },
+                                scales: { x: { beginAtZero: true } }
+                            }
+                        });
+                    }
+
+                    // Job Status Chart
+                    const jobCtx = document.getElementById('jobStatusChart');
+                    if (jobCtx) {
+                        const ctx = jobCtx.getContext('2d');
+                        if (jobStatusChartInstance) {
+                            jobStatusChartInstance.destroy();
+                        }
+                        jobStatusChartInstance = new Chart(ctx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Open', 'Closed'],
+                                datasets: [{
+                                    data: [
+                                        stats.open || 0,
+                                        stats.closed || 0
+                                    ],
+                                    backgroundColor: ['#28A745', '#6C757D'],
+                                    borderColor: '#fff',
+                                    borderWidth: 2
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { position: 'bottom' }
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    console.error('Failed to load dashboard stats:', result.message);
+                }
+            })
+            .catch(err => console.error('Error loading dashboard:', err));
+    }
+
+    function loadShortlistedCandidates() {
+        fetch('/hrms/api/api_recruitment.php?action=get_shortlisted_candidates')
+            .then(res => res.json())
+            .then(result => {
+                if (result.success && result.data.length > 0) {
+                    $('#shortlistedAccordionItem').show();
+                    if (!$.fn.DataTable.isDataTable('#shortlistedTable')) {
+                        $('#shortlistedTable').DataTable({
+                            data: result.data,
+                            columns: [
+                                { data: null, render: (d, t, r) => `<strong>${r.first_name} ${r.last_name}</strong><br><small>${r.email}</small>` },
+                                { data: 'phone', defaultContent: 'N/A' },
+                                { data: 'job_title', defaultContent: 'N/A' },
+                                { data: 'applied_at', render: d => new Date(d).toLocaleDateString() },
+                                {
+                                    data: null, orderable: false, render: (d, t, r) =>
+                                        `<button class="btn btn-sm btn-primary" onclick='prepareInterviewModal(${r.application_id}, "${r.first_name} ${r.last_name}")'>Schedule Interview</button>`
+                                }
+                            ],
+                            destroy: true
+                        });
+                    }
+                } else {
+                    $('#shortlistedAccordionItem').hide();
+                }
+            });
+    }
+
+    function loadScheduledInterviews() {
+        fetch('/hrms/api/api_recruitment.php?action=get_scheduled_interviews')
+            .then(res => res.json())
+            .then(result => {
+                console.log('Scheduled interviews:', result);
+                if (result.success && result.data.length > 0) {
+                    $('#interviewsAccordionItem').show();
+                    if (!$.fn.DataTable.isDataTable('#interviewsTable')) {
+                        $('#interviewsTable').DataTable({
+                            data: result.data,
+                            columns: [
+                                { data: null, render: (d, t, r) => `<strong>${r.first_name} ${r.last_name}</strong><br><small>${r.email}</small>` },
+                                { data: 'job_title', defaultContent: 'N/A' },
+                                { data: 'interview_date', render: d => new Date(d).toLocaleString() },
+                                { data: 'mode', render: d => `<span class="badge ${d === 'online' ? 'bg-info' : 'bg-secondary'}">${capitalize(d)}</span>` },
+                                { data: null, render: (d, t, r) => `${r.interviewer_first_name} ${r.interviewer_last_name}` },
+                                {
+                                    data: null, orderable: false, className: 'text-end', render: (d, t, r) => {
+                                        return `<div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-primary" onclick='markInterviewComplete(${r.interview_id}, "${r.first_name} ${r.last_name}")' title="Mark as Completed">
+                                                <i class="ti ti-check"></i> Complete
+                                            </button>
+                                            <button type="button" class="btn btn-outline-warning" onclick='rescheduleInterview(${r.interview_id})' title="Reschedule">
+                                                <i class="ti ti-calendar"></i> Reschedule
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" onclick='cancelInterview(${r.interview_id})' title="Cancel">
+                                                <i class="ti ti-x"></i> Cancel
+                                            </button>
+                                        </div>`;
+                                    }
+                                }
+                            ],
+                            destroy: true
+                        });
+                    }
+                } else {
+                    $('#interviewsAccordionItem').hide();
+                }
+            })
+            .catch(err => console.error('Error loading interviews:', err));
+    }
+
+    // Interview action functions
+    function markInterviewComplete(interviewId, candidateName) {
+        if (!confirm(`Mark interview as completed for ${candidateName}?`)) return;
+
+        const formData = new FormData();
+        formData.append('action', 'complete_interview');
+        formData.append('interview_id', interviewId);
+
+        fetch('/hrms/api/api_recruitment.php', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    showToast('Interview marked as completed!', 'success');
+                    loadScheduledInterviews();
+                } else {
+                    showToast(result.message, 'error');
+                }
+            });
+    }
+
+    function rescheduleInterview(interviewId) {
+        alert('Reschedule feature - redirect to interview form with interview_id: ' + interviewId);
+        // TODO: Implement reschedule interview modal
+    }
+
+    function cancelInterview(interviewId) {
+        if (!confirm('Are you sure you want to cancel this interview?')) return;
+
+        const formData = new FormData();
+        formData.append('action', 'cancel_interview');
+        formData.append('interview_id', interviewId);
+
+        fetch('/hrms/api/api_recruitment.php', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    showToast('Interview cancelled!', 'success');
+                    loadScheduledInterviews();
+                } else {
+                    showToast(result.message, 'error');
+                }
+            });
+    }
 
     function handleJobFormSubmit(e) {
         e.preventDefault();
@@ -343,7 +739,54 @@ require_once '../components/layout/header.php';
         );
     }
 
+    function closeJobOpening(jobId, jobTitle) {
+        showConfirmationModal(
+            `Are you sure you want to close the job opening for "${escapeHTML(jobTitle)}"? This will prevent new applications.`,
+            () => {
+                // Get current job data from table
+                const jobRow = tables.jobs.rows().data().toArray().find(row => row.id == jobId);
+                if (!jobRow) {
+                    showToast('Error: Could not find job data.', 'error');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('action', 'add_edit_job');
+                formData.append('id', jobId);
+                formData.append('title', jobRow.title);
+                formData.append('department_id', jobRow.department_id);
+                formData.append('description', jobRow.description);
+                formData.append('employment_type', jobRow.employment_type);
+                formData.append('location', jobRow.location);
+                formData.append('openings', jobRow.openings);
+                formData.append('status', 'closed');
+
+                fetch('/hrms/api/api_recruitment.php', { method: 'POST', body: formData })
+                    .then(res => res.json()).then(result => {
+                        if (result.success) {
+                            showToast('Job opening closed successfully!', 'success');
+                            tables.jobs.ajax.reload();
+                        } else {
+                            showToast(result.message, 'error');
+                        }
+                    }).catch(err => {
+                        console.error('Error:', err);
+                        showToast('An error occurred while closing the job opening.', 'error');
+                    });
+            },
+            'Close Job Opening',
+            'Close',
+            'btn-warning'
+        );
+    }
+
     function prepareJobModal(data = null) {
+        // Check if trying to edit job with applicants
+        if (data && data.application_count > 0) {
+            showToast('Cannot edit this job - applicants have already applied. You can only close the job opening.', 'warning');
+            return;
+        }
+
         $('#jobForm').trigger('reset');
         if (data) {
             $('#jobModalLabel').text('Edit Job Posting');
@@ -374,7 +817,14 @@ require_once '../components/layout/header.php';
                     { data: 'phone', defaultContent: 'N/A' },
                     { data: 'applied_at', render: d => new Date(d).toLocaleDateString() },
                     { data: 'status', render: (d, t, r) => createStatusDropdown(d, r.id) },
-                    { data: null, orderable: false, render: (d, t, r) => `<button class="btn btn-sm btn-primary" onclick='prepareInterviewModal(${r.id}, "${r.first_name} ${r.last_name}")'>Schedule Interview</button>` }
+                    {
+                        data: null, orderable: false, render: (d, t, r) => {
+                            const isHired = r.status === 'hired';
+                            const isRejected = r.status === 'rejected';
+                            if (isHired || isRejected) return '';
+                            return `<button class="btn btn-sm btn-primary" onclick='prepareInterviewModal(${r.id}, "${r.first_name} ${r.last_name}")'>Schedule Interview</button>`;
+                        }
+                    }
                 ]
             });
         }
@@ -384,9 +834,9 @@ require_once '../components/layout/header.php';
     function createStatusDropdown(currentStatus, appId) {
         let options = applicationStatuses.map(s => `<option value="${s}" ${s === currentStatus ? 'selected' : ''}>${capitalize(s)}</option>`).join('');
         const isHired = currentStatus === 'hired';
-        const disabled = isHired ? 'disabled' : '';
-        const hiredBadge = isHired ? ' <span class="badge bg-success-subtle text-success ms-2">Final Status</span>' : '';
-        return `<select class="form-select form-select-sm" onchange="updateStatus(${appId}, this.value)" ${disabled}>${options}</select>${hiredBadge}`;
+        const isRejected = currentStatus === 'rejected';
+        const disabled = (isHired || isRejected) ? 'disabled' : '';
+        return `<select class="form-select form-select-sm" onchange="updateStatus(${appId}, this.value)" ${disabled}>${options}</select>`;
     }
 
     function updateStatus(appId, status) {
@@ -396,14 +846,48 @@ require_once '../components/layout/header.php';
             return;
         }
 
+        // Get the applicant row to check current status
+        const appRow = tables.applicants.rows().data().toArray().find(row => row.id == appId);
+        if (appRow && appRow.status === 'rejected') {
+            showToast('Cannot change status - this applicant has been rejected. Rejected status is final.', 'warning');
+            return;
+        }
+
         const formData = new FormData();
         formData.append('action', 'update_application_status');
         formData.append('id', appId);
         formData.append('status', status);
+        formData.append('is_hired', status === 'hired' ? 1 : 0);
         fetch('/hrms/api/api_recruitment.php', { method: 'POST', body: formData })
             .then(res => res.json()).then(result => {
                 if (result.success) {
+                    // Show success toast
                     showToast(result.message, 'success');
+
+                    // If hired, show additional confirmation message
+                    if (status === 'hired' && appRow) {
+                        setTimeout(() => {
+                            showConfirmationModal(
+                                `<strong>${appRow.first_name} ${appRow.last_name}</strong> has been successfully hired!<br><br>
+                                <div class="alert alert-info mt-3">
+                                    <strong>Next Steps:</strong>
+                                    <ul class="mb-0 mt-2">
+                                        <li>Employee code has been generated automatically</li>
+                                        <li>Please add <strong>Shift</strong> and <strong>Designation</strong> in the <strong>Organization Management</strong> page</li>
+                                        <li>Assign shift and designation to this employee in the employee management section</li>
+                                    </ul>
+                                </div>`,
+                                () => {
+                                    if (tables.applicants) tables.applicants.ajax.reload();
+                                },
+                                'Employee Hired Successfully',
+                                'OK',
+                                'btn-success'
+                            );
+                        }, 500);
+                    } else {
+                        if (tables.applicants) tables.applicants.ajax.reload();
+                    }
                 } else {
                     showToast(result.message, 'error');
                 }

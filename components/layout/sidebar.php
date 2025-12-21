@@ -12,14 +12,14 @@ switch ($_SESSION['role_id']) {
         'submenu' => []
       ],
       'Companies' => [
-        'title' => 'Company Management',
+        'title' => 'Companies',
         'icon' => 'ti ti-building',
         'url' => '/hrms/admin/companies.php',
         'permission' => null,
         'submenu' => []
       ],
       'Users' => [
-        'title' => 'User Management',
+        'title' => 'Users',
         'icon' => 'ti ti-users',
         'url' => '/hrms/admin/user_management.php',
         'permission' => null,
@@ -33,7 +33,7 @@ switch ($_SESSION['role_id']) {
         'submenu' => []
       ],
       'Reports/Analytics' => [
-        'title' => 'Reports Analytics',
+        'title' => 'Reports',
         'icon' => 'ti ti-chart-bar',
         'url' => '/hrms/admin/reports.php',
         'permission' => null,
@@ -58,35 +58,35 @@ switch ($_SESSION['role_id']) {
         'submenu' => []
       ],
       'Users' => [
-        'title' => 'Employee Management',
+        'title' => 'Employees',
         'icon' => 'ti ti-users',
         'url' => '/hrms/company/employees.php',
         'permission' => null,
         'submenu' => []
       ],
       'Department' => [
-        'title' => 'Organization Management',
+        'title' => 'Organization',
         'icon' => 'ti ti-sitemap',
         'url' => '/hrms/company/organization.php',
         'permission' => null,
         'submenu' => []
       ],
       'Recruitment' => [
-        'title' => 'Recruitment Management',
+        'title' => 'Recruitment',
         'icon' => 'ti ti-user-plus',
         'url' => '/hrms/company/recruitment.php',
         'permission' => null,
         'submenu' => []
       ],
       'Attendence' => [
-        'title' => 'Attendence Management',
+        'title' => 'Attendance',
         'icon' => 'ti ti-calendar-check',
         'url' => '/hrms/company/attendance.php',
         'permission' => null,
         'submenu' => []
       ],
       'Leave' => [
-        'title' => 'Leave Management',
+        'title' => 'Leaves',
         'icon' => 'ti ti-calendar',
         'url' => '/hrms/company/leaves.php',
         'permission' => null,
@@ -118,14 +118,14 @@ switch ($_SESSION['role_id']) {
         'submenu' => []
       ],
       'Employees' => [
-        'title' => 'Employee Management',
+        'title' => 'Employees',
         'icon' => 'ti ti-users',
         'url' => '/hrms/company/employees.php',
         'permission' => null,
         'submenu' => []
       ],
       'Departments' => [
-        'title' => 'Organization Management',
+        'title' => 'Organization',
         'icon' => 'ti ti-sitemap',
         'url' => '/hrms/company/organization.php',
         'permission' => null,
@@ -139,7 +139,7 @@ switch ($_SESSION['role_id']) {
         'submenu' => []
       ],
       'Leaves' => [
-        'title' => 'Leave Management',
+        'title' => 'Leaves',
         'icon' => 'ti ti-calendar',
         'url' => '/hrms/company/leaves.php',
         'permission' => null,
@@ -218,28 +218,28 @@ switch ($_SESSION['role_id']) {
         'submenu' => []
       ],
       'team' => [
-        'title' => 'Team Management',
+        'title' => 'Team',
         'icon' => 'ti ti-users',
         'url' => '/hrms/manager/team_management.php',
         'permission' => null,
         'submenu' => []
       ],
       'leaves' => [
-        'title' => 'Leave Approval',
+        'title' => 'Approvals',
         'icon' => 'ti ti-calendar-check',
         'url' => '/hrms/manager/leave_approval.php',
         'permission' => null,
         'submenu' => []
       ],
       'tasks' => [
-        'title' => 'Task Management',
+        'title' => 'Tasks',
         'icon' => 'ti ti-checklist',
         'url' => '/hrms/manager/task_management.php',
         'permission' => null,
         'submenu' => []
       ],
       'attendance' => [
-        'title' => 'Team Attendance',
+        'title' => 'Attendance',
         'icon' => 'ti ti-calendar',
         'url' => '/hrms/manager/attendance.php',
         'permission' => null,
@@ -312,7 +312,7 @@ function isActivePage($url)
             <a class="nav-link d-flex align-items-center py-2 px-3 rounded <?php echo isActivePage($item['url']) ? 'active bg-primary text-white' : 'text-muted'; ?>"
               href="<?php echo htmlspecialchars($item['url']); ?>">
               <i class="<?php echo htmlspecialchars($item['icon']); ?> me-2" style="width: 20px;"></i>
-              <span><?php echo htmlspecialchars($item['title']); ?></span>
+              <span style="font-size: 0.95rem;"><?php echo htmlspecialchars($item['title']); ?></span>
             </a>
           <?php else: ?>
             <div class="nav-item">

@@ -5,7 +5,6 @@ require_once '../includes/functions.php';
 
 $response = ['success' => false, 'message' => 'An unknown error occurred.'];
 
-// Security Check: Must be a logged-in Company Admin or HR Manager
 if (!isLoggedIn() || !in_array($_SESSION['role_id'], [2, 3])) {
     $response['message'] = 'Unauthorized access.';
     echo json_encode($response);
@@ -49,7 +48,6 @@ function validateTime($timeStr)
 }
 
 switch ($action) {
-    // --- DEPARTMENT ACTIONS ---
     case 'get_departments':
         $result = query($mysqli, "SELECT * FROM departments WHERE company_id = ? ORDER BY name ASC", [$company_id]);
         if ($result['success']) {

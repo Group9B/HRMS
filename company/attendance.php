@@ -36,9 +36,15 @@ require_once '../components/layout/header.php';
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"><span
                     class="visually-hidden">Loading...</span></div>
         </div>
-        <div class="attendance-grid" id="attendanceGrid" style="display:none;"></div>
+        <div class="attendance-grid" id="departmentGrid" style="display:none;"></div>
+        <div class="attendance-grid" id="employeeGrid" style="display:none;"></div>
         <div id="noResults" class="alert alert-info text-center" style="display:none;"><i
                 class="ti ti-info-circle me-2"></i>No attendance records found for the selected month.</div>
+        
+        <!-- Back Button (Hidden by default) -->
+        <div id="backToDepartments" style="display:none;" class="mb-3">
+            <button class="btn btn-secondary btn-sm"><i class="ti ti-arrow-left me-2"></i>Back to Departments</button>
+        </div>
     </div>
 </div>
 
