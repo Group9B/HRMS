@@ -159,6 +159,57 @@ require_once '../components/layout/header.php';
     let tables = {}, modals = {};
     const applicationStatuses = ['pending', 'shortlisted', 'interviewed', 'offered', 'hired', 'rejected'];
 
+    // --- Validation Functions ---
+    function validateJobTitle(title) {
+        if (!title || title.trim().length === 0) return 'Job title is required.';
+        if (title.length < 3) return 'Job title must be at least 3 characters long.';
+        if (title.length > 100) return 'Job title must not exceed 100 characters.';
+        if (!/^[a-zA-Z0-9\s\-&.,()]+$/.test(title)) return 'Job title contains invalid characters.';
+        return null;
+    }
+
+    function validateDescription(description, maxLength = 2000) {
+        if (description && description.length > maxLength) return `Description must not exceed ${maxLength} characters.`;
+        return null;
+    }
+
+    function validateLocation(location) {
+        if (location && location.length > 100) return 'Location must not exceed 100 characters.';
+        return null;
+    }
+
+    function validateOpenings(openings) {
+        if (!openings || isNaN(openings)) return 'Number of openings is required.';
+        if (parseInt(openings) < 1) return 'Number of openings must be at least 1.';
+        if (parseInt(openings) > 999) return 'Number of openings cannot exceed 999.';
+        return null;
+    }
+
+    function validateEmploymentType(type) {
+        const validTypes = ['full-time', 'part-time', 'internship', 'contract'];
+        if (!validTypes.includes(type)) return 'Invalid employment type selected.';
+        return null;
+    }
+
+    function validateJobStatus(status) {
+        const validStatuses = ['open', 'closed'];
+        if (!validStatuses.includes(status)) return 'Invalid job status.';
+        return null;
+    }
+
+    function validateInterviewDate(date) {
+        if (!date) return 'Interview date and time is required.';
+        const timestamp = new Date(date).getTime();
+        if (isNaN(timestamp)) return 'Invalid date format.';
+        if (timestamp < Date.now()) return 'Interview date cannot be in the past.';
+        return null;
+    }
+
+    function validateApplicationStatus(status) {
+        if (!applicationStatuses.includes(status)) return 'Invalid application status.';
+        return null;
+    }
+    // --- End Validation Functions ---
 
     $(function () {
         modals = {
@@ -176,35 +227,120 @@ require_once '../components/layout/header.php';
                 { data: 'application_count', className: 'text-center' },
                 { data: 'status', render: d => `<span class="badge text-bg-${d === 'open' ? 'success' : 'secondary'}">${capitalize(d)}</span>` },
                 {
-                    data: null, orderable: false, render: (d, t, r) => `
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-secondary" onclick='copyJobLink(${r.id})' title="Copy Application Link"><i class="ti ti-link"></i></button>
-                    <button class="btn btn-outline-info" onclick='viewApplicants(${r.id}, "${escapeHTML(r.title)}")' title="View Applicants"><i class="ti ti-users"></i></button>
-                    <button class="btn btn-outline-primary" onclick='prepareJobModal(${JSON.stringify(r)})'><i class="ti ti-edit"></i></button>
-                </div>`
+                    data: null, orderable: false, className: 'text-end', width: '10%', render: (d, t, r) => createActionDropdown(
+                        {
+                            onEdit: () => prepareJobModal(r),
+                            onManage: () => viewApplicants(r.id, r.title),
+                            onDelete: () => deleteJob(r.id, r.title),
+                            onViewLink: () => copyJobLink(r.id),
+                        },
+                        {
+                            editTooltip: 'Edit Job',
+                            manageTooltip: 'View Applicants',
+                            deleteTooltip: 'Delete Job',
+                        }
+                    )
                 }
             ]
         });
 
-        $('#jobForm').on('submit', handleFormSubmit('job', 'add_edit_job'));
-        $('#interviewForm').on('submit', handleFormSubmit('interview', 'schedule_interview'));
+        $('#jobForm').on('submit', handleJobFormSubmit);
+        $('#interviewForm').on('submit', handleInterviewFormSubmit);
     });
 
-    function handleFormSubmit(modalName, action) {
-        return function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            formData.append('action', action);
-            fetch('/hrms/api/api_recruitment.php', { method: 'POST', body: formData })
-                .then(res => res.json()).then(result => {
-                    if (result.success) {
-                        showToast(result.message, 'success');
-                        modals[modalName].hide();
-                        tables.jobs.ajax.reload();
-                        if (tables.applicants) tables.applicants.ajax.reload();
-                    } else { showToast(result.message, 'error'); }
-                });
+    function handleJobFormSubmit(e) {
+        e.preventDefault();
+        const form = $(this);
+
+        // Get form values
+        const title = form.find('[name="title"]').val().trim();
+        const description = form.find('[name="description"]').val().trim();
+        const location = form.find('[name="location"]').val().trim();
+        const openings = form.find('[name="openings"]').val();
+        const employmentType = form.find('[name="employment_type"]').val();
+        const status = form.find('[name="status"]').val();
+
+        // Validate all fields
+        const titleError = validateJobTitle(title);
+        if (titleError) { showToast(titleError, 'error'); return; }
+
+        const descError = validateDescription(description);
+        if (descError) { showToast(descError, 'error'); return; }
+
+        const locError = validateLocation(location);
+        if (locError) { showToast(locError, 'error'); return; }
+
+        const openingsError = validateOpenings(openings);
+        if (openingsError) { showToast(openingsError, 'error'); return; }
+
+        const typeError = validateEmploymentType(employmentType);
+        if (typeError) { showToast(typeError, 'error'); return; }
+
+        const statusError = validateJobStatus(status);
+        if (statusError) { showToast(statusError, 'error'); return; }
+
+        // Submit form
+        const formData = new FormData(this);
+        formData.append('action', 'add_edit_job');
+        fetch('/hrms/api/api_recruitment.php', { method: 'POST', body: formData })
+            .then(res => res.json()).then(result => {
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    modals.job.hide();
+                    tables.jobs.ajax.reload();
+                } else { showToast(result.message, 'error'); }
+            });
+    }
+
+    function handleInterviewFormSubmit(e) {
+        e.preventDefault();
+        const form = $(this);
+
+        const interviewerId = form.find('[name="interviewer_id"]').val();
+        const interviewDate = form.find('[name="interview_date"]').val();
+
+        if (!interviewerId) {
+            showToast('Interviewer is required.', 'error');
+            return;
         }
+
+        const dateError = validateInterviewDate(interviewDate);
+        if (dateError) { showToast(dateError, 'error'); return; }
+
+        const formData = new FormData(this);
+        formData.append('action', 'schedule_interview');
+        fetch('/hrms/api/api_recruitment.php', { method: 'POST', body: formData })
+            .then(res => res.json()).then(result => {
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    modals.interview.hide();
+                    tables.jobs.ajax.reload();
+                    if (tables.applicants) tables.applicants.ajax.reload();
+                } else { showToast(result.message, 'error'); }
+            });
+    }
+
+    function deleteJob(jobId, jobTitle) {
+        showConfirmationModal(
+            `Are you sure you want to delete the job posting for "${escapeHTML(jobTitle)}"?`,
+            () => {
+                const formData = new FormData();
+                formData.append('action', 'delete_job');
+                formData.append('id', jobId);
+                fetch('/hrms/api/api_recruitment.php', { method: 'POST', body: formData })
+                    .then(res => res.json()).then(result => {
+                        if (result.success) {
+                            showToast(result.message, 'success');
+                            tables.jobs.ajax.reload();
+                        } else {
+                            showToast(result.message, 'error');
+                        }
+                    });
+            },
+            'Delete Job Posting',
+            'Delete',
+            'btn-danger'
+        );
     }
 
     function prepareJobModal(data = null) {
@@ -247,17 +383,30 @@ require_once '../components/layout/header.php';
 
     function createStatusDropdown(currentStatus, appId) {
         let options = applicationStatuses.map(s => `<option value="${s}" ${s === currentStatus ? 'selected' : ''}>${capitalize(s)}</option>`).join('');
-        return `<select class="form-select form-select-sm" onchange="updateStatus(${appId}, this.value)">${options}</select>`;
+        const isHired = currentStatus === 'hired';
+        const disabled = isHired ? 'disabled' : '';
+        const hiredBadge = isHired ? ' <span class="badge bg-success-subtle text-success ms-2">Final Status</span>' : '';
+        return `<select class="form-select form-select-sm" onchange="updateStatus(${appId}, this.value)" ${disabled}>${options}</select>${hiredBadge}`;
     }
 
     function updateStatus(appId, status) {
+        const statusError = validateApplicationStatus(status);
+        if (statusError) {
+            showToast(statusError, 'error');
+            return;
+        }
+
         const formData = new FormData();
         formData.append('action', 'update_application_status');
         formData.append('id', appId);
         formData.append('status', status);
         fetch('/hrms/api/api_recruitment.php', { method: 'POST', body: formData })
             .then(res => res.json()).then(result => {
-                if (result.success) showToast(result.message, 'success');
+                if (result.success) {
+                    showToast(result.message, 'success');
+                } else {
+                    showToast(result.message, 'error');
+                }
             });
     }
 

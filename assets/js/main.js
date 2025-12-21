@@ -419,10 +419,12 @@ function showConfirmationModal(
  * @param {Function} config.onEdit - Edit callback function
  * @param {Function} config.onDelete - Delete callback function
  * @param {Function} config.onManage - Manage callback function (optional)
+ * @param {Function} config.onViewLink - View link callback function (optional)
  * @param {Object} options - Additional options
  * @param {string} options.editTooltip - Tooltip for edit button (default: "Edit")
  * @param {string} options.deleteTooltip - Tooltip for delete button (default: "Delete")
  * @param {string} options.manageTooltip - Tooltip for manage button (default: "Manage")
+ * @param {string} options.viewLinkTooltip - Tooltip for view link button (default: "Copy Link")
  * @returns {string} - HTML string for the dropdown menu
  */
 function createActionDropdown(config, options = {}) {
@@ -430,9 +432,11 @@ function createActionDropdown(config, options = {}) {
 		editTooltip: "Edit",
 		deleteTooltip: "Delete",
 		manageTooltip: "Manage",
+		viewLinkTooltip: "Copy Link",
 		editIcon: "ti ti-edit",
 		deleteIcon: "ti ti-trash",
 		manageIcon: "ti ti-users",
+		viewLinkIcon: "ti ti-link",
 	};
 	const opts = { ...defaultOptions, ...options };
 
@@ -444,6 +448,7 @@ function createActionDropdown(config, options = {}) {
 		onEdit: config.onEdit,
 		onDelete: config.onDelete,
 		onManage: config.onManage,
+		onViewLink: config.onViewLink,
 	};
 
 	let dropdownHtml = `
@@ -453,6 +458,17 @@ function createActionDropdown(config, options = {}) {
 			</button>
 			<ul class="dropdown-menu dropdown-menu-end">
 	`;
+
+	// View Link action (optional)
+	if (config.onViewLink) {
+		dropdownHtml += `
+				<li>
+					<a class="dropdown-item view-link-action" href="#" onclick="window._actionCallbacks_${uniqueId}.onViewLink(); return false;" title="${opts.viewLinkTooltip}">
+						<i class="${opts.viewLinkIcon} me-2"></i>${opts.viewLinkTooltip}
+					</a>
+				</li>
+		`;
+	}
 
 	// Manage action (optional, usually for teams/groups)
 	if (config.onManage) {
@@ -477,7 +493,10 @@ function createActionDropdown(config, options = {}) {
 	}
 
 	// Divider before delete
-	if (config.onDelete && (config.onEdit || config.onManage)) {
+	if (
+		config.onDelete &&
+		(config.onEdit || config.onManage || config.onViewLink)
+	) {
 		dropdownHtml += `<li><hr class="dropdown-divider"></li>`;
 	}
 

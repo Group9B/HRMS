@@ -14,7 +14,7 @@ $employees = query($mysqli, "SELECT e.id, e.first_name, e.last_name FROM employe
 // Get stats for dashboard
 $statsData = [
     'departments' => query($mysqli, "SELECT COUNT(*) as count FROM departments WHERE company_id = ?", [$company_id])['data'][0]['count'] ?? 0,
-    'designations' => query($mysqli, "SELECT COUNT(*) as count FROM designations WHERE company_id = ?", [$company_id])['data'][0]['count'] ?? 0,
+    'designations' => query($mysqli, "SELECT COUNT(*) as count FROM designations dsg JOIN departments d ON dsg.department_id = d.id WHERE d.company_id = ?", [$company_id])['data'][0]['count'] ?? 0,
     'teams' => query($mysqli, "SELECT COUNT(*) as count FROM teams WHERE company_id = ?", [$company_id])['data'][0]['count'] ?? 0,
     'shifts' => query($mysqli, "SELECT COUNT(*) as count FROM shifts WHERE company_id = ?", [$company_id])['data'][0]['count'] ?? 0,
 ];
@@ -70,56 +70,53 @@ require_once '../components/layout/header.php';
                 <!-- Overview Cards -->
                 <div class="row mb-4">
                     <div class="col-md-6 col-lg-3 mb-3">
-                        <div class="card border-0 shadow-sm">
+                        <div class="card shadow-sm">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <p class="text-muted mb-1">Departments</p>
                                         <h3 class="mb-0"><?php echo $statsData['departments']; ?></h3>
                                     </div>
-                                    <i class="ti ti-building" style="font-size: 2rem; opacity: 0.2;"
-                                        class="text-primary"></i>
+                                    <i class="ti ti-building text-primary" style="font-size: 2rem; opacity: 0.2;"></i>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6 col-lg-3 mb-3">
-                        <div class="card border-0 shadow-sm">
+                        <div class="card shadow-sm">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <p class="text-muted mb-1">Designations</p>
                                         <h3 class="mb-0"><?php echo $statsData['designations']; ?></h3>
                                     </div>
-                                    <i class="ti ti-id-badge" style="font-size: 2rem; opacity: 0.2;"
-                                        class="text-success"></i>
+                                    <i class="ti ti-id-badge text-success" style="font-size: 2rem; opacity: 0.2;"></i>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6 col-lg-3 mb-3">
-                        <div class="card border-0 shadow-sm">
+                        <div class="card shadow-sm">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <p class="text-muted mb-1">Teams</p>
                                         <h3 class="mb-0"><?php echo $statsData['teams']; ?></h3>
                                     </div>
-                                    <i class="ti ti-users" style="font-size: 2rem; opacity: 0.2;" class="text-info"></i>
+                                    <i class="ti ti-users text-info" style="font-size: 2rem; opacity: 0.2;"></i>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6 col-lg-3 mb-3">
-                        <div class="card border-0 shadow-sm">
+                        <div class="card shadow-sm">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <p class="text-muted mb-1">Shifts</p>
                                         <h3 class="mb-0"><?php echo $statsData['shifts']; ?></h3>
                                     </div>
-                                    <i class="ti ti-clock" style="font-size: 2rem; opacity: 0.2;"
-                                        class="text-warning"></i>
+                                    <i class="ti text-warning ti-clock" style="font-size: 2rem; opacity: 0.2;"></i>
                                 </div>
                             </div>
                         </div>
@@ -465,8 +462,35 @@ require_once '../components/layout/header.php';
         }
 
         function getFormFields(type, data = {}) {
-            const nameField = `<div class="mb-3"><label class="form-label">Name <span class="text-danger">*</span></label><input type="text" class="form-control" name="name" value="${escapeHTML(data.name || '')}" required></div>`;
-            const descField = `<div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" name="description" rows="3">${escapeHTML(data.description || '')}</textarea></div>`;
+            const validationGuide = `
+                <div class="alert alert-info-subtle border border-info-subtle rounded mb-3">
+                    <div class="d-flex align-items-start">
+                        <div class="flex-shrink-0">
+                            <i class="ti ti-info-circle text-info me-2 mt-1" style="font-size: 1.1rem;"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="alert-heading text-info mb-2">Field Requirements</h6>
+                            <ul class="mb-0 small">
+                                <li class="mb-2"><span class="text-info fw-bold">Name:</span> 2-100 characters, letters & spaces only <span class="badge bg-danger-subtle text-danger">No Numbers</span></li>
+                                <li class="mb-2"><span class="text-info fw-bold">Special Characters:</span> Only <code class="text-info">' - .</code> allowed</li>
+                                <li><span class="text-info fw-bold">Description:</span> <span class="text-muted">Optional, max 500 characters</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const nameField = `<div class="mb-3">
+                <label class="form-label">Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="name" value="${escapeHTML(data.name || '')}" placeholder="e.g., Human Resources, IT-Support" maxlength="100" required>
+            </div>`;
+            const descField = `<div class="mb-3">
+                <label class="form-label">Description <span class="text-muted">(Optional)</span></label>
+                <textarea class="form-control" name="description" rows="3" placeholder="Add any additional details..." maxlength="500">${escapeHTML(data.description || '')}</textarea>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <small class="text-info-emphasis fw-lighter"><i class="ti ti-info-circle"></i> <span id="charCount">0</span>/500 characters</small>
+                </div>
+            </div>`;
 
             let deptOptions = '<option value="">-- Select --</option>';
             departmentsData.forEach(dept => {
@@ -539,6 +563,7 @@ require_once '../components/layout/header.php';
             $('#orgAction').val(`add_edit_${type}`);
             $('#orgId').val('0');
             $('#form-fields').html(getFormFields(type));
+            initializeCharCounter();
             modals.org.show();
         }
 
@@ -548,7 +573,37 @@ require_once '../components/layout/header.php';
             $('#orgAction').val(`add_edit_${type}`);
             $('#orgId').val(data.id);
             $('#form-fields').html(getFormFields(type, data));
+            initializeCharCounter();
             modals.org.show();
+        }
+
+        function initializeCharCounter() {
+            const descField = $('[name="description"]');
+            if (descField.length) {
+                const currentLength = descField.val().length;
+                $('#charCount').text(currentLength);
+            }
+        }
+
+        function validateOrgName(name, fieldName = 'Name') {
+            if (!name || name.trim().length === 0) return `${fieldName} is required.`;
+            if (name.length < 2) return `${fieldName} must be at least 2 characters long.`;
+            if (name.length > 100) return `${fieldName} must not exceed 100 characters.`;
+            if (/\d/.test(name)) return `${fieldName} cannot contain numbers.`;
+            if (!/^[a-zA-Z\s.'-]+$/.test(name)) return `${fieldName} can only contain letters, spaces, hyphens, apostrophes, and periods.`;
+            return null;
+        }
+
+        function validateOrgDescription(desc, maxLength = 500) {
+            if (desc && desc.length > maxLength) return `Description must not exceed ${maxLength} characters.`;
+            return null;
+        }
+
+        function validateOrgTime(time) {
+            if (!time || !/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/.test(time)) {
+                return 'Time must be in HH:MM format (24-hour).';
+            }
+            return null;
         }
 
         function handleFormSubmit(e) {
@@ -557,8 +612,18 @@ require_once '../components/layout/header.php';
             const type = $('#orgAction').val().replace('add_edit_', '');
             const name = form.find('[name="name"]').val().trim();
 
-            if (name.length < 2) {
-                showToast('Name must be at least 2 characters long.', 'error');
+            // Validate name
+            const nameError = validateOrgName(name, capitalize(type) + ' name');
+            if (nameError) {
+                showToast(nameError, 'error');
+                return;
+            }
+
+            // Validate description
+            const description = form.find('[name="description"]').val().trim();
+            const descError = validateOrgDescription(description);
+            if (descError) {
+                showToast(descError, 'error');
                 return;
             }
 
@@ -578,6 +643,32 @@ require_once '../components/layout/header.php';
                 const endHours = form.find('[name="end_hours"]').val();
                 const endMinutes = form.find('[name="end_minutes"]').val();
                 const endPeriod = form.find('[name="end_period"]').val();
+
+                // Validate time inputs
+                if (!startHours || !startMinutes || !endHours || !endMinutes) {
+                    showToast('Please enter all time values.', 'error');
+                    return;
+                }
+
+                if (parseInt(startHours) < 1 || parseInt(startHours) > 12) {
+                    showToast('Start hours must be between 1 and 12.', 'error');
+                    return;
+                }
+
+                if (parseInt(endHours) < 1 || parseInt(endHours) > 12) {
+                    showToast('End hours must be between 1 and 12.', 'error');
+                    return;
+                }
+
+                if (parseInt(startMinutes) < 0 || parseInt(startMinutes) > 59) {
+                    showToast('Start minutes must be between 0 and 59.', 'error');
+                    return;
+                }
+
+                if (parseInt(endMinutes) < 0 || parseInt(endMinutes) > 59) {
+                    showToast('End minutes must be between 0 and 59.', 'error');
+                    return;
+                }
 
                 const start24 = convertTo24Hour(startHours, startMinutes, startPeriod);
                 const end24 = convertTo24Hour(endHours, endMinutes, endPeriod);
@@ -767,4 +858,20 @@ require_once '../components/layout/header.php';
                 });
             }
         }
+        // Character counter for description field
+        $(document).on('input', '[name="description"]', function () {
+            const length = $(this).val().length;
+            const maxLength = 500;
+            $('#charCount').text(length);
+
+            // Update color based on usage
+            const counter = $('#charCount');
+            if (length > 400) {
+                counter.removeClass('text-muted').addClass('text-danger');
+            } else if (length > 300) {
+                counter.removeClass('text-muted text-danger').addClass('text-warning');
+            } else {
+                counter.removeClass('text-danger text-warning').addClass('text-muted');
+            }
+        });
     </script>

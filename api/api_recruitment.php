@@ -16,6 +16,81 @@ $company_id = $_SESSION['company_id'];
 $user_id = $_SESSION['user_id'];
 $action = $_REQUEST['action'] ?? '';
 
+// --- Validation Functions ---
+function validateJobTitle($title)
+{
+    if (!$title || trim($title) === '')
+        return 'Job title is required.';
+    if (strlen($title) < 3)
+        return 'Job title must be at least 3 characters long.';
+    if (strlen($title) > 100)
+        return 'Job title must not exceed 100 characters.';
+    if (!preg_match('/^[a-zA-Z0-9\s\-&.,()]+$/', $title))
+        return 'Job title contains invalid characters.';
+    return null;
+}
+
+function validateDescription($description, $maxLength = 2000)
+{
+    if ($description && strlen($description) > $maxLength)
+        return "Description must not exceed $maxLength characters.";
+    return null;
+}
+
+function validateLocation($location)
+{
+    if ($location && strlen($location) > 100)
+        return 'Location must not exceed 100 characters.';
+    return null;
+}
+
+function validateOpenings($openings)
+{
+    if (!is_numeric($openings) || (int) $openings < 1)
+        return 'Number of openings must be at least 1.';
+    if ((int) $openings > 999)
+        return 'Number of openings cannot exceed 999.';
+    return null;
+}
+
+function validateEmploymentType($type)
+{
+    $validTypes = ['full-time', 'part-time', 'internship', 'contract'];
+    if (!in_array($type, $validTypes))
+        return 'Invalid employment type selected.';
+    return null;
+}
+
+function validateJobStatus($status)
+{
+    $validStatuses = ['open', 'closed'];
+    if (!in_array($status, $validStatuses))
+        return 'Invalid job status.';
+    return null;
+}
+
+function validateInterviewDate($date)
+{
+    if (!$date)
+        return 'Interview date and time is required.';
+    $timestamp = strtotime($date);
+    if (!$timestamp)
+        return 'Invalid date format.';
+    if ($timestamp < time())
+        return 'Interview date cannot be in the past.';
+    return null;
+}
+
+function validateApplicationStatus($status)
+{
+    $validStatuses = ['pending', 'shortlisted', 'interviewed', 'offered', 'hired', 'rejected'];
+    if (!in_array($status, $validStatuses))
+        return 'Invalid application status.';
+    return null;
+}
+
+// --- End Validation Functions ---
+
 switch ($action) {
     // --- Job Postings ---
     case 'get_jobs':
@@ -26,16 +101,48 @@ switch ($action) {
 
     case 'add_edit_job':
         $id = (int) ($_POST['id'] ?? 0);
-        $title = $_POST['title'] ?? '';
+        $title = trim($_POST['title'] ?? '');
         $department_id = $_POST['department_id'] ? (int) $_POST['department_id'] : null;
-        $description = $_POST['description'] ?? '';
-        $employment_type = $_POST['employment_type'] ?? 'full-time'; // Added employment_type
-        $location = $_POST['location'] ?? '';
-        $openings = (int) ($_POST['openings'] ?? 1);
+        $description = trim($_POST['description'] ?? '');
+        $employment_type = $_POST['employment_type'] ?? 'full-time';
+        $location = trim($_POST['location'] ?? '');
+        $openings = $_POST['openings'] ?? 1;
         $status = $_POST['status'] ?? 'open';
 
-        if (empty($title) || $openings < 1) {
-            $response['message'] = 'Job title and at least one opening are required.';
+        // Validate all inputs
+        $titleError = validateJobTitle($title);
+        if ($titleError) {
+            $response['message'] = $titleError;
+            break;
+        }
+
+        $descError = validateDescription($description);
+        if ($descError) {
+            $response['message'] = $descError;
+            break;
+        }
+
+        $locError = validateLocation($location);
+        if ($locError) {
+            $response['message'] = $locError;
+            break;
+        }
+
+        $openingsError = validateOpenings($openings);
+        if ($openingsError) {
+            $response['message'] = $openingsError;
+            break;
+        }
+
+        $typeError = validateEmploymentType($employment_type);
+        if ($typeError) {
+            $response['message'] = $typeError;
+            break;
+        }
+
+        $statusError = validateJobStatus($status);
+        if ($statusError) {
+            $response['message'] = $statusError;
             break;
         }
 
@@ -52,6 +159,19 @@ switch ($action) {
         }
         break;
 
+    case 'delete_job':
+        $id = (int) ($_POST['id'] ?? 0);
+        if (!$id) {
+            $response['message'] = 'Invalid job ID.';
+            break;
+        }
+        $sql = "DELETE FROM jobs WHERE id = ? AND company_id = ?";
+        $result = query($mysqli, $sql, [$id, $company_id]);
+        if ($result['success']) {
+            $response = ['success' => true, 'message' => 'Job posting deleted successfully!'];
+        }
+        break;
+
     // --- Job Applications ---
     case 'get_applications':
         $job_id = (int) ($_GET['job_id'] ?? 0);
@@ -62,7 +182,19 @@ switch ($action) {
 
     case 'update_application_status':
         $application_id = (int) ($_POST['id'] ?? 0);
-        $status = $_POST['status'] ?? '';
+        $status = trim($_POST['status'] ?? '');
+
+        if (!$application_id) {
+            $response['message'] = 'Invalid application ID.';
+            break;
+        }
+
+        $statusError = validateApplicationStatus($status);
+        if ($statusError) {
+            $response['message'] = $statusError;
+            break;
+        }
+
         $sql = "UPDATE job_applications SET status = ? WHERE id = ?";
         $result = query($mysqli, $sql, [$status, $application_id]);
         if ($result['success']) {
@@ -74,11 +206,28 @@ switch ($action) {
     case 'schedule_interview':
         $application_id = (int) ($_POST['application_id'] ?? 0);
         $interviewer_id = (int) ($_POST['interviewer_id'] ?? 0);
-        $interview_date = $_POST['interview_date'] ?? '';
-        $mode = $_POST['mode'] ?? 'offline';
+        $interview_date = trim($_POST['interview_date'] ?? '');
+        $mode = trim($_POST['mode'] ?? 'offline');
 
-        if (empty($application_id) || empty($interviewer_id) || empty($interview_date)) {
-            $response['message'] = 'All fields are required to schedule an interview.';
+        if (!$application_id) {
+            $response['message'] = 'Invalid application ID.';
+            break;
+        }
+
+        if (!$interviewer_id) {
+            $response['message'] = 'Interviewer is required.';
+            break;
+        }
+
+        $dateError = validateInterviewDate($interview_date);
+        if ($dateError) {
+            $response['message'] = $dateError;
+            break;
+        }
+
+        $validModes = ['offline', 'online'];
+        if (!in_array($mode, $validModes)) {
+            $response['message'] = 'Invalid interview mode.';
             break;
         }
 

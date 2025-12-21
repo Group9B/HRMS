@@ -8,8 +8,8 @@
         <link rel="icon" href="/hrms/assets/img/SS.png" type="image/png">
         <!-- Using existing local Bootstrap -->
         <link rel="stylesheet" href="/hrms/assets/css/bootstrap.css">
-        <!-- Font Awesome for Icons -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <!-- tabler for Icons -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
         <!-- AOS Animation CSS -->
         <!-- AOS Animation CSS -->
         <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
@@ -70,15 +70,10 @@
                     StaffSync
                 </a>
 
-                <!-- Theme Toggle Button -->
-                <button class="btn btn-link text-primary p-0 me-3 ms-auto" id="themeToggle" aria-label="Toggle theme">
-                    <i class="ti ti-moon fa-lg"></i>
-                </button>
-
                 <!-- Custom Toggler Trigger -->
                 <button class="navbar-toggler border-0 shadow-none z-3" type="button" data-bs-toggle="offcanvas"
                     data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
-                    <i class="ti ti-menu-2 fa-lg" id="navbarTogglerIcon"></i>
+                    <i class="ti ti-menu-2 ti-lg" id="navbarTogglerIcon"></i>
                 </button>
 
                 <!-- Offcanvas Menu (Right Side) -->
@@ -86,11 +81,6 @@
                     aria-labelledby="offcanvasNavbarLabel">
                     <div class="offcanvas-header justify-content-between">
                         <h5 class="offcanvas-title fw-bold text-primary" id="offcanvasNavbarLabel">StaffSync</h5>
-                        <!-- Standard close button hidden, we leverage the main toggler or a custom logic if needed, 
-                         but standard Bootstrap UX usually puts a close button here. 
-                         The user wants the ICON to change. We will handle that via JS on the main button if visible 
-                         or rely on this close button for the "Close" action state visually replacing the menu. 
-                         For best UX, we keep the close btn here too. -->
                         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
                             aria-label="Close"></button>
                     </div>
@@ -117,6 +107,10 @@
                                     Free</a>
                             </li>
                         </ul>
+                        <button class="btn btn-link text-primary p-0 ms-3 me-auto text-decoration-none" id="themeToggle"
+                            aria-label="Toggle theme">
+                            <i class="ti ti-moon" style="font-size: 1.2rem;"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -143,7 +137,7 @@
                             data-aos="fade-up" data-aos-delay="300">
                             <a href="#" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm fw-semibold">
                                 Get Started
-                                <i class="ti ti-arrow-right ms-2 small"></i>
+                                <i class="ti ti-arrow-right ms-2"></i>
                             </a>
                             <a href="#features" class="btn btn-outline-secondary btn-lg px-5 rounded-pill fw-semibold">
                                 Learn More
@@ -155,13 +149,12 @@
                         </div>
                     </div>
                     <div class="col-lg-6">
-                        <!-- Placeholder visual using Bootstrap utilities and Icons -->
                         <div class="position-relative p-4 bg-body-tertiary rounded-4 border" data-aos="fade-left"
                             data-aos-duration="1000">
                             <div class="bg-body rounded-3  shadow-sm p-4 mb-4 border-start border-4 border-primary">
                                 <div class="d-flex align-items-center mb-3">
-                                    <div class="bg-primary bg-opacity-10 p-2 rounded-circle text-primary me-3">
-                                        <i class="ti ti-users fa-lg"></i>
+                                    <div class="bg-primary bg-opacity-10 badge py-2 rounded-circle text-primary me-3">
+                                        <i class="ti ti-users fs-4"></i>
                                     </div>
                                     <div>
                                         <h5 class="mb-0 fw-bold text-body">Total Employees</h5>
@@ -220,7 +213,7 @@
                             <div class="card-body">
                                 <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-3 p-3 mb-4"
                                     style="width: 60px; height: 60px;">
-                                    <i class="ti ti-calendar-check fa-xl"></i>
+                                    <i class="ti ti-calendar-check fs-3"></i>
                                 </div>
                                 <h4 class="fw-bold mb-3 text-body">Smart Attendance</h4>
                                 <p class="text-secondary mb-0">
@@ -237,7 +230,7 @@
                             <div class="card-body">
                                 <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success rounded-3 p-3 mb-4"
                                     style="width: 60px; height: 60px;">
-                                    <i class="ti ti-currency-dollar fa-xl"></i>
+                                    <i class="ti ti-currency-dollar fs-3"></i>
                                 </div>
                                 <h4 class="fw-bold mb-3 text-body">Payroll Automation</h4>
                                 <p class="text-secondary mb-0">
@@ -253,7 +246,7 @@
                             <div class="card-body">
                                 <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning rounded-3 p-3 mb-4"
                                     style="width: 60px; height: 60px;">
-                                    <i class="ti ti-chart-pie fa-xl"></i>
+                                    <i class="ti ti-chart-pie fs-3"></i>
                                 </div>
                                 <h4 class="fw-bold mb-3 text-body">Performance Analytics</h4>
                                 <p class="text-secondary mb-0">
@@ -269,7 +262,7 @@
                             <div class="card-body">
                                 <div class="d-inline-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info rounded-3 p-3 mb-4"
                                     style="width: 60px; height: 60px;">
-                                    <i class="ti ti-user-plus fa-xl"></i>
+                                    <i class="ti ti-user-plus fs-3"></i>
                                 </div>
                                 <h4 class="fw-bold mb-3 text-body">Easy Onboarding</h4>
                                 <p class="text-secondary mb-0">
@@ -285,7 +278,7 @@
                             <div class="card-body">
                                 <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-3 p-3 mb-4"
                                     style="width: 60px; height: 60px;">
-                                    <i class="ti ti-checklist fa-xl"></i>
+                                    <i class="ti ti-checklist fs-3"></i>
                                 </div>
                                 <h4 class="fw-bold mb-3 text-body">Task Management</h4>
                                 <p class="text-secondary mb-0">
@@ -301,7 +294,7 @@
                             <div class="card-body">
                                 <div class="d-inline-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary rounded-3 p-3 mb-4"
                                     style="width: 60px; height: 60px;">
-                                    <i class="ti ti-shield-check fa-xl"></i>
+                                    <i class="ti ti-shield-check fs-3"></i>
                                 </div>
                                 <h4 class="fw-bold mb-3 text-body">Secure Data</h4>
                                 <p class="text-secondary mb-0">
@@ -322,20 +315,21 @@
                 </p>
                 <div class="row align-items-center justify-content-center g-4 grayscale opacity-75">
                     <div class="col-6 col-md-3 col-lg-2">
-                        <span class="h4 fw-bold text-body"><i class="ti ti-star text-warning me-1"></i> G2</span>
+                        <span class="h4 fw-bold text-body"><i class="ti ti-star text-warning "></i> G2</span>
                         <div class="small">High Performer 2024</div>
                     </div>
                     <div class="col-6 col-md-3 col-lg-2">
-                        <span class="h4 fw-bold text-body"><i class="ti ti-trophy text-warning me-1"></i>
+                        <span class="h4 fw-bold text-body"><i class="ti ti-trophy text-warning "></i>
                             Capterra</span>
                         <div class="small">Best Ease of Use</div>
                     </div>
                     <div class="col-6 col-md-3 col-lg-2">
-                        <span class="h4 fw-bold text-body"><i class="fab fa-google text-primary me-1"></i> Google</span>
+                        <span class="h4 fw-bold text-body"><i class="ti ti-brand-google-filled text-primary "></i>
+                            Google</span>
                         <div class="small">4.8/5 Rating</div>
                     </div>
                     <div class="col-6 col-md-3 col-lg-2">
-                        <span class="h4 fw-bold text-body"><i class="ti ti-shield-check text-success me-1"></i>
+                        <span class="h4 fw-bold text-body"><i class="ti ti-shield-check text-success "></i>
                             ISO</span>
                         <div class="small">27001 Certified</div>
                     </div>
@@ -350,7 +344,7 @@
                     <div class="col-lg-6" data-aos="fade-right">
                         <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-3 p-3 mb-4"
                             style="width: 60px; height: 60px;">
-                            <i class="ti ti-users-group fa-xl"></i>
+                            <i class="ti ti-users-group fs-3"></i>
                         </div>
                         <h2 class="display-6 fw-bold text-body-emphasis mb-4">Simplify Core HR Operations</h2>
                         <p class="lead text-secondary mb-4">
@@ -398,14 +392,13 @@
             </div>
         </section>
 
-        <!-- Detailed Feature: Performance (Alternating) -->
         <section class="py-5 bg-body-tertiary">
             <div class="container py-5">
                 <div class="row align-items-center g-5 flex-lg-row-reverse">
                     <div class="col-lg-6" data-aos="fade-left">
                         <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning rounded-3 p-3 mb-4"
                             style="width: 60px; height: 60px;">
-                            <i class="ti ti-chart-line fa-xl"></i>
+                            <i class="ti ti-chart-line fs-3"></i>
                         </div>
                         <h2 class="display-6 fw-bold text-body-emphasis mb-4">Drive High Performance</h2>
                         <p class="lead text-secondary mb-4">
@@ -466,7 +459,7 @@
                     <div class="col-lg-6" data-aos="fade-right">
                         <div class="d-inline-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info rounded-3 p-3 mb-4"
                             style="width: 60px; height: 60px;">
-                            <i class="ti ti-chart-pie fa-xl"></i>
+                            <i class="ti ti-chart-pie fs-3"></i>
                         </div>
                         <h2 class="display-6 fw-bold text-body-emphasis mb-4">Powerful HR Analytics</h2>
                         <p class="lead text-secondary mb-4">
@@ -543,32 +536,32 @@
                 <div class="row justify-content-center g-4">
                     <div class="col-6 col-md-4 col-lg-2">
                         <div
-                            class="bg-body p-4 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
-                            <i class="fab fa-slack fa-3x text-body"></i>
+                            class="bg-body p-2 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
+                            <i class="ti ti-brand-open-source fs-1 text-primary"></i>
                         </div>
                     </div>
                     <div class="col-6 col-md-4 col-lg-2">
                         <div
-                            class="bg-body p-4 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
-                            <i class="fab fa-google fa-3x text-danger"></i>
+                            class="bg-body p-2 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
+                            <i class="ti ti-brand-google-filled fs-1 text-danger"></i>
                         </div>
                     </div>
                     <div class="col-6 col-md-4 col-lg-2">
                         <div
-                            class="bg-body p-4 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
-                            <i class="fab fa-microsoft fa-3x text-primary"></i>
+                            class="bg-body p-2 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
+                            <i class="ti ti-brand-speedtest fs-1 text-primary"></i>
                         </div>
                     </div>
                     <div class="col-6 col-md-4 col-lg-2">
                         <div
-                            class="bg-body p-4 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
-                            <i class="fab fa-jira fa-3x text-primary"></i>
+                            class="bg-body p-2 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
+                            <i class="ti ti-brand-deezer fs-1 text-primary"></i>
                         </div>
                     </div>
                     <div class="col-6 col-md-4 col-lg-2">
                         <div
-                            class="bg-body p-4 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
-                            <i class="fab fa-dropbox fa-3x text-primary"></i>
+                            class="bg-body p-2 rounded-4 shadow-sm border d-flex justify-content-center align-items-center h-100">
+                            <i class="ti ti-brand-chrome fs-1 text-secondary"></i>
                         </div>
                     </div>
                 </div>
@@ -636,7 +629,7 @@
                             class="card h-100 bg-body text-body border-0 rounded-4 p-4 shadow-sm hover-shadow transition-all">
                             <div class="card-body p-0">
                                 <div class="mb-4">
-                                    <i class="far fa-smile fa-2x text-primary"></i>
+                                    <i class="ti ti-mood-smile-beam fs-2 text-primary"></i>
                                 </div>
                                 <p class="card-text text-body mb-0">
                                     <span class="text-body fw-bold">User-friendly</span> interface that's quick to
@@ -652,7 +645,7 @@
                             class="card h-100 bg-body text-body border-0 rounded-4 p-4 shadow-sm hover-shadow transition-all">
                             <div class="card-body p-0">
                                 <div class="mb-4">
-                                    <i class="far fa-file-alt fa-2x text-primary"></i>
+                                    <i class="ti ti-file-invoice fs-2 text-primary"></i>
                                 </div>
                                 <p class="card-text text-body mb-0">
                                     Expansive <span class="text-body fw-bold">resource library</span> to help you get
@@ -667,7 +660,7 @@
                             class="card h-100 bg-body text-body border-0 rounded-4 p-4 shadow-sm hover-shadow transition-all">
                             <div class="card-body p-0">
                                 <div class="mb-4">
-                                    <i class="ti ti-chart-line fa-2x text-primary"></i>
+                                    <i class="ti ti-chart-line fs-2 text-primary"></i>
                                 </div>
                                 <p class="card-text text-body mb-0">
                                     HR solution that can be fine-tuned to <span class="text-body fw-bold">changing
@@ -683,7 +676,7 @@
                             class="card h-100 bg-body text-body border-0 rounded-4 p-4 shadow-sm hover-shadow transition-all">
                             <div class="card-body p-0">
                                 <div class="mb-4">
-                                    <i class="ti ti-robot fa-2x text-primary"></i>
+                                    <i class="ti ti-robot fs-2 text-primary"></i>
                                 </div>
                                 <p class="card-text text-body mb-0">
                                     Friendly <span class="text-body fw-bold">HR chatbot Zia</span> to help you with your
@@ -832,16 +825,16 @@
                             empower your workforce.
                         </p>
                         <div class="d-flex gap-3">
-                            <a href="#" class="btn btn-icon btn-sm btn-outline-light rounded-circle"><i
-                                    class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="btn btn-icon btn-sm btn-outline-light rounded-circle"><i
-                                    class="fab fa-twitter"></i></a>
-                            <a href="#" class="btn btn-icon btn-sm btn-outline-light rounded-circle"><i
-                                    class="fab fa-linkedin-in"></i></a>
-                            <a href="#" class="btn btn-icon btn-sm btn-outline-light rounded-circle"><i
-                                    class="fab fa-instagram"></i></a>
-                            <a href="#" class="btn btn-icon btn-sm btn-outline-light rounded-circle"><i
-                                    class="fab fa-youtube"></i></a>
+                            <a href="#" class="btn btn-icon btn-sm btn-outline-light rounded-circle fs-5"><i
+                                    class="ti ti-brand-facebook"></i></a>
+                            <a href="#" class="btn btn-icon btn-sm btn-outline-light rounded-circle fs-5"><i
+                                    class="ti ti-brand-twitter"></i></a>
+                            <a href="#" class="btn btn-icon btn-sm btn-outline-light rounded-circle fs-5"><i
+                                    class="ti ti-brand-linkedin"></i></a>
+                            <a href="#" class="btn btn-icon btn-sm btn-outline-light rounded-circle fs-5"><i
+                                    class="ti ti-brand-instagram"></i></a>
+                            <a href="#" class="btn btn-icon btn-sm btn-outline-light rounded-circle fs-5"><i
+                                    class="ti ti-brand-youtube"></i></a>
                         </div>
                     </div>
 
@@ -926,7 +919,6 @@
                     </div>
                 </div>
 
-                <hr class="border-secondary opacity-25 mt-5">
 
                 <div class="row pt-4 border-top border-secondary border-opacity-25 align-items-center">
                     <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
@@ -995,11 +987,11 @@
             function setTheme(theme) {
                 htmlElement.setAttribute('data-bs-theme', theme);
                 if (theme === 'dark') {
-                    themeIcon.classList.remove('fa-moon');
-                    themeIcon.classList.add('fa-sun');
+                    themeIcon.classList.remove('ti-moon');
+                    themeIcon.classList.add('ti-sun');
                 } else {
-                    themeIcon.classList.remove('fa-sun');
-                    themeIcon.classList.add('fa-moon');
+                    themeIcon.classList.remove('ti-sun');
+                    themeIcon.classList.add('ti-moon');
                 }
             }
         </script>

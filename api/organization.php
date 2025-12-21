@@ -16,6 +16,38 @@ $action = $_REQUEST['action'] ?? '';
 $company_id = $_SESSION['company_id'];
 $user_id = $_SESSION['user_id'];
 
+// Validation helper functions
+function validateName($name, $fieldName = 'Name')
+{
+    if (empty($name))
+        return "$fieldName is required.";
+    if (strlen($name) < 2)
+        return "$fieldName must be at least 2 characters long.";
+    if (strlen($name) > 100)
+        return "$fieldName must not exceed 100 characters.";
+    if (preg_match('/\d/', $name))
+        return "$fieldName cannot contain numbers.";
+    if (!preg_match('/^[a-zA-Z\s.\'-]+$/', $name))
+        return "$fieldName can only contain letters, spaces, hyphens, apostrophes, and periods.";
+    return null;
+}
+
+function validateDescription($description, $maxLength = 500)
+{
+    if (!empty($description) && strlen($description) > $maxLength) {
+        return "Description must not exceed $maxLength characters.";
+    }
+    return null;
+}
+
+function validateTime($timeStr)
+{
+    if (!preg_match('/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/', $timeStr)) {
+        return "Time must be in HH:MM format (24-hour).";
+    }
+    return null;
+}
+
 switch ($action) {
     // --- DEPARTMENT ACTIONS ---
     case 'get_departments':
@@ -29,12 +61,17 @@ switch ($action) {
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
 
-        if (empty($name)) {
-            $response['message'] = 'Department name is required.';
+        // Validate department name
+        $nameError = validateName($name, 'Department name');
+        if ($nameError) {
+            $response['message'] = $nameError;
             break;
         }
-        if (strlen($name) < 2) {
-            $response['message'] = 'Department name must be at least 2 characters long.';
+
+        // Validate description
+        $descError = validateDescription($description);
+        if ($descError) {
+            $response['message'] = $descError;
             break;
         }
 
@@ -79,12 +116,22 @@ switch ($action) {
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
 
-        if (empty($name) || empty($dept_id)) {
-            $response['message'] = 'Designation name and department are required.';
+        // Validate designation name
+        $nameError = validateName($name, 'Designation name');
+        if ($nameError) {
+            $response['message'] = $nameError;
             break;
         }
-        if (strlen($name) < 2) {
-            $response['message'] = 'Designation name must be at least 2 characters long.';
+
+        if (empty($dept_id)) {
+            $response['message'] = 'Department is required.';
+            break;
+        }
+
+        // Validate description
+        $descError = validateDescription($description);
+        if ($descError) {
+            $response['message'] = $descError;
             break;
         }
 
@@ -128,12 +175,17 @@ switch ($action) {
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
 
-        if (empty($name)) {
-            $response['message'] = 'Team name is required.';
+        // Validate team name
+        $nameError = validateName($name, 'Team name');
+        if ($nameError) {
+            $response['message'] = $nameError;
             break;
         }
-        if (strlen($name) < 2) {
-            $response['message'] = 'Team name must be at least 2 characters long.';
+
+        // Validate description
+        $descError = validateDescription($description);
+        if ($descError) {
+            $response['message'] = $descError;
             break;
         }
 
@@ -217,12 +269,35 @@ switch ($action) {
         $end_time = $_POST['end_time'] ?? '';
         $description = trim($_POST['description'] ?? '');
 
-        if (empty($name) || empty($start_time) || empty($end_time)) {
-            $response['message'] = 'Shift name, start time, and end time are required.';
+        // Validate shift name
+        $nameError = validateName($name, 'Shift name');
+        if ($nameError) {
+            $response['message'] = $nameError;
             break;
         }
-        if (strlen($name) < 2) {
-            $response['message'] = 'Shift name must be at least 2 characters long.';
+
+        // Validate times
+        if (empty($start_time) || empty($end_time)) {
+            $response['message'] = 'Start time and end time are required.';
+            break;
+        }
+
+        $startTimeError = validateTime($start_time);
+        if ($startTimeError) {
+            $response['message'] = 'Start ' . $startTimeError;
+            break;
+        }
+
+        $endTimeError = validateTime($end_time);
+        if ($endTimeError) {
+            $response['message'] = 'End ' . $endTimeError;
+            break;
+        }
+
+        // Validate description
+        $descError = validateDescription($description);
+        if ($descError) {
+            $response['message'] = $descError;
             break;
         }
 
@@ -258,8 +333,26 @@ switch ($action) {
         $start_time = $_POST['start_time'] ?? '';
         $end_time = $_POST['end_time'] ?? '';
 
-        if ($id === 0 || empty($start_time) || empty($end_time)) {
-            $response['message'] = 'Invalid parameters.';
+        if ($id === 0) {
+            $response['message'] = 'Invalid shift ID.';
+            break;
+        }
+
+        if (empty($start_time) || empty($end_time)) {
+            $response['message'] = 'Start time and end time are required.';
+            break;
+        }
+
+        // Validate times
+        $startTimeError = validateTime($start_time);
+        if ($startTimeError) {
+            $response['message'] = 'Start ' . $startTimeError;
+            break;
+        }
+
+        $endTimeError = validateTime($end_time);
+        if ($endTimeError) {
+            $response['message'] = 'End ' . $endTimeError;
             break;
         }
 
