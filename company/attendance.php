@@ -32,6 +32,10 @@ require_once '../components/layout/header.php';
         </div>
 
         <div class="row attendance-dashboard mb-4" id="dashboardStats"></div>
+        <div id="holidaysAlert" style="display:none;" class="alert alert-info mb-4">
+            <i class="ti ti-calendar-off me-2"></i><strong>Holidays This Month: </strong><span
+                id="holidayCount">0</span>
+        </div>
         <div id="loadingSpinner" class="text-center p-5">
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"><span
                     class="visually-hidden">Loading...</span></div>
@@ -47,6 +51,40 @@ require_once '../components/layout/header.php';
         </div>
     </div>
 </div>
+
+<style>
+    .dept-card {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+    .dept-card:hover {
+        transform: translateY(-3px);
+    }
+
+    .skeleton-line {
+        height: 8px;
+        background: linear-gradient(90deg, var(--bs-border-color) 25%, var(--bs-surface) 50%, var(--bs-border-color) 75%);
+        background-size: 200% 100%;
+        animation: skeleton-loading 1.5s infinite;
+        border-radius: 3px;
+        margin-bottom: 4px;
+    }
+
+    .skeleton-line:last-child {
+        margin-bottom: 0;
+    }
+
+    @keyframes skeleton-loading {
+        0% {
+            background-position: 200% 0;
+        }
+
+        100% {
+            background-position: -200% 0;
+        }
+    }
+</style>
 
 <div class="modal fade" id="attendanceModal" tabindex="-1">
     <div class="modal-dialog">
@@ -145,7 +183,7 @@ require_once '../components/layout/header.php';
             openAttendanceModal(el.data('employee-id'), el.data('employee-name'), el.data('date'));
         });
 
-        $(document).on('click', '.department-card', function () {
+        $(document).on('click', '.dept-card', function () {
             const deptId = $(this).data('department-id');
             const deptName = $(this).data('department-name');
             showEmployeeView(deptId, deptName);
@@ -192,6 +230,11 @@ require_once '../components/layout/header.php';
         const grid = $('#departmentGrid');
         grid.html('');
 
+        // Display holidays once at the top
+        const totalMonthHolidays = Object.keys(company_holidays).length;
+        $('#holidayCount').text(totalMonthHolidays);
+        $('#holidaysAlert').show();
+
         // Group employees by department
         const departmentMap = {};
         employees.forEach(emp => {
@@ -203,56 +246,24 @@ require_once '../components/layout/header.php';
             departmentMap[deptId].employees.push(emp);
         });
 
-        // Calculate stats for each department
-        Object.entries(departmentMap).forEach(([deptId, deptData]) => {
-            let totalPresent = 0, totalAbsent = 0, totalHalfDay = 0, totalLeave = 0, totalHoliday = 0;
-
-            deptData.employees.forEach(emp => {
-                Object.entries(emp.attendance).forEach(([dateStr, record]) => {
-                    const status = record.status;
-                    if (status === 'present') totalPresent++;
-                    else if (status === 'absent') totalAbsent++;
-                    else if (status === 'half-day') totalHalfDay++;
-                    else if (status === 'holiday') totalHoliday++;
-                });
-
-                // Count leaves
-                if (employee_leaves[emp.id]) {
-                    Object.keys(employee_leaves[emp.id]).forEach(dateStr => {
-                        if (emp.attendance[dateStr]?.status !== 'leave') totalLeave++;
-                    });
-                }
-            });
-
-            // Count total holidays in the month
-            const totalMonthHolidays = Object.keys(company_holidays).length;
-
+        // Create placeholder cards for lazy loading
+        const departmentEntries = Object.entries(departmentMap);
+        departmentEntries.forEach(([deptId, deptData], index) => {
+            const placeholderId = `dept-${deptId}`;
+            const employeeCount = deptData.employees.length;
             const cardHtml = `
-                <div class="col-lg-6 mb-4">
-                    <div class="card shadow-sm hover-shadow-lg department-card h-100 cursor-pointer" data-department-id="${deptId}" data-department-name="${deptData.name}">
-                        <div class="card-body d-flex flex-column">
-                            <h6 class="mb-3 fw-bold text-primary">${deptData.name}</h6>
-                            <div class="row text-center small mb-3">
+                <div class="mb-3" data-dept-id="${deptId}" id="${placeholderId}">
+                    <div class="card shadow-sm dept-card" data-department-id="${deptId}" data-department-name="${deptData.name}">
+                        <div class="card-body">
+                            <div class="row mb-3">
                                 <div class="col">
-                                    <div><strong class="text-success">${totalPresent}</strong></div>
-                                    <small class="text-body-secondary">Present</small>
+                                    <h6 class="mb-0 fw-bold">${deptData.name}</h6>
                                 </div>
-                                <div class="col">
-                                    <div><strong class="text-danger">${totalAbsent}</strong></div>
-                                    <small class="text-body-secondary">Absent</small>
-                                </div>
-                                <div class="col">
-                                    <div><strong class="text-primary">${totalHalfDay}</strong></div>
-                                    <small class="text-body-secondary">Half-day</small>
-                                </div>
-                                <div class="col">
-                                    <div><strong class="text-warning">${totalLeave}</strong></div>
-                                    <small class="text-body-secondary">Leave</small>
+                                <div class="col-auto">
+                                    <span class="badge bg-primary">${employeeCount}</span>
                                 </div>
                             </div>
-                            <div class="alert alert-info alert-sm mb-0 py-2">
-                                <small><strong>Holidays This Month:</strong> ${totalMonthHolidays}</small>
-                            </div>
+                            <div class="skeleton-loader"></div>
                         </div>
                     </div>
                 </div>
@@ -262,6 +273,70 @@ require_once '../components/layout/header.php';
 
         grid.show();
         $('#noResults').hide();
+
+        // Implement Intersection Observer for lazy loading
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const deptId = entry.target.getAttribute('data-dept-id');
+                    const deptData = departmentMap[deptId];
+
+                    let totalPresent = 0, totalAbsent = 0, totalHalfDay = 0, totalLeave = 0;
+
+                    deptData.employees.forEach(emp => {
+                        Object.entries(emp.attendance).forEach(([dateStr, record]) => {
+                            const status = record.status;
+                            if (status === 'present') totalPresent++;
+                            else if (status === 'absent') totalAbsent++;
+                            else if (status === 'half-day') totalHalfDay++;
+                        });
+
+                        if (employee_leaves[emp.id]) {
+                            Object.keys(employee_leaves[emp.id]).forEach(dateStr => {
+                                if (emp.attendance[dateStr]?.status !== 'leave') totalLeave++;
+                            });
+                        }
+                    });
+
+                    const contentHtml = `
+                        <div class="row g-2">
+                            <div class="col">
+                                <div class="text-center">
+                                    <div class="fw-bold fs-6 text-success">${totalPresent}</div>
+                                    <small class="text-muted d-block">Present</small>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="text-center">
+                                    <div class="fw-bold fs-6 text-danger">${totalAbsent}</div>
+                                    <small class="text-muted d-block">Absent</small>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="text-center">
+                                    <div class="fw-bold fs-6 text-info">${totalHalfDay}</div>
+                                    <small class="text-muted d-block">Half-day</small>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="text-center">
+                                    <div class="fw-bold fs-6 text-warning">${totalLeave}</div>
+                                    <small class="text-muted d-block">Leave</small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    const skeletonEl = entry.target.querySelector('.skeleton-loader');
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = contentHtml;
+                    skeletonEl.parentNode.replaceChild(tempDiv.firstElementChild, skeletonEl);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { rootMargin: '50px' });
+
+        document.querySelectorAll('[data-dept-id]').forEach(el => observer.observe(el));
     }
 
     function showEmployeeView(departmentId, departmentName) {
@@ -298,10 +373,10 @@ require_once '../components/layout/header.php';
         let visibleCount = 0;
 
         if (currentViewMode === 'departments') {
-            $('.department-card').each(function () {
+            $('.dept-card').each(function () {
                 const deptName = $(this).data('department-name').toLowerCase();
-                if (deptName.includes(lowerCaseQuery)) { $(this).closest('.col-lg-6').show(); visibleCount++; }
-                else { $(this).closest('.col-lg-6').hide(); }
+                if (deptName.includes(lowerCaseQuery)) { $(this).closest('.mb-3').show(); visibleCount++; }
+                else { $(this).closest('.mb-3').hide(); }
             });
         } else {
             $('.employee-card').each(function () {

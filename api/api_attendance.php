@@ -66,13 +66,13 @@ switch ($action) {
 
         $final_params = array_merge([$start_date, $end_date], $sql_params);
 
-        $sql = "SELECT e.id as employee_id, e.first_name, e.last_name, e.date_of_joining, des.name as designation, a.date, a.status
+        $sql = "SELECT e.id as employee_id, e.first_name, e.last_name, e.date_of_joining, e.department_id, d.name as department_name, des.name as designation, a.date, a.status
                 FROM employees e
                 JOIN users u ON e.user_id = u.id
                 JOIN departments d ON e.department_id = d.id
                 LEFT JOIN designations des ON e.designation_id = des.id
                 LEFT JOIN attendance a ON e.id = a.employee_id AND a.date BETWEEN ? AND ?
-                WHERE " . $sql_where_conditions . " ORDER BY e.first_name, e.last_name, a.date";
+                WHERE " . $sql_where_conditions . " ORDER BY d.id, e.first_name, e.last_name, a.date";
 
         $result = query($mysqli, $sql, $final_params);
 
@@ -81,7 +81,15 @@ switch ($action) {
             $summary = ['total_present' => 0, 'total_absent' => 0, 'total_leave' => 0, 'total_holiday' => 0, 'total_half_day' => 0];
             foreach ($result['data'] as $row) {
                 if (!isset($employees[$row['employee_id']])) {
-                    $employees[$row['employee_id']] = ['id' => (int) $row['employee_id'], 'name' => $row['first_name'] . ' ' . $row['last_name'], 'designation' => $row['designation'] ?? 'N/A', 'date_of_joining' => $row['date_of_joining'], 'attendance' => []];
+                    $employees[$row['employee_id']] = [
+                        'id' => (int) $row['employee_id'],
+                        'name' => $row['first_name'] . ' ' . $row['last_name'],
+                        'department_id' => (int) $row['department_id'],
+                        'department_name' => $row['department_name'],
+                        'designation' => $row['designation'] ?? 'N/A',
+                        'date_of_joining' => $row['date_of_joining'],
+                        'attendance' => []
+                    ];
                 }
                 if ($row['date']) {
                     $employees[$row['employee_id']]['attendance'][$row['date']] = ['status' => $row['status']];
