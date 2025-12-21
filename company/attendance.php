@@ -40,7 +40,7 @@ require_once '../components/layout/header.php';
         <div class="attendance-grid" id="employeeGrid" style="display:none;"></div>
         <div id="noResults" class="alert alert-info text-center" style="display:none;"><i
                 class="ti ti-info-circle me-2"></i>No attendance records found for the selected month.</div>
-        
+
         <!-- Back Button (Hidden by default) -->
         <div id="backToDepartments" style="display:none;" class="mb-3">
             <button class="btn btn-secondary btn-sm"><i class="ti ti-arrow-left me-2"></i>Back to Departments</button>
@@ -97,6 +97,9 @@ require_once '../components/layout/header.php';
 
 <script>
     let currentMonth;
+    let allAttendanceData = null;
+    let currentViewMode = 'departments'; // 'departments' or 'employees'
+    let selectedDepartmentId = null;
     const attendanceModal = new bootstrap.Modal('#attendanceModal');
     const bulkActionsModal = new bootstrap.Modal('#bulkActionsModal');
 
@@ -106,8 +109,9 @@ require_once '../components/layout/header.php';
 
         $('#prevMonth').on('click', () => { currentMonth.setMonth(currentMonth.getMonth() - 1); loadAttendanceData(); });
         $('#nextMonth').on('click', () => { currentMonth.setMonth(currentMonth.getMonth() + 1); loadAttendanceData(); });
-        $('#employeeSearch').on('input', function () { filterEmployeeCards($(this).val()); });
+        $('#employeeSearch').on('input', function () { filterCards($(this).val()); });
         $('#openBulkModalBtn').on('click', () => bulkActionsModal.show());
+        $('#backToDepartments').on('click', 'button', goBackToDepartments);
 
         $('#bulkHolidayBtn').on('click', function () {
             const date = $('#bulkHolidayDate').val();
@@ -136,9 +140,15 @@ require_once '../components/layout/header.php';
             });
         });
 
-        $('#attendanceGrid').on('click', '.day-square:not(.status-disabled)', function () {
+        $(document).on('click', '.day-square:not(.status-disabled)', function () {
             const el = $(this);
             openAttendanceModal(el.data('employee-id'), el.data('employee-name'), el.data('date'));
+        });
+
+        $(document).on('click', '.department-card', function () {
+            const deptId = $(this).data('department-id');
+            const deptName = $(this).data('department-name');
+            showEmployeeView(deptId, deptName);
         });
     });
 
@@ -146,14 +156,18 @@ require_once '../components/layout/header.php';
         const monthString = currentMonth.toISOString().slice(0, 7);
         $('#currentMonth').text(currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' }));
         $('#loadingSpinner').show();
-        $('#attendanceGrid, #noResults').hide();
+        $('#departmentGrid, #employeeGrid, #noResults').hide();
         $('#dashboardStats').empty();
+        currentViewMode = 'departments';
+        selectedDepartmentId = null;
+        $('#backToDepartments').hide();
 
         fetch(`/hrms/api/api_attendance.php?action=get_attendance_data&month=${monthString}`)
             .then(res => res.json()).then(result => {
                 if (result.error || !result.employees) { showToast(result.error || 'Failed to load data.', 'error'); $('#noResults').show(); return; }
+                allAttendanceData = result;
                 renderDashboard(result.summary);
-                renderEmployeeCards(result);
+                renderDepartmentCards(result);
                 $('#employeeSearch').val('');
             }).catch(err => { showToast('A network error occurred.', 'error'); $('#noResults').show(); })
             .finally(() => { $('#loadingSpinner').hide(); });
@@ -173,6 +187,137 @@ require_once '../components/layout/header.php';
         $('#dashboardStats').html(statsHtml);
     }
 
+    function renderDepartmentCards(data) {
+        const { employees, month_details, company_holidays, saturday_policy, employee_leaves, company_created_at } = data;
+        const grid = $('#departmentGrid');
+        grid.html('');
+
+        // Group employees by department
+        const departmentMap = {};
+        employees.forEach(emp => {
+            const deptId = emp.department_id || 'unassigned';
+            const deptName = emp.department_name || 'Unassigned';
+            if (!departmentMap[deptId]) {
+                departmentMap[deptId] = { name: deptName, employees: [] };
+            }
+            departmentMap[deptId].employees.push(emp);
+        });
+
+        // Calculate stats for each department
+        Object.entries(departmentMap).forEach(([deptId, deptData]) => {
+            let totalPresent = 0, totalAbsent = 0, totalHalfDay = 0, totalLeave = 0, totalHoliday = 0;
+
+            deptData.employees.forEach(emp => {
+                Object.entries(emp.attendance).forEach(([dateStr, record]) => {
+                    const status = record.status;
+                    if (status === 'present') totalPresent++;
+                    else if (status === 'absent') totalAbsent++;
+                    else if (status === 'half-day') totalHalfDay++;
+                    else if (status === 'holiday') totalHoliday++;
+                });
+
+                // Count leaves
+                if (employee_leaves[emp.id]) {
+                    Object.keys(employee_leaves[emp.id]).forEach(dateStr => {
+                        if (emp.attendance[dateStr]?.status !== 'leave') totalLeave++;
+                    });
+                }
+            });
+
+            // Count total holidays in the month
+            const totalMonthHolidays = Object.keys(company_holidays).length;
+
+            const cardHtml = `
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow-sm hover-shadow-lg department-card h-100 cursor-pointer" data-department-id="${deptId}" data-department-name="${deptData.name}">
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="mb-3 fw-bold text-primary">${deptData.name}</h6>
+                            <div class="row text-center small mb-3">
+                                <div class="col">
+                                    <div><strong class="text-success">${totalPresent}</strong></div>
+                                    <small class="text-body-secondary">Present</small>
+                                </div>
+                                <div class="col">
+                                    <div><strong class="text-danger">${totalAbsent}</strong></div>
+                                    <small class="text-body-secondary">Absent</small>
+                                </div>
+                                <div class="col">
+                                    <div><strong class="text-primary">${totalHalfDay}</strong></div>
+                                    <small class="text-body-secondary">Half-day</small>
+                                </div>
+                                <div class="col">
+                                    <div><strong class="text-warning">${totalLeave}</strong></div>
+                                    <small class="text-body-secondary">Leave</small>
+                                </div>
+                            </div>
+                            <div class="alert alert-info alert-sm mb-0 py-2">
+                                <small><strong>Holidays This Month:</strong> ${totalMonthHolidays}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            grid.append(cardHtml);
+        });
+
+        grid.show();
+        $('#noResults').hide();
+    }
+
+    function showEmployeeView(departmentId, departmentName) {
+        currentViewMode = 'employees';
+        selectedDepartmentId = departmentId;
+        $('#departmentGrid').hide();
+        $('#backToDepartments').show();
+
+        const deptEmployees = allAttendanceData.employees.filter(emp =>
+            (emp.department_id || 'unassigned') === departmentId
+        );
+
+        renderEmployeeCards({
+            employees: deptEmployees,
+            month_details: allAttendanceData.month_details,
+            company_holidays: allAttendanceData.company_holidays,
+            saturday_policy: allAttendanceData.saturday_policy,
+            employee_leaves: allAttendanceData.employee_leaves,
+            company_created_at: allAttendanceData.company_created_at
+        });
+    }
+
+    function goBackToDepartments() {
+        currentViewMode = 'departments';
+        selectedDepartmentId = null;
+        $('#backToDepartments').hide();
+        $('#employeeGrid').hide();
+        $('#departmentGrid').show();
+        $('#employeeSearch').val('');
+    }
+
+    function filterCards(query) {
+        const lowerCaseQuery = query.toLowerCase();
+        let visibleCount = 0;
+
+        if (currentViewMode === 'departments') {
+            $('.department-card').each(function () {
+                const deptName = $(this).data('department-name').toLowerCase();
+                if (deptName.includes(lowerCaseQuery)) { $(this).closest('.col-lg-6').show(); visibleCount++; }
+                else { $(this).closest('.col-lg-6').hide(); }
+            });
+        } else {
+            $('.employee-card').each(function () {
+                const employeeName = $(this).data('name');
+                if (employeeName.includes(lowerCaseQuery)) { $(this).show(); visibleCount++; }
+                else { $(this).hide(); }
+            });
+        }
+
+        $('#searchNoResults').remove();
+        if (visibleCount === 0 && ($('#departmentGrid').is(':visible') || $('#employeeGrid').is(':visible'))) {
+            const gridId = currentViewMode === 'departments' ? '#departmentGrid' : '#employeeGrid';
+            $(gridId).after('<div id="searchNoResults" class="alert alert-warning text-center">No results match your search.</div>');
+        }
+    }
+
     function isSaturdayHoliday(day, policy) {
         const weekNum = Math.ceil(day / 7);
         return policy === 'all' ||
@@ -181,7 +326,7 @@ require_once '../components/layout/header.php';
     }
 
     function renderEmployeeCards({ employees, month_details, company_holidays, saturday_policy, employee_leaves, company_created_at }) {
-        const grid = $('#attendanceGrid');
+        const grid = $('#employeeGrid');
         grid.html('');
 
         const viewingDate = new Date(month_details.year, month_details.month - 1, 1);
@@ -193,7 +338,7 @@ require_once '../components/layout/header.php';
             return;
         }
 
-        if (!employees || employees.length === 0) { $('#noResults').html('<i class="ti ti-info-circle me-2"></i>No employees found to display attendance.').show(); grid.hide(); return; }
+        if (!employees || employees.length === 0) { $('#noResults').html('<i class="ti ti-info-circle me-2"></i>No employees found in this department.').show(); grid.hide(); return; }
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -215,7 +360,6 @@ require_once '../components/layout/header.php';
                 let status = emp.attendance[dateStr]?.status || 'empty';
                 let classes = 'day-square';
                 let title = '';
-
 
                 if (company_holidays[dateStr]) {
                     status = 'holiday';
@@ -246,7 +390,6 @@ require_once '../components/layout/header.php';
                     classes = classes.replace(' status-disabled', '');
                 }
 
-
                 if (status !== 'empty') {
                     if (status === 'present') p++; else if (status === 'absent') a++;
                     else if (status === 'leave') l++; else if (status === 'holiday') h++;
@@ -262,20 +405,6 @@ require_once '../components/layout/header.php';
 
         grid.show();
         $('#noResults').hide();
-    }
-
-    function filterEmployeeCards(query) {
-        const lowerCaseQuery = query.toLowerCase();
-        let visibleCount = 0;
-        $('.employee-card').each(function () {
-            const employeeName = $(this).data('name');
-            if (employeeName.includes(lowerCaseQuery)) { $(this).show(); visibleCount++; }
-            else { $(this).hide(); }
-        });
-        $('#searchNoResults').remove();
-        if (visibleCount === 0 && $('#attendanceGrid').is(':visible')) {
-            $('#attendanceGrid').after('<div id="searchNoResults" class="alert alert-warning text-center">No employees match your search.</div>');
-        }
     }
 
     function openAttendanceModal(employeeId, employeeName, date) {
