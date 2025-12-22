@@ -259,6 +259,34 @@ switch ($action) {
         $leave_details = query($mysqli, "SELECT l.employee_id, l.start_date, l.end_date FROM leaves l WHERE l.id = ?", [$leave_id]);
         $leave_data = $leave_details['success'] && !empty($leave_details['data']) ? $leave_details['data'][0] : null;
 
+        if (!$leave_data) {
+            $response['message'] = 'Leave request not found.';
+            break;
+        }
+
+        // Authorization check based on role
+        $allowed = false;
+        if ($role_id == 2 || $role_id == 3) {
+            // Company Admin or HR Manager can approve any leave in their company
+            $allowed = true;
+        } elseif ($role_id == 6) {
+            // Manager can only approve leaves for employees in their department
+            $manager_dept = query($mysqli, "SELECT department_id FROM employees WHERE user_id = ?", [$user_id]);
+            $manager_department_id = $manager_dept['success'] && !empty($manager_dept['data']) ? $manager_dept['data'][0]['department_id'] : null;
+
+            $employee_dept = query($mysqli, "SELECT department_id FROM employees WHERE id = ?", [$leave_data['employee_id']]);
+            $employee_department_id = $employee_dept['success'] && !empty($employee_dept['data']) ? $employee_dept['data'][0]['department_id'] : null;
+
+            if ($manager_department_id && $employee_department_id && $manager_department_id == $employee_department_id) {
+                $allowed = true;
+            }
+        }
+
+        if (!$allowed) {
+            $response['message'] = 'You are not authorized to approve this leave request.';
+            break;
+        }
+
         $sql = "UPDATE leaves l JOIN employees e ON l.employee_id = e.id SET l.status = ?, l.approved_by = ? WHERE l.id = ? AND e.user_id IN (SELECT id FROM users WHERE company_id = ?)";
         $result = query($mysqli, $sql, [$status, $user_id, $leave_id, $company_id]);
 
@@ -291,7 +319,22 @@ switch ($action) {
     case 'cancel_leave':
         // ... (rest of the case remains the same)
         $leave_id = (int) ($_POST['leave_id'] ?? 0);
-        $sql = "UPDATE leaves SET status = 'cancelled' WHERE id = ? AND employee_id = ? AND status = 'pending'";
+
+        // Verify leave exists and belongs to current employee
+        $leave_check = query($mysqli, "SELECT status FROM leaves WHERE id = ? AND employee_id = ?", [$leave_id, $employee_id]);
+
+        if (!$leave_check['success'] || empty($leave_check['data'])) {
+            $response['message'] = 'Leave request not found or you are not authorized to cancel it.';
+            break;
+        }
+
+        $current_status = $leave_check['data'][0]['status'];
+        if ($current_status !== 'pending') {
+            $response['message'] = 'Only pending leave requests can be cancelled. Current status: ' . ucfirst($current_status);
+            break;
+        }
+
+        $sql = "UPDATE leaves SET status = 'cancelled' WHERE id = ? AND employee_id = ?";
         $result = query($mysqli, $sql, [$leave_id, $employee_id]);
 
         if ($result['success'] && $result['affected_rows'] > 0) {

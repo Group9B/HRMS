@@ -8,7 +8,7 @@ if (!isLoggedIn()) {
 }
 
 $role_id = $_SESSION['role_id'];
-$is_manager_or_hr = in_array($role_id, [2, 3, 6]);
+$is_manager_or_hr = in_array($role_id, [1, 2, 3, 6]); // SuperAdmin, Company Admin, HR Manager, Manager
 
 $leave_types = query($mysqli, "SELECT leave_type FROM leave_policies WHERE company_id = ?", [$_SESSION['company_id']])['data'] ?? [];
 
@@ -21,22 +21,7 @@ require_once '../components/layout/header.php';
 
         <?php if ($role_id !== 2) : ?>
             <div class="row" id="leave-summary-row">
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-header"><h6 class="m-0">Upcoming Holiday</h6></div>
-                        <div class="card-body text-center d-flex flex-column justify-content-center" id="upcoming-holiday-card">
-                            <div class="spinner-border spinner-border-sm"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-header"><h6 class="m-0">Company Policy</h6></div>
-                        <div class="card-body text-center d-flex flex-column justify-content-center" id="policy-document-card">
-                            <div class="spinner-border spinner-border-sm"></div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Summary cards will be dynamically inserted here -->
             </div>
         <?php endif; ?>
 
@@ -49,7 +34,7 @@ require_once '../components/layout/header.php';
             <?php endif; ?>
         </ul>
 
-        <div class="tab-content" id="leaveTabsContent">
+        <div class="tab-content" id="leaveTabsContent" data-can-approve="<?= $is_manager_or_hr ? 'true' : 'false' ?>">
             <?php if ($role_id !== 2) : ?>
                 <div class="tab-pane fade show active" id="my-requests" role="tabpanel">
                     <div class="card shadow-sm mt-3">
@@ -80,11 +65,12 @@ require_once '../components/layout/header.php';
 <script>
     let myRequestsTable, approveRequestsTable;
     const applyLeaveModal = new bootstrap.Modal(document.getElementById('applyLeaveModal'));
-    const roleId = <?= json_encode($_SESSION['role_id']) ?>;
-    const isManagerOrHr = [2, 3, 6].includes(roleId);
+    const canApprove = document.getElementById('leaveTabsContent').dataset.canApprove === 'true';
+    const isCompanyAdmin = document.querySelector('[data-bs-target="#approve-requests"]')?.classList.contains('active') === true;
 
     $(function() {
-        if (roleId !== 2) { loadLeaveSummary(); }
+        const hasMyRequestsTab = document.getElementById('my-requests') !== null;
+        if (hasMyRequestsTab) { loadLeaveSummary(); }
         
         // Set minimum date to today
         const today = new Date().toISOString().split('T')[0];
@@ -94,7 +80,7 @@ require_once '../components/layout/header.php';
         // Validate dates on change
         $('#startDate, #endDate').on('change', validateLeaveDates);
         
-        if (roleId !== 2) {
+        if (hasMyRequestsTab) {
             myRequestsTable = $('#myRequestsTable').DataTable({
                 responsive: true, ajax: { url: '/hrms/api/api_leaves.php?action=get_my_leaves', dataSrc: 'data' },
                 columns: [
@@ -106,7 +92,7 @@ require_once '../components/layout/header.php';
                 ], order: [[1, 'desc']]
             });
         }
-        if (isManagerOrHr) {
+        if (canApprove) {
             approveRequestsTable = $('#approveRequestsTable').DataTable({
                 responsive: true, ajax: { url: '/hrms/api/api_leaves.php?action=get_pending_requests', dataSrc: 'data' },
                 columns: [
@@ -129,26 +115,75 @@ require_once '../components/layout/header.php';
                     applyLeaveModal.hide(); this.reset();
                     if(myRequestsTable) myRequestsTable.ajax.reload();
                     if(approveRequestsTable) approveRequestsTable.ajax.reload();
-                    if(roleId !== 2) loadLeaveSummary(); 
+                    if(hasMyRequestsTab) loadLeaveSummary(); 
                 } else { showToast(result.message, 'error'); }
             });
         });
     });
 
     function loadLeaveSummary() {
-        $('#leave-summary-row .leave-balance-card').remove();
+        $('#leave-summary-row').empty();
         fetch('/hrms/api/api_leaves.php?action=get_leave_summary')
         .then(res => res.json()).then(result => {
             if(result.success) {
                 const { balances, next_holiday, policy_document } = result.data;
-                balances.forEach(b => {
-                    $('#leave-summary-row').prepend(`<div class="col-lg-4 col-md-6 mb-4 leave-balance-card"><div class="card shadow-sm h-100"><div class="card-header"><h6 class="m-0">${escapeHTML(b.type)}</h6></div><div class="card-body text-center d-flex flex-column justify-content-center"><p class="fs-2 fw-bold mb-0">${b.balance} / <small class="text-muted">${b.total}</small></p><p class="text-muted mb-0">Days Remaining</p></div></div></div>`);
-                });
-                $('#upcoming-holiday-card').html(next_holiday ? `<p class="fs-4 fw-bold mb-1">${escapeHTML(next_holiday.holiday_name)}</p><p class="text-muted mb-0">${formatDate(next_holiday.holiday_date, true)}</p>` : '<p class="text-muted">No upcoming holidays.</p>');
-                $('#policy-document-card').html(policy_document ? `<a href="/hrms/pages/view_document.php?id=${policy_document.id}" target="_blank" class="btn btn-outline-primary"><i class="ti ti-file-pdf me-2"></i>View Policy</a>` : '<p class="text-muted">No policy document uploaded.</p>');
+                
+                // Create a grid layout with leave balances on left, holiday and policy on right
+                let summaryHTML = '';
+                
+                // Left column - Leave balances
+                if (balances.length > 0) {
+                    summaryHTML += `<div class="col-lg-8 col-md-12 mb-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header"><h6 class="m-0">Leave Balance</h6></div>
+                            <div class="card-body">
+                                <div class="row" id="leave-balance-container">`;
+                    balances.forEach(b => {
+                        summaryHTML += `<div class="col-md-6 col-lg-4 mb-3">
+                            <div class="text-center p-3 border rounded-3">
+                                <p class="text-muted small mb-1">${escapeHTML(b.type)}</p>
+                                <p class="fs-4 fw-bold mb-0"><span class="text-primary">${b.balance}</span> / <small class="text-muted">${b.total}</small></p>
+                            </div>
+                        </div>`;
+                    });
+                    summaryHTML += `</div></div></div></div>`;
+                }
+                
+                // Right column - Holiday and Policy
+                summaryHTML += `<div class="col-lg-4 col-md-12">
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-header"><h6 class="m-0">Upcoming Holiday</h6></div>
+                                <div class="card-body text-center d-flex flex-column justify-content-center">
+                                    ${next_holiday ? `<p class="fs-5 fw-bold mb-1">${escapeHTML(next_holiday.holiday_name)}</p><p class="text-muted mb-0 small">${formatDate(next_holiday.holiday_date, true)}</p>` : '<p class="text-muted">No upcoming holidays</p>'}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-header"><h6 class="m-0">Company Policy</h6></div>
+                                <div class="card-body text-center d-flex flex-column justify-content-center align-items-center">
+                                    ${policy_document ? `<button class="btn btn-outline-primary btn-sm view-policy-btn" data-doc-id="${escapeHTML(policy_document.id)}"><i class="ti ti-file-pdf me-2"></i>View Policy</button>` : '<p class="text-muted small mb-0">No policy available</p>'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                
+                $('#leave-summary-row').html(summaryHTML);
             }
         });
     }
+
+    // Event delegation for policy document link
+    $(document).on('click', '.view-policy-btn', function(e) {
+        e.preventDefault();
+        const docId = $(this).data('doc-id');
+        if (docId) {
+            window.open('/hrms/pages/view_document.php?id=' + encodeURIComponent(docId), '_blank');
+        }
+    });
 
     // Event delegation for cancel button
     $(document).on('click', '.cancel-leave-btn', function() {
@@ -157,22 +192,28 @@ require_once '../components/layout/header.php';
             showToast('Invalid leave request.', 'error');
             return;
         }
-        if (confirm('Are you sure you want to cancel this leave request?')) {
-            const formData = new FormData();
-            formData.append('action', 'cancel_leave');
-            formData.append('leave_id', leaveId);
-            fetch('/hrms/api/api_leaves.php', { method: 'POST', body: formData })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.success) {
-                        showToast(d.message, 'success');
-                        if(myRequestsTable) myRequestsTable.ajax.reload();
-                        loadLeaveSummary();
-                    } else {
-                        showToast(d.message, 'error');
-                    }
-                });
-        }
+        showConfirmationModal(
+            'Are you sure you want to cancel this leave request?',
+            () => {
+                const formData = new FormData();
+                formData.append('action', 'cancel_leave');
+                formData.append('leave_id', leaveId);
+                fetch('/hrms/api/api_leaves.php', { method: 'POST', body: formData })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.success) {
+                            showToast(d.message, 'success');
+                            if(myRequestsTable) myRequestsTable.ajax.reload();
+                            loadLeaveSummary();
+                        } else {
+                            showToast(d.message, 'error');
+                        }
+                    });
+            },
+            'Cancel Leave Request',
+            'Cancel Request',
+            'btn-danger'
+        );
     });
 
     // Event delegation for approve/reject buttons
@@ -186,28 +227,33 @@ require_once '../components/layout/header.php';
         }
 
         const action = status === 'approved' ? 'approve' : 'reject';
-        if (confirm(`Are you sure you want to ${action} this leave request?`)) {
-            const formData = new FormData();
-            formData.append('action', 'update_status');
-            formData.append('leave_id', leaveId);
-            formData.append('status', status);
-            fetch('/hrms/api/api_leaves.php', { method: 'POST', body: formData })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.success) {
-                        showToast(d.message, 'success');
-                        if(approveRequestsTable) approveRequestsTable.ajax.reload();
-                        if(myRequestsTable) myRequestsTable.ajax.reload();
-                        loadLeaveSummary();
-                    } else {
-                        showToast(d.message, 'error');
-                    }
-                });
-        }
+        const btnClass = status === 'approved' ? 'btn-success' : 'btn-danger';
+        
+        showConfirmationModal(
+            `Are you sure you want to ${action} this leave request?`,
+            () => {
+                const formData = new FormData();
+                formData.append('action', 'update_status');
+                formData.append('leave_id', leaveId);
+                formData.append('status', status);
+                fetch('/hrms/api/api_leaves.php', { method: 'POST', body: formData })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.success) {
+                            showToast(d.message, 'success');
+                            if(approveRequestsTable) approveRequestsTable.ajax.reload();
+                            if(myRequestsTable) myRequestsTable.ajax.reload();
+                            loadLeaveSummary();
+                        } else {
+                            showToast(d.message, 'error');
+                        }
+                    });
+            },
+            `${capitalize(action)} Leave Request`,
+            capitalize(action),
+            btnClass
+        );
     });
-    
-    function cancelRequest(leaveId) { if (confirm('Are you sure you want to cancel?')) { const f = new FormData(); f.append('action', 'cancel_leave'); f.append('leave_id', leaveId); fetch('/hrms/api/api_leaves.php', { method: 'POST', body: f }).then(r => r.json()).then(d => { if (d.success) { showToast(d.message, 'success'); myRequestsTable.ajax.reload(); loadLeaveSummary(); } else { showToast(d.message, 'error'); } }); } }
-    function updateStatus(leaveId, status) { if (confirm(`Are you sure you want to ${status}?`)) { const f = new FormData(); f.append('action', 'update_status'); f.append('leave_id', leaveId); f.append('status', status); fetch('/hrms/api/api_leaves.php', { method: 'POST', body: f }).then(r => r.json()).then(d => { if (d.success) { showToast(d.message, 'success'); if(approveRequestsTable) approveRequestsTable.ajax.reload(); if(myRequestsTable) myRequestsTable.ajax.reload(); loadLeaveSummary(); } else { showToast(d.message, 'error'); } }); } }
     
     function validateLeaveDates() {
         const startDate = $('#startDate').val();
