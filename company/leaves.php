@@ -74,7 +74,7 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
-<div class="modal fade" id="applyLeaveModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><form id="applyLeaveForm"><div class="modal-header"><h5 class="modal-title">Apply for Leave</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" name="action" value="apply_leave"><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Start Date *</label><input type="date" class="form-control" name="start_date" required></div><div class="col-md-6 mb-3"><label class="form-label">End Date *</label><input type="date" class="form-control" name="end_date" required></div></div><div class="mb-3"><label class="form-label">Leave Type *</label><select class="form-select" name="leave_type" required><option value="">-- Select --</option><?php foreach ($leave_types as $type) : ?><option value="<?= htmlspecialchars($type['leave_type']) ?>"><?= htmlspecialchars($type['leave_type']) ?></option><?php endforeach; ?></select></div><div class="mb-3"><label class="form-label">Reason</label><textarea class="form-control" name="reason" rows="3"></textarea></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Submit Request</button></div></form></div></div></div>
+<div class="modal fade" id="applyLeaveModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><form id="applyLeaveForm"><div class="modal-header"><h5 class="modal-title">Apply for Leave</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" name="action" value="apply_leave"><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Start Date *</label><input type="date" class="form-control" name="start_date" id="startDate" required></div><div class="col-md-6 mb-3"><label class="form-label">End Date *</label><input type="date" class="form-control" name="end_date" id="endDate" required></div></div><div class="mb-3" id="dateErrorContainer" style="display: none;"><div class="alert alert-danger mb-0" id="dateError"></div></div><div class="mb-3" id="leaveDaysCalculation" style="display: none;"><div class="alert alert-info mb-0"><small><strong>Calculation:</strong> <span id="totalDaysText">0</span> calendar days</small><br><small id="holidaysText" style="display: none;"></small><small id="saturdaysText" style="display: none;"></small><br><small class="text-primary"><strong>Actual days to deduct:</strong> <span id="actualDaysText">0</span></small></div></div><div class="mb-3"><label class="form-label">Leave Type *</label><select class="form-select" name="leave_type" required><option value="">-- Select --</option><?php foreach ($leave_types as $type) : ?><option value="<?= htmlspecialchars($type['leave_type']) ?>"><?= htmlspecialchars($type['leave_type']) ?></option><?php endforeach; ?></select></div><div class="mb-3"><label class="form-label">Reason</label><textarea class="form-control" name="reason" rows="3"></textarea></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary" id="submitLeaveBtn">Submit Request</button></div></form></div></div></div>
 
 <?php require_once '../components/layout/footer.php'; ?>
 <script>
@@ -85,6 +85,15 @@ require_once '../components/layout/header.php';
 
     $(function() {
         if (roleId !== 2) { loadLeaveSummary(); }
+        
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        $('#startDate').attr('min', today);
+        $('#endDate').attr('min', today);
+        
+        // Validate dates on change
+        $('#startDate, #endDate').on('change', validateLeaveDates);
+        
         if (roleId !== 2) {
             myRequestsTable = $('#myRequestsTable').DataTable({
                 responsive: true, ajax: { url: '/hrms/api/api_leaves.php?action=get_my_leaves', dataSrc: 'data' },
@@ -93,7 +102,7 @@ require_once '../components/layout/header.php';
                     { data: null, render: (d, t, r) => `${formatDate(r.start_date)} to ${formatDate(r.end_date)}` },
                     { data: null, render: (d, t, r) => countDays(r.start_date, r.end_date) },
                     { data: 'status', render: (d) => `<span class="badge bg-${getStatusClass(d)}-subtle text-${getStatusClass(d)}-emphasis">${capitalize(d)}</span>` },
-                    { data: null, orderable: false, render: (d, t, r) => r.status === 'pending' ? `<button class="btn btn-sm btn-outline-danger" onclick="cancelRequest(${r.id})">Cancel</button>` : '---' }
+                    { data: null, orderable: false, render: (d, t, r) => r.status === 'pending' ? `<button class="btn btn-sm btn-outline-danger cancel-leave-btn" data-leave-id="${escapeHTML(r.id)}" title="Cancel">Cancel</button>` : '---' }
                 ], order: [[1, 'desc']]
             });
         }
@@ -106,12 +115,13 @@ require_once '../components/layout/header.php';
                     { data: null, render: (d, t, r) => `${formatDate(r.start_date)} to ${formatDate(r.end_date)}` },
                     { data: 'reason', render: d => `<small>${escapeHTML(d) || 'N/A'}</small>` },
                     { data: 'status', render: d => `<span class="badge bg-${getStatusClass(d)}-subtle bg-opacity-10 text-${getStatusClass(d)}-emphasis">${capitalize(d)}</span>` },
-                    { data: null, orderable: false, render: (d, t, r) => r.status === 'pending' ? `<div class="btn-group btn-group-sm"><button class="btn btn-outline-success" onclick="updateStatus(${r.id}, 'approved')">Approve</button><button class="btn btn-outline-danger" onclick="updateStatus(${r.id}, 'rejected')">Reject</button></div>` : 'Actioned' }
+                    { data: null, orderable: false, render: (d, t, r) => r.status === 'pending' ? `<div class="btn-group btn-group-sm"><button class="btn btn-outline-success approve-leave-btn" data-leave-id="${escapeHTML(r.id)}" data-action="approved" title="Approve">Approve</button><button class="btn btn-outline-danger reject-leave-btn" data-leave-id="${escapeHTML(r.id)}" data-action="rejected" title="Reject">Reject</button></div>` : 'Actioned' }
                 ], order: [[2, 'asc']]
             });
         }
         $('#applyLeaveForm').on('submit', function (e) {
             e.preventDefault();
+            if (!validateLeaveDates()) return;
             fetch('/hrms/api/api_leaves.php', { method: 'POST', body: new FormData(this) })
             .then(res => res.json()).then(result => {
                 if (result.success) {
@@ -140,7 +150,140 @@ require_once '../components/layout/header.php';
         });
     }
 
+    // Event delegation for cancel button
+    $(document).on('click', '.cancel-leave-btn', function() {
+        const leaveId = $(this).data('leave-id');
+        if (!leaveId) {
+            showToast('Invalid leave request.', 'error');
+            return;
+        }
+        if (confirm('Are you sure you want to cancel this leave request?')) {
+            const formData = new FormData();
+            formData.append('action', 'cancel_leave');
+            formData.append('leave_id', leaveId);
+            fetch('/hrms/api/api_leaves.php', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) {
+                        showToast(d.message, 'success');
+                        if(myRequestsTable) myRequestsTable.ajax.reload();
+                        loadLeaveSummary();
+                    } else {
+                        showToast(d.message, 'error');
+                    }
+                });
+        }
+    });
+
+    // Event delegation for approve/reject buttons
+    $(document).on('click', '.approve-leave-btn, .reject-leave-btn', function() {
+        const leaveId = $(this).data('leave-id');
+        const status = $(this).data('action');
+        
+        if (!leaveId || !status) {
+            showToast('Invalid leave request.', 'error');
+            return;
+        }
+
+        const action = status === 'approved' ? 'approve' : 'reject';
+        if (confirm(`Are you sure you want to ${action} this leave request?`)) {
+            const formData = new FormData();
+            formData.append('action', 'update_status');
+            formData.append('leave_id', leaveId);
+            formData.append('status', status);
+            fetch('/hrms/api/api_leaves.php', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) {
+                        showToast(d.message, 'success');
+                        if(approveRequestsTable) approveRequestsTable.ajax.reload();
+                        if(myRequestsTable) myRequestsTable.ajax.reload();
+                        loadLeaveSummary();
+                    } else {
+                        showToast(d.message, 'error');
+                    }
+                });
+        }
+    });
+    
     function cancelRequest(leaveId) { if (confirm('Are you sure you want to cancel?')) { const f = new FormData(); f.append('action', 'cancel_leave'); f.append('leave_id', leaveId); fetch('/hrms/api/api_leaves.php', { method: 'POST', body: f }).then(r => r.json()).then(d => { if (d.success) { showToast(d.message, 'success'); myRequestsTable.ajax.reload(); loadLeaveSummary(); } else { showToast(d.message, 'error'); } }); } }
     function updateStatus(leaveId, status) { if (confirm(`Are you sure you want to ${status}?`)) { const f = new FormData(); f.append('action', 'update_status'); f.append('leave_id', leaveId); f.append('status', status); fetch('/hrms/api/api_leaves.php', { method: 'POST', body: f }).then(r => r.json()).then(d => { if (d.success) { showToast(d.message, 'success'); if(approveRequestsTable) approveRequestsTable.ajax.reload(); if(myRequestsTable) myRequestsTable.ajax.reload(); loadLeaveSummary(); } else { showToast(d.message, 'error'); } }); } }
+    
+    function validateLeaveDates() {
+        const startDate = $('#startDate').val();
+        const endDate = $('#endDate').val();
+        const errorContainer = $('#dateErrorContainer');
+        const errorMsg = $('#dateError');
+        const submitBtn = $('#submitLeaveBtn');
+        const calculationDiv = $('#leaveDaysCalculation');
+        
+        errorContainer.hide();
+        calculationDiv.hide();
+        
+        // Validation checks
+        if (!startDate || !endDate) {
+            return true;
+        }
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        // Check if start date is in the past
+        if (start < today) {
+            errorMsg.text('Start date cannot be in the past. Please select a date from today onwards.');
+            errorContainer.show();
+            submitBtn.prop('disabled', true);
+            return false;
+        }
+        
+        // Check if end date is before start date
+        if (end < start) {
+            errorMsg.text('End date cannot be before start date.');
+            errorContainer.show();
+            submitBtn.prop('disabled', true);
+            return false;
+        }
+        
+        // Calculate actual leave days
+        calculateLeaveDaysDisplay(startDate, endDate);
+        
+        submitBtn.prop('disabled', false);
+        return true;
+    }
+
+    function calculateLeaveDaysDisplay(startDateStr, endDateStr) {
+        // Fetch company holidays and Saturday policy via API
+        fetch('/hrms/api/api_leaves.php?action=get_leave_calculation&start_date=' + startDateStr + '&end_date=' + endDateStr)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const totalDays = data.total_days;
+                    const holidaysSkipped = data.holidays_skipped;
+                    const saturdaysSkipped = data.saturdays_skipped;
+                    const actualDays = data.actual_days;
+                    
+                    $('#totalDaysText').text(totalDays);
+                    
+                    if (holidaysSkipped > 0) {
+                        $('#holidaysText').text('- ' + holidaysSkipped + ' holiday(s)').show();
+                    } else {
+                        $('#holidaysText').hide();
+                    }
+                    
+                    if (saturdaysSkipped > 0) {
+                        $('#saturdaysText').text('- ' + saturdaysSkipped + ' Saturday(s)').show();
+                    } else {
+                        $('#saturdaysText').hide();
+                    }
+                    
+                    $('#actualDaysText').text(actualDays);
+                    $('#leaveDaysCalculation').show();
+                }
+            })
+            .catch(error => console.error('Error calculating leave days:', error));
+    }
  </script>
 

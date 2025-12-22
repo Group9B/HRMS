@@ -239,30 +239,40 @@
 
 /* THEME FRIENDLY: These colors adapt to the current theme */
 .day-square.status-present {
-	background-color: var(--bs-success-border-subtle);
-	color: var(--bs-success-text-emphasis);
+	background-color: var(--bs-success-border-subtle) !important;
+	color: var(--bs-success-text-emphasis) !important;
+	cursor: pointer !important;
+	border: 1px solid var(--bs-success-border-subtle) !important;
 }
 
 .day-square.status-absent {
-	background-color: var(--bs-danger-border-subtle);
-	color: var(--bs-danger-text-emphasis);
+	background-color: var(--bs-danger-border-subtle) !important;
+	color: var(--bs-danger-text-emphasis) !important;
+	cursor: pointer !important;
+	border: 1px solid var(--bs-danger-border-subtle) !important;
 }
 
 .day-square.status-leave {
-	background-color: var(--bs-warning-border-subtle);
-	color: var(--bs-warning-text-emphasis);
+	background-color: var(--bs-warning-border-subtle) !important;
+	color: var(--bs-warning-text-emphasis) !important;
 	font-weight: bold;
+	border: 1px solid var(--bs-warning-border-subtle) !important;
+	cursor: pointer !important;
 }
 
 .day-square.status-half-day {
-	background-color: var(--bs-primary-border-subtle);
-	color: var(--bs-primary-text-emphasis);
+	background-color: var(--bs-primary-border-subtle) !important;
+	color: var(--bs-primary-text-emphasis) !important;
 	font-weight: bold;
+	cursor: pointer !important;
+	border: 1px solid var(--bs-primary-border-subtle) !important;
 }
 
 .day-square.status-holiday {
-	background-color: var(--bs-info-border-subtle);
-	color: var(--bs-info-text-emphasis);
+	background-color: var(--bs-info-border-subtle) !important;
+	color: var(--bs-info-text-emphasis) !important;
+	cursor: pointer !important;
+	border: 1px solid var(--bs-info-border-subtle) !important;
 }
 
 .day-square.status-weekend {

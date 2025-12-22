@@ -94,9 +94,19 @@ switch ($action) {
         break;
     case 'delete_department':
         $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+
+        // Check if there are employees assigned to this department
+        $employee_check = query($mysqli, "SELECT COUNT(*) as count FROM employees WHERE department_id = ? AND id IN (SELECT e.id FROM employees e JOIN users u ON e.user_id = u.id WHERE u.company_id = ?)", [$id, $company_id]);
+        if ($employee_check['success'] && $employee_check['data'][0]['count'] > 0) {
+            $response['message'] = 'Cannot delete department. There are employees assigned to this department. Please reassign them first.';
+            break;
+        }
+
         $result = query($mysqli, "DELETE FROM departments WHERE id = ? AND company_id = ?", [$id, $company_id]);
         if ($result['success']) {
             $response = ['success' => true, 'message' => 'Department deleted!'];
+        } else {
+            $response['message'] = 'Database error: ' . ($result['error'] ?? 'Unknown error');
         }
         break;
 
@@ -154,9 +164,19 @@ switch ($action) {
         break;
     case 'delete_designation':
         $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+
+        // Check if there are employees assigned to this designation
+        $employee_check = query($mysqli, "SELECT COUNT(*) as count FROM employees WHERE designation_id = ? AND id IN (SELECT e.id FROM employees e JOIN users u ON e.user_id = u.id WHERE u.company_id = ?)", [$id, $company_id]);
+        if ($employee_check['success'] && $employee_check['data'][0]['count'] > 0) {
+            $response['message'] = 'Cannot delete designation. There are employees assigned to this designation. Please reassign them first.';
+            break;
+        }
+
         $result = query($mysqli, "DELETE FROM designations WHERE id = ?", [$id]);
         if ($result['success']) {
             $response = ['success' => true, 'message' => 'Designation deleted!'];
+        } else {
+            $response['message'] = 'Database error: ' . ($result['error'] ?? 'Unknown error');
         }
         break;
 
