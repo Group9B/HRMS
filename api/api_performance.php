@@ -1,138 +1,152 @@
 <?php
-header('Content-Type: application/json');
 require_once '../config/db.php';
 require_once '../includes/functions.php';
 
-$response = ['success' => false, 'message' => 'An unknown error occurred.'];
+header('Content-Type: application/json');
 
-// Security Check: Must be a logged-in manager (Role ID 6, or adjust as needed)
 if (!isLoggedIn() || $_SESSION['role_id'] !== 6) {
-    $response['message'] = 'Unauthorized access.';
-    echo json_encode($response);
-    exit();
+    echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
+    exit;
 }
 
-$manager_user_id = $_SESSION['user_id'];
+$user_id = $_SESSION['user_id'];
+$manager_result = query($mysqli, "SELECT department_id FROM employees WHERE user_id = ?", [$user_id]);
+$manager_department_id = $manager_result['success'] ? $manager_result['data'][0]['department_id'] : 0;
 
-// Get the manager's department ID to scope all queries
-$manager_info = query($mysqli, "SELECT department_id FROM employees WHERE user_id = ?", [$manager_user_id]);
-if (!$manager_info['success'] || empty($manager_info['data'])) {
-    $response['message'] = 'Manager profile not found.';
-    echo json_encode($response);
-    exit();
-}
-$manager_department_id = $manager_info['data'][0]['department_id'];
-
-$action = $_REQUEST['action'] ?? '';
+$action = $_GET['action'] ?? $_POST['action'] ?? '';
 
 switch ($action) {
     case 'get_performance_data':
         $employee_filter = $_GET['employee_id'] ?? '';
         $period_filter = $_GET['period'] ?? date('Y-m');
 
-        $params = [$manager_department_id];
-        $sql_where = "e.department_id = ?";
+        $where_msg = "e.department_id = ? AND p.period = ?";
+        $params = [$manager_department_id, $period_filter];
 
         if (!empty($employee_filter)) {
-            $sql_where .= " AND p.employee_id = ?";
+            $where_msg .= " AND p.employee_id = ?";
             $params[] = $employee_filter;
         }
-        if (!empty($period_filter)) {
-            $sql_where .= " AND p.period = ?";
-            $params[] = $period_filter;
+
+        $query = "
+            SELECT p.*, e.first_name, e.last_name, 
+                   CONCAT(m.first_name, ' ', m.last_name) as evaluator_name
+            FROM performance_reviews p
+            JOIN employees e ON p.employee_id = e.id
+            LEFT JOIN employees m ON p.evaluator_id = m.id
+            WHERE $where_msg
+            ORDER BY p.created_at DESC
+        ";
+
+        $result = query($mysqli, $query, $params);
+
+        // Calculate chart data
+        $chart_data = ['excellent' => 0, 'good' => 0, 'average' => 0, 'poor' => 0];
+        if ($result['success']) {
+            foreach ($result['data'] as $row) {
+                if ($row['score'] >= 80)
+                    $chart_data['excellent']++;
+                elseif ($row['score'] >= 60)
+                    $chart_data['good']++;
+                elseif ($row['score'] >= 40)
+                    $chart_data['average']++;
+                else
+                    $chart_data['poor']++;
+            }
         }
 
-        $sql = "SELECT p.*, e.first_name, e.last_name, u.username as evaluator_name
-                FROM performance p
-                JOIN employees e ON p.employee_id = e.id
-                LEFT JOIN users u ON p.evaluator_id = u.id
-                WHERE $sql_where ORDER BY p.created_at DESC";
+        echo json_encode([
+            'success' => true,
+            'data' => $result['success'] ? $result['data'] : [],
+            'chart_data' => $chart_data
+        ]);
+        break;
 
-        $result = query($mysqli, $sql, $params);
-        $chart_stats = query($mysqli, "
-            SELECT
-                COUNT(CASE WHEN p.score >= 80 THEN 1 END) as excellent,
-                COUNT(CASE WHEN p.score >= 60 AND p.score < 80 THEN 1 END) as good,
-                COUNT(CASE WHEN p.score >= 40 AND p.score < 60 THEN 1 END) as average,
-                COUNT(CASE WHEN p.score < 40 THEN 1 END) as poor
-            FROM performance p JOIN employees e ON p.employee_id = e.id
-            WHERE e.department_id = ? AND p.period = ?
-        ", [$manager_department_id, $period_filter]);
+    case 'get_performance_details':
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
-        if ($result['success'] && $chart_stats['success']) {
-            $response = [
-                'success' => true,
-                'data' => $result['data'],
-                'chart_data' => $chart_stats['data'][0] ?? ['excellent' => 0, 'good' => 0, 'average' => 0, 'poor' => 0]
-            ];
+        $result = query($mysqli, "
+            SELECT p.*, e.first_name, e.last_name,
+                   CONCAT(m.first_name, ' ', m.last_name) as evaluator_name
+            FROM performance_reviews p
+            JOIN employees e ON p.employee_id = e.id
+            LEFT JOIN employees m ON p.evaluator_id = m.id
+            WHERE p.id = ? AND e.department_id = ?
+        ", [$id, $manager_department_id]);
+
+        if ($result['success'] && !empty($result['data'])) {
+            echo json_encode(['success' => true, 'data' => $result['data'][0]]);
         } else {
-            $response['message'] = 'Failed to fetch performance data.';
+            echo json_encode(['success' => false, 'message' => 'Review not found']);
         }
         break;
 
     case 'add_edit_performance':
-        $id = (int) ($_POST['id'] ?? 0);
-        $employee_id = (int) ($_POST['employee_id'] ?? 0);
+        // requireCSRFToken();
+        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+        $employee_id = $_POST['employee_id'] ?? 0;
         $period = $_POST['period'] ?? '';
-        $score = (int) ($_POST['score'] ?? 0);
+        $score = $_POST['score'] ?? 0;
         $remarks = $_POST['remarks'] ?? '';
 
-        // Security check: Ensure the employee belongs to the manager's department
+        // Validate employee belongs to manager's department
         $emp_check = query($mysqli, "SELECT id FROM employees WHERE id = ? AND department_id = ?", [$employee_id, $manager_department_id]);
         if (!$emp_check['success'] || empty($emp_check['data'])) {
-            $response['message'] = 'You can only review employees in your department.';
-            break;
+            echo json_encode(['success' => false, 'message' => 'Invalid employee']);
+            exit;
         }
 
-        if ($id === 0) { // Add
-            $sql = "INSERT INTO performance (employee_id, evaluator_id, period, score, remarks) VALUES (?, ?, ?, ?, ?)";
-            $params = [$employee_id, $manager_user_id, $period, $score, $remarks];
-        } else { // Edit
-            $sql = "UPDATE performance SET employee_id = ?, period = ?, score = ?, remarks = ? WHERE id = ?";
-            $params = [$employee_id, $period, $score, $remarks, $id];
-        }
-        $result = query($mysqli, $sql, $params);
-        if ($result['success']) {
-            $response = ['success' => true, 'message' => 'Performance review saved successfully!'];
-        } else {
-            $response['message'] = 'Failed to save review.';
-        }
-        break;
+        // Get evaluator ID (manager's employee ID)
+        $evaluator_res = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$user_id]);
+        $evaluator_id = $evaluator_res['data'][0]['id'];
 
-    case 'get_performance_details':
-        $id = (int) ($_GET['id'] ?? 0);
-        $sql = "SELECT p.*, e.first_name, e.last_name, e.employee_code, d.name as designation_name, u.username as evaluator_name
-                FROM performance p
-                JOIN employees e ON p.employee_id = e.id
-                LEFT JOIN designations d ON e.designation_id = d.id
-                LEFT JOIN users u ON p.evaluator_id = u.id
-                WHERE p.id = ? AND e.department_id = ?";
-        $result = query($mysqli, $sql, [$id, $manager_department_id]);
-        if ($result['success'] && !empty($result['data'])) {
-            $response = ['success' => true, 'data' => $result['data'][0]];
+        if ($id > 0) {
+            // Update
+            $res = query($mysqli, "
+                UPDATE performance_reviews 
+                SET employee_id = ?, period = ?, score = ?, remarks = ?, updated_at = NOW()
+                WHERE id = ?
+            ", [$employee_id, $period, $score, $remarks, $id]);
         } else {
-            $response['message'] = 'Could not find performance review.';
+            // Insert
+            $res = query($mysqli, "
+                INSERT INTO performance_reviews (employee_id, evaluator_id, period, score, remarks, created_at)
+                VALUES (?, ?, ?, ?, ?, NOW())
+            ", [$employee_id, $evaluator_id, $period, $score, $remarks]);
+        }
+
+        if ($res['success']) {
+            echo json_encode(['success' => true, 'message' => 'Performance review saved successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Database error']);
         }
         break;
 
     case 'delete_performance':
-        $id = (int) ($_POST['id'] ?? 0);
-        // Security check is implicit in the JOIN
-        $sql = "DELETE p FROM performance p JOIN employees e ON p.employee_id = e.id WHERE p.id = ? AND e.department_id = ?";
-        $result = query($mysqli, $sql, [$id, $manager_department_id]);
-        if ($result['success'] && $result['affected_rows'] > 0) {
-            $response = ['success' => true, 'message' => 'Review deleted successfully!'];
+        // requireCSRFToken();
+        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+
+        // Validate ownership via department join
+        $check = query($mysqli, "
+            SELECT p.id FROM performance_reviews p
+            JOIN employees e ON p.employee_id = e.id
+            WHERE p.id = ? AND e.department_id = ?
+        ", [$id, $manager_department_id]);
+
+        if ($check['success'] && !empty($check['data'])) {
+            $del = query($mysqli, "DELETE FROM performance_reviews WHERE id = ?", [$id]);
+            if ($del['success']) {
+                echo json_encode(['success' => true, 'message' => 'Review deleted successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Delete failed']);
+            }
         } else {
-            $response['message'] = 'Failed to delete review.';
+            echo json_encode(['success' => false, 'message' => 'Review not found or unauthorized']);
         }
         break;
 
     default:
-        $response['message'] = 'Invalid action.';
+        echo json_encode(['success' => false, 'message' => 'Invalid action']);
         break;
 }
-
-echo json_encode($response);
-
-exit();
 ?>

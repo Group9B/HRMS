@@ -319,8 +319,9 @@ require_once '../components/layout/header.php';
                                 ?>
 
                                 <option value="<?= $member['id'] ?>">
-                                    <?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?></option>
-                            <?php
+                                    <?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?>
+                                </option>
+                                <?php
                             endforeach; ?>
                         </select>
                     </div>
@@ -372,6 +373,8 @@ require_once '../components/layout/header.php';
                             <?php endforeach; ?>
                         </div>
                     </div>
+                </div>
+                <div class="modal-body">
                     <div class="mb-3">
                         <label for="bulk_task_title" class="form-label">Task Title *</label>
                         <input type="text" class="form-control" id="bulk_task_title" name="title" required>
@@ -389,6 +392,39 @@ require_once '../components/layout/header.php';
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Assign Tasks</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Task Modal -->
+<div class="modal fade" id="editTaskModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editTaskForm">
+                <div class="modal-body">
+                    <input type="hidden" name="task_id" id="edit_task_id">
+                    <div class="mb-3">
+                        <label for="edit_task_title" class="form-label">Task Title *</label>
+                        <input type="text" class="form-control" id="edit_task_title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_task_description" class="form-label">Description</label>
+                        <textarea class="form-control" id="edit_task_description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_task_due_date" class="form-label">Due Date</label>
+                        <input type="date" class="form-control" id="edit_task_due_date" name="due_date">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Task</button>
                 </div>
             </form>
         </div>
@@ -530,8 +566,52 @@ require_once '../components/layout/header.php';
     }
 
     function editTask(taskId) {
-        // Redirect to edit page or show edit modal
-        window.location.href = `/hrms/manager/edit_task.php?id=${taskId}`;
+        fetch(`/hrms/api/api_manager.php?action=get_task_details&task_id=${taskId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const task = data.data;
+                    $('#edit_task_id').val(task.id);
+                    $('#edit_task_title').val(task.title);
+                    $('#edit_task_description').val(task.description);
+                    $('#edit_task_due_date').val(task.due_date);
+
+                    $('#editTaskModal').modal('show');
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred. Please try again.', 'error');
+            });
+    }
+
+    $('#editTaskForm').on('submit', function (e) {
+        e.preventDefault();
+        updateTask();
+    });
+
+    function updateTask() {
+        const formData = new FormData(document.getElementById('editTaskForm'));
+        formData.append('action', 'update_task');
+
+        fetch('/hrms/api/api_manager.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    $('#editTaskModal').modal('hide');
+                    location.reload();
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred. Please try again.', 'error');
+            });
     }
 
     function cancelTask(taskId) {

@@ -295,6 +295,35 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
+<!-- Edit Team Modal -->
+<div class="modal fade" id="editTeamModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Team</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editTeamForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_team_name" class="form-label">Team Name *</label>
+                        <input type="text" class="form-control" id="edit_team_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_team_description" class="form-label">Description</label>
+                        <textarea class="form-control" id="edit_team_description" name="description"
+                            rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Team</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Team Details Modal -->
 <div class="modal fade" id="teamDetailsModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -458,8 +487,52 @@ require_once '../components/layout/header.php';
     }
 
     function editTeam(teamId) {
-        // Redirect to edit page or show edit modal
-        window.location.href = `/hrms/manager/edit_team.php?id=${teamId}`;
+        fetch(`/hrms/api/api_manager.php?action=get_team_details&team_id=${teamId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const team = data.data;
+                    $('#edit_team_name').val(team.name);
+                    $('#edit_team_description').val(team.description);
+
+                    // Create dynamic form for updating
+                    $('#editTeamForm').off('submit').on('submit', function (e) {
+                        e.preventDefault();
+                        updateTeam(teamId);
+                    });
+
+                    $('#editTeamModal').modal('show');
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred. Please try again.', 'error');
+            });
+    }
+
+    function updateTeam(teamId) {
+        const formData = new FormData(document.getElementById('editTeamForm'));
+        formData.append('action', 'update_team');
+        formData.append('team_id', teamId);
+
+        fetch('/hrms/api/api_manager.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    $('#editTeamModal').modal('hide');
+                    location.reload();
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred. Please try again.', 'error');
+            });
     }
 
     function manageMembers(teamId) {

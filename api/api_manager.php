@@ -83,7 +83,7 @@ switch ($action) {
 
     case 'approve_leave':
         $leave_id = isset($_POST['leave_id']) ? (int) $_POST['leave_id'] : 0;
-        
+
         if ($leave_id > 0) {
             // Verify the leave belongs to a team member
             $verify_result = query($mysqli, "
@@ -115,7 +115,7 @@ switch ($action) {
     case 'reject_leave':
         $leave_id = isset($_POST['leave_id']) ? (int) $_POST['leave_id'] : 0;
         $reason = $_POST['reason'] ?? '';
-        
+
         if ($leave_id > 0) {
             // Verify the leave belongs to a team member
             $verify_result = query($mysqli, "
@@ -163,7 +163,7 @@ switch ($action) {
         $leave_id = isset($_POST['leave_id']) ? (int) $_POST['leave_id'] : 0;
         $status = $_POST['status'] ?? '';
         $reason = $_POST['reason'] ?? '';
-        
+
         if ($leave_id > 0 && in_array($status, ['approved', 'rejected'])) {
             // Verify the leave belongs to a team member
             $verify_result = query($mysqli, "
@@ -197,11 +197,11 @@ switch ($action) {
         $leave_ids = isset($_POST['leave_ids']) ? json_decode($_POST['leave_ids'], true) : [];
         $status = $_POST['status'] ?? '';
         $reason = $_POST['reason'] ?? '';
-        
+
         if (!empty($leave_ids) && in_array($status, ['approved', 'rejected'])) {
             $placeholders = str_repeat('?,', count($leave_ids) - 1) . '?';
             $params = array_merge($leave_ids, [$manager_department_id]);
-            
+
             $update_result = query($mysqli, "
                 UPDATE leaves l
                 JOIN employees e ON l.employee_id = e.id
@@ -222,7 +222,7 @@ switch ($action) {
 
     case 'get_leave_details':
         $leave_id = isset($_GET['leave_id']) ? (int) $_GET['leave_id'] : 0;
-        
+
         if ($leave_id > 0) {
             $leave_result = query($mysqli, "
                 SELECT l.*, e.first_name, e.last_name, e.employee_code,
@@ -249,7 +249,7 @@ switch ($action) {
         $title = $_POST['title'] ?? '';
         $description = $_POST['description'] ?? '';
         $due_date = $_POST['due_date'] ?? null;
-        
+
         if ($employee_id > 0 && !empty($title)) {
             // Verify the employee belongs to the manager's team
             $verify_result = query($mysqli, "
@@ -281,11 +281,11 @@ switch ($action) {
         $title = $_POST['title'] ?? '';
         $description = $_POST['description'] ?? '';
         $due_date = $_POST['due_date'] ?? null;
-        
+
         if (!empty($employee_ids) && !empty($title)) {
             $success_count = 0;
             $error_count = 0;
-            
+
             foreach ($employee_ids as $employee_id) {
                 // Verify the employee belongs to the manager's team
                 $verify_result = query($mysqli, "
@@ -308,7 +308,7 @@ switch ($action) {
                     $error_count++;
                 }
             }
-            
+
             if ($success_count > 0) {
                 $response = ['success' => true, 'message' => "Tasks assigned to {$success_count} employee(s) successfully!"];
             } else {
@@ -321,7 +321,7 @@ switch ($action) {
 
     case 'get_task_details':
         $task_id = isset($_GET['task_id']) ? (int) $_GET['task_id'] : 0;
-        
+
         if ($task_id > 0) {
             $task_result = query($mysqli, "
                 SELECT t.*, e.first_name, e.last_name, e.employee_code,
@@ -343,9 +343,43 @@ switch ($action) {
         }
         break;
 
+    case 'update_task':
+        $task_id = isset($_POST['task_id']) ? (int) $_POST['task_id'] : 0;
+        $title = $_POST['title'] ?? '';
+        $description = $_POST['description'] ?? '';
+        $due_date = $_POST['due_date'] ?? null;
+
+        if ($task_id > 0 && !empty($title)) {
+            // Verify the task belongs to the manager's team
+            $verify_result = query($mysqli, "
+                SELECT t.id FROM tasks t
+                JOIN employees e ON t.employee_id = e.id
+                WHERE t.id = ? AND e.department_id = ?
+            ", [$task_id, $manager_department_id]);
+
+            if ($verify_result['success'] && !empty($verify_result['data'])) {
+                $update_result = query($mysqli, "
+                    UPDATE tasks 
+                    SET title = ?, description = ?, due_date = ?, updated_at = NOW()
+                    WHERE id = ?
+                ", [$title, $description, $due_date, $task_id]);
+
+                if ($update_result['success']) {
+                    $response = ['success' => true, 'message' => 'Task updated successfully!'];
+                } else {
+                    $response['message'] = 'Failed to update task.';
+                }
+            } else {
+                $response['message'] = 'Task not found or you do not have permission to edit it.';
+            }
+        } else {
+            $response['message'] = 'Invalid task ID or missing title.';
+        }
+        break;
+
     case 'cancel_task':
         $task_id = isset($_POST['task_id']) ? (int) $_POST['task_id'] : 0;
-        
+
         if ($task_id > 0) {
             // Verify the task belongs to a team member
             $verify_result = query($mysqli, "
@@ -381,7 +415,7 @@ switch ($action) {
         $check_out = $_POST['check_out'] ?? null;
         $status = $_POST['status'] ?? 'present';
         $remarks = $_POST['remarks'] ?? '';
-        
+
         if ($employee_id > 0 && !empty($date)) {
             // Verify the employee belongs to the manager's team
             $verify_result = query($mysqli, "
@@ -411,8 +445,10 @@ switch ($action) {
                     ", [$employee_id, $date, $check_in, $check_out, $status, $remarks]);
                 }
 
-                if (($existing_result['success'] && !empty($existing_result['data']) && $update_result['success']) || 
-                    ($existing_result['success'] && empty($existing_result['data']) && $insert_result['success'])) {
+                if (
+                    ($existing_result['success'] && !empty($existing_result['data']) && $update_result['success']) ||
+                    ($existing_result['success'] && empty($existing_result['data']) && $insert_result['success'])
+                ) {
                     $response = ['success' => true, 'message' => 'Attendance marked successfully!'];
                 } else {
                     $response['message'] = 'Failed to mark attendance.';
@@ -427,7 +463,7 @@ switch ($action) {
 
     case 'get_attendance_details':
         $attendance_id = isset($_GET['attendance_id']) ? (int) $_GET['attendance_id'] : 0;
-        
+
         if ($attendance_id > 0) {
             $attendance_result = query($mysqli, "
                 SELECT a.*, e.first_name, e.last_name, e.employee_code,
@@ -454,7 +490,7 @@ switch ($action) {
         $period = $_POST['period'] ?? '';
         $score = isset($_POST['score']) ? (int) $_POST['score'] : 0;
         $remarks = $_POST['remarks'] ?? '';
-        
+
         if ($employee_id > 0 && !empty($period) && $score >= 0 && $score <= 100) {
             // Verify the employee belongs to the manager's team
             $verify_result = query($mysqli, "
@@ -483,7 +519,7 @@ switch ($action) {
 
     case 'get_performance_details':
         $performance_id = isset($_GET['performance_id']) ? (int) $_GET['performance_id'] : 0;
-        
+
         if ($performance_id > 0) {
             $performance_result = query($mysqli, "
                 SELECT p.*, e.first_name, e.last_name, e.employee_code,
@@ -507,7 +543,7 @@ switch ($action) {
 
     case 'delete_performance':
         $performance_id = isset($_POST['performance_id']) ? (int) $_POST['performance_id'] : 0;
-        
+
         if ($performance_id > 0) {
             // Verify the performance belongs to a team member
             $verify_result = query($mysqli, "
@@ -538,7 +574,7 @@ switch ($action) {
     case 'create_team':
         $team_name = $_POST['name'] ?? '';
         $team_description = $_POST['description'] ?? '';
-        
+
         if (!empty($team_name)) {
             $insert_result = query($mysqli, "
                 INSERT INTO teams (company_id, name, description, created_by)
@@ -558,7 +594,7 @@ switch ($action) {
     case 'assign_team_members':
         $team_id = isset($_POST['team_id']) ? (int) $_POST['team_id'] : 0;
         $employee_ids = isset($_POST['employee_ids']) ? $_POST['employee_ids'] : [];
-        
+
         if ($team_id > 0 && !empty($employee_ids)) {
             // Verify the team belongs to the manager
             $verify_team = query($mysqli, "
@@ -569,7 +605,7 @@ switch ($action) {
             if ($verify_team['success'] && !empty($verify_team['data'])) {
                 $success_count = 0;
                 $error_count = 0;
-                
+
                 foreach ($employee_ids as $employee_id) {
                     // Check if employee is already in the team
                     $check_existing = query($mysqli, "
@@ -593,7 +629,7 @@ switch ($action) {
                         $error_count++;
                     }
                 }
-                
+
                 if ($success_count > 0) {
                     $response = ['success' => true, 'message' => "Successfully assigned {$success_count} member(s) to the team!"];
                 } else {
@@ -609,7 +645,7 @@ switch ($action) {
 
     case 'get_team_details':
         $team_id = isset($_GET['team_id']) ? (int) $_GET['team_id'] : 0;
-        
+
         if ($team_id > 0) {
             // Get team details
             $team_result = query($mysqli, "
@@ -622,7 +658,7 @@ switch ($action) {
 
             if ($team_result['success'] && !empty($team_result['data'])) {
                 $team = $team_result['data'][0];
-                
+
                 // Get team members
                 $members_result = query($mysqli, "
                     SELECT e.*, tm.role_in_team, tm.assigned_at
@@ -633,7 +669,7 @@ switch ($action) {
                 ", [$team_id]);
 
                 $team['members'] = $members_result['success'] ? $members_result['data'] : [];
-                
+
                 $response = ['success' => true, 'data' => $team];
             } else {
                 $response['message'] = 'Team not found or you do not have permission to view this team.';
@@ -645,7 +681,7 @@ switch ($action) {
 
     case 'delete_team':
         $team_id = isset($_POST['team_id']) ? (int) $_POST['team_id'] : 0;
-        
+
         if ($team_id > 0) {
             // Verify the team belongs to the manager
             $verify_team = query($mysqli, "
@@ -680,7 +716,7 @@ switch ($action) {
     case 'remove_team_member':
         $team_id = isset($_POST['team_id']) ? (int) $_POST['team_id'] : 0;
         $employee_id = isset($_POST['employee_id']) ? (int) $_POST['employee_id'] : 0;
-        
+
         if ($team_id > 0 && $employee_id > 0) {
             // Verify the team belongs to the manager
             $verify_team = query($mysqli, "
@@ -711,7 +747,7 @@ switch ($action) {
         $team_id = isset($_POST['team_id']) ? (int) $_POST['team_id'] : 0;
         $team_name = $_POST['name'] ?? '';
         $team_description = $_POST['description'] ?? '';
-        
+
         if ($team_id > 0 && !empty($team_name)) {
             // Verify the team belongs to the manager
             $verify_team = query($mysqli, "
