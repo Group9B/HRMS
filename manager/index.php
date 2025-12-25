@@ -14,9 +14,9 @@ $company_id = $_SESSION['company_id'];
 $manager_result = query($mysqli, "SELECT * FROM employees WHERE user_id = ?", [$user_id]);
 $manager = $manager_result['success'] ? $manager_result['data'][0] : null;
 
-// if (!$manager) {
-//     redirect("/hrms/pages/unauthorized.php");
-// }
+if (!$manager) {
+    redirect("/hrms/pages/unauthorized.php");
+}
 
 $manager_id = $manager['id'];
 $manager_department_id = $manager['department_id'];
