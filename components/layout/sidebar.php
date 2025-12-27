@@ -25,13 +25,6 @@ switch ($_SESSION['role_id']) {
         'permission' => null,
         'submenu' => []
       ],
-      'Configuration' => [
-        'title' => 'Configuration',
-        'icon' => 'ti ti-settings',
-        'url' => '/hrms/admin/settings.php',
-        'permission' => null,
-        'submenu' => []
-      ],
       'Reports/Analytics' => [
         'title' => 'Reports',
         'icon' => 'ti ti-chart-bar',
@@ -43,6 +36,13 @@ switch ($_SESSION['role_id']) {
         'title' => 'Support',
         'icon' => 'ti ti-help',
         'url' => '/hrms/admin/support.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'Configuration' => [
+        'title' => 'Configuration',
+        'icon' => 'ti ti-settings',
+        'url' => '/hrms/admin/settings.php',
         'permission' => null,
         'submenu' => []
       ],

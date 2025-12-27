@@ -223,7 +223,7 @@ require_once '../components/layout/header.php';
 <script>
     let currentMonth;
     let allAttendanceData = null;
-    let currentViewMode = 'departments'; // 'departments' or 'employees'
+    let currentViewMode = 'departments';
     let selectedDepartmentId = null;
     let attendanceStatusChartInstance = null;
     let departmentAttendanceChartInstance = null;
@@ -268,7 +268,6 @@ require_once '../components/layout/header.php';
                 if (data.success) {
                     showToast(data.message, 'success');
                     attendanceModal.hide();
-                    // Reload attendance data for current view
                     const monthString = currentMonth.toISOString().slice(0, 7);
                     fetch(`/hrms/api/api_attendance.php?action=get_attendance_data&month=${monthString}`)
                         .then(res => res.json())

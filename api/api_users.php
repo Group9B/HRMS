@@ -80,6 +80,36 @@ switch ($action) {
         }
         break;
 
+    case 'check_username':
+        if ($method === 'POST') {
+            $username = $_POST['username'] ?? '';
+            $user_id = isset($_POST['user_id']) ? (int) $_POST['user_id'] : 0; // For edit mode
+
+            if (empty($username)) {
+                $response['message'] = 'Username is required.';
+                break;
+            }
+
+            // Check if username already exists (excluding current user if editing)
+            if ($user_id > 0) {
+                // Edit mode: check if username exists but exclude the current user
+                $sql = "SELECT COUNT(*) as count FROM users WHERE username = ? AND id != ?";
+                $result = query($mysqli, $sql, [$username, $user_id]);
+            } else {
+                // Add mode: check if username exists
+                $sql = "SELECT COUNT(*) as count FROM users WHERE username = ?";
+                $result = query($mysqli, $sql, [$username]);
+            }
+
+            if ($result['success'] && !empty($result['data'])) {
+                $exists = (int) $result['data'][0]['count'] > 0;
+                $response = ['success' => true, 'available' => !$exists];
+            } else {
+                $response['message'] = 'Error checking username availability: ' . $result['error'];
+            }
+        }
+        break;
+
     default:
         $response['message'] = 'Invalid action specified.';
         break;

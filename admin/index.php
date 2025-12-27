@@ -9,11 +9,10 @@ if (!isLoggedIn()) {
 if ($_SESSION['role_id'] !== 1) {
   redirect("/hrms/unauthorized.php");
 }
-flash("warning", "You do not have permission to access that page.");
 // --- CORRECTED DATA FETCHING for Super Admin ---
 $active_companies = query($mysqli, "SELECT COUNT(*) as count FROM companies")['data'][0]['count'] ?? 0;
+$total_users = query($mysqli, "SELECT COUNT(*) as count FROM users WHERE role_id != 1")['data'][0]['count'] ?? 0;
 $total_employees = query($mysqli, "SELECT COUNT(*) as count FROM employees")['data'][0]['count'] ?? 0;
-$pending_leaves = query($mysqli, "SELECT COUNT(*) as count FROM leaves WHERE status = 'pending'")['data'][0]['count'] ?? 0;
 $open_tickets = query($mysqli, "SELECT COUNT(*) as count FROM support_tickets WHERE status = 'open'")['data'][0]['count'] ?? 0;
 
 // Recent Companies List
@@ -27,55 +26,8 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
 <div class="d-flex">
   <?php require_once '../components/layout/sidebar.php'; ?>
   <div class="p-3 p-md-4" style="flex: 1;">
-    <h2 class="h3 mb-4 text-gray-800"><i class="ti ti-dashboard me-2"></i>Dashboard</h2>
-
     <!-- Stat Cards Row -->
-    <div class="row">
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stat-card shadow-sm">
-          <div class="card-body">
-            <div class="icon-circle bg-primary"><i class="ti ti-building"></i></div>
-            <div>
-              <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Active Companies</div>
-              <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $active_companies ?></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stat-card shadow-sm">
-          <div class="card-body">
-            <div class="icon-circle bg-success"><i class="ti ti-users-group"></i></div>
-            <div>
-              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Employees</div>
-              <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $total_employees ?></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stat-card shadow-sm">
-          <div class="card-body">
-            <div class="icon-circle bg-info"><i class="ti ti-plane"></i></div>
-            <div>
-              <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Pending Leaves</div>
-              <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $pending_leaves ?></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stat-card shadow-sm">
-          <div class="card-body">
-            <div class="icon-circle bg-warning"><i class="ti ti-help"></i></div>
-            <div>
-              <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Open Support Tickets</div>
-              <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $open_tickets ?></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="row" id="dashboardStats"></div>
     <div class="row">
       <div class="col-lg-8 mb-4">
         <div class="card main-content-card shadow-sm">
@@ -125,11 +77,21 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
             <h6 class="m-0 font-weight-bold">Uploads Storage (5GB)</h6>
           </div>
           <div class="card-body d-flex align-items-center justify-content-center p-sm-0"><canvas id="storageChart"
-              class="" style="aspect-ratio: 1/1; height: 250px; width: 250px;"></canvas>
+              class="" style="aspect-ratio: 1/1; height: 200px; width: 200px;"></canvas>
           </div>
         </div>
       </div>
-      <div class="col-xl-8 mb-4">
+      <div class="col-xl-4 mb-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold">User Role Distribution</h6>
+          </div>
+          <div class="card-body d-flex align-items-center justify-content-center p-sm-0"><canvas
+              id="roleDistributionChart" class="" style="aspect-ratio: 1/1; height: 200px; width: 200px;"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-4 mb-4">
         <div class="card shadow-sm h-100">
           <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold">My To-Do List</h6>
@@ -150,6 +112,32 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
 
 <script>
   $(function () {
+    // Render dashboard stats
+    const stats = [
+      { label: 'Active Companies', value: <?= $active_companies ?>, color: 'primary-subtle', icon: 'building', textColor: 'primary' },
+      { label: 'Active Users', value: <?= $total_users ?>, color: 'success-subtle', icon: 'users', textColor: 'success' },
+      { label: 'Total Employees', value: <?= $total_employees ?>, color: 'info-subtle', icon: 'users-group', textColor: 'info' },
+      { label: 'Open Support Tickets', value: <?= $open_tickets ?>, color: 'warning-subtle', icon: 'help', textColor: 'warning' }
+    ];
+
+    let statsHtml = '';
+    stats.forEach(stat => {
+      statsHtml += `<div class="col-xl-3 col-md-6 mb-3">
+        <div class="card shadow-sm bg-${stat.color}">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <div class="text-xs font-weight-bold text-uppercase mb-1">${stat.label}</div>
+                <div class="h5 mb-0 font-weight-bold" style="color: var(--bs-${stat.textColor});">${stat.value}</div>
+              </div>
+              <i class="ti ti-${stat.icon} text-${stat.textColor}" style="font-size: 2.5rem; opacity: 0.5;"></i>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    });
+    $('#dashboardStats').html(statsHtml);
+
     fetch('api_dashboard.php?action=get_storage_usage').then(res => res.json()).then(result => {
       if (result.success) {
         const ctx = document.getElementById('storageChart').getContext('2d');
@@ -167,6 +155,39 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
         });
       }
     });
+
+    // Fetch and render role distribution chart
+    fetch('/hrms/api/api_reports_superadmin.php').then(res => res.json()).then(result => {
+      if (result.success && result.data.userRole) {
+        const roleData = result.data.userRole;
+        const ctx = document.getElementById('roleDistributionChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: Object.keys(roleData),
+            datasets: [{
+              data: Object.values(roleData),
+              backgroundColor: [
+                '#4e73df',
+                '#1cc28a',
+                '#f2613f',
+                '#fec260'
+              ],
+              borderColor: '#fff',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: { position: 'bottom' }
+            }
+          }
+        });
+      }
+    });
+
     initializeTodoList('#todoForm', '#todoList');
   });
 </script>

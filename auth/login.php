@@ -34,7 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $error = "Invalid email or password.";
             } else {
                 // Password is correct - now check for employee record (except for Super Admin role_id = 1)
-                if ($user['role_id'] !== 1) {
+                if (in_array($user['role_id'], [3, 4, 5, 6])) {
                     // Check if employee record exists for non-admin users
                     $emp_result = query($mysqli, "SELECT id, status FROM employees WHERE user_id = ? LIMIT 1", [$user['id']]);
 
@@ -92,7 +92,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $_SESSION['role_id'] = $user['role_id'];
                     $_SESSION['company_id'] = $user['company_id'];
 
-                    redirect("/hrms/admin/");
+                    redirect("/hrms/includes/redirect.php");
                     exit();
                 }
             }

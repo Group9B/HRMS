@@ -21,8 +21,6 @@ require_once '../components/layout/header.php';
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
-        <h2 class="h3 mb-4"><i class="ti ti-settings me-2"></i>System Configuration</h2>
-
         <div class="row">
             <div class="col-lg-7 mb-4">
                 <div class="card shadow-sm h-100">
@@ -41,8 +39,10 @@ require_once '../components/layout/header.php';
             </div>
             <div class="col-lg-5 mb-4">
                 <div class="card shadow-sm h-100">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h6 class="m-0 font-weight-bold">Global Holiday Management</h6>
+                        <button class="btn btn-primary btn-sm" onclick="prepareHolidayModal()"><i
+                                class="ti ti-plus me-2"></i>Add Holiday</button>
                     </div>
                     <div class="card-body">
                         <p>Import official Indian public holidays for a specific year from Google Calendar.</p>
@@ -55,11 +55,6 @@ require_once '../components/layout/header.php';
                             <button type="submit" class="btn btn-info text-white">Import</button>
                         </form>
                         <hr>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="m-0">Master Holiday List</h6>
-                            <button class="btn btn-primary btn-sm" onclick="prepareHolidayModal()"><i
-                                    class="ti ti-plus me-1"></i> Add Manually</button>
-                        </div>
                         <div class="table-responsive">
                             <table id="holidaysTable" class="table table-sm" width="100%">
                                 <thead>
@@ -138,15 +133,27 @@ require_once '../components/layout/header.php';
 
         holidayTable = $('#holidaysTable').DataTable({
             ajax: { url: '/hrms/api/api_settings.php?action=get_global_holidays', dataSrc: 'data' },
+            columnDefs: [
+                { targets: 2, orderable: false, searchable: false }
+            ],
             columns: [
                 { data: 'holiday_name' },
                 { data: 'holiday_date', render: d => new Date(d + 'T00:00:00').toLocaleDateString() },
                 {
-                    data: null, orderable: false, render: (d, t, r) => `
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-primary" onclick='prepareHolidayModal(${JSON.stringify(r)})'><i class="ti ti-edit"></i></button>
-                    <button class="btn btn-outline-danger" onclick="deleteHoliday(${r.id})"><i class="ti ti-trash"></i></button>
-                </div>`
+                    data: null, render: (d, t, r) => createActionDropdown(
+                        {
+                            onEdit: function () {
+                                prepareHolidayModal(r);
+                            },
+                            onDelete: function () {
+                                deleteHoliday(r.id);
+                            }
+                        },
+                        {
+                            editTooltip: 'Edit Holiday',
+                            deleteTooltip: 'Delete Holiday'
+                        }
+                    )
                 }
             ]
         });
@@ -183,15 +190,21 @@ require_once '../components/layout/header.php';
     }
 
     function deleteHoliday(id) {
-        if (confirm('Are you sure you want to delete this global holiday?')) {
-            const formData = new FormData();
-            formData.append('action', 'delete_global_holiday');
-            formData.append('id', id);
-            fetch('/hrms/api/api_settings.php', { method: 'POST', body: formData })
-                .then(res => res.json()).then(result => {
-                    showToast(result.message, result.success ? 'success' : 'error');
-                    if (result.success) holidayTable.ajax.reload();
-                });
-        }
+        showConfirmationModal(
+            'Are you sure you want to delete this holiday? This action cannot be undone.',
+            function () {
+                const formData = new FormData();
+                formData.append('action', 'delete_global_holiday');
+                formData.append('id', id);
+                fetch('/hrms/api/api_settings.php', { method: 'POST', body: formData })
+                    .then(res => res.json()).then(result => {
+                        showToast(result.message, result.success ? 'success' : 'error');
+                        if (result.success) holidayTable.ajax.reload();
+                    });
+            },
+            'Delete Holiday',
+            'Delete',
+            'btn-danger'
+        );
     }
 </script>

@@ -16,40 +16,75 @@ switch ($action) {
     case 'edit':
         if ($method === 'POST') {
             $company_id = isset($_POST['company_id']) ? (int) $_POST['company_id'] : 0;
-            $name = $_POST['name'] ?? '';
-            $address = $_POST['address'] ?? '';
-            $email = $_POST['email'] ?? '';
-            $phone = $_POST['phone'] ?? '';
+            $name = trim($_POST['name'] ?? '');
+            $address = trim($_POST['address'] ?? '');
+            $email = trim($_POST['email'] ?? '');
+            $phone = trim($_POST['phone'] ?? '');
 
+            // Validation
+            $validation_errors = [];
+
+            // Name validation
             if (empty($name)) {
-                $response['message'] = 'Company name is required.';
-                break;
+                $validation_errors['name'] = 'Company name is required.';
+            } elseif (strlen($name) < 2) {
+                $validation_errors['name'] = 'Company name must be at least 2 characters.';
+            } elseif (strlen($name) > 100) {
+                $validation_errors['name'] = 'Company name must not exceed 100 characters.';
+            }
+
+            // Email validation (if provided)
+            if (!empty($email)) {
+                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $validation_errors['email'] = 'Please enter a valid email address.';
+                } elseif (strlen($email) > 100) {
+                    $validation_errors['email'] = 'Email must not exceed 100 characters.';
+                }
+            }
+
+            // Phone validation (if provided)
+            if (!empty($phone)) {
+                if (!preg_match('/^[\d\s\-()\.+]{10,20}$/', $phone)) {
+                    $validation_errors['phone'] = 'Phone must be between 10-20 digits/characters.';
+                }
+            }
+
+            // Address validation (optional but check length)
+            if (strlen($address) > 255) {
+                $validation_errors['address'] = 'Address must not exceed 255 characters.';
+            }
+
+            // If validation fails, return errors
+            if (!empty($validation_errors)) {
+                $response['success'] = false;
+                $response['message'] = 'Validation failed. Please check the errors below.';
+                $response['errors'] = $validation_errors;
+                echo json_encode($response);
+                exit();
             }
 
             if ($action === 'add') {
                 $sql = "INSERT INTO companies (name, address, email, phone) VALUES (?, ?, ?, ?)";
-                $stmt = $mysqli->prepare($sql);
-                $stmt->bind_param('ssss', $name, $address, $email, $phone);
+                $result = query($mysqli, $sql, [$name, $address, $email, $phone]);
             } else { // Edit
                 $sql = "UPDATE companies SET name = ?, address = ?, email = ?, phone = ? WHERE id = ?";
-                $stmt = $mysqli->prepare($sql);
-                $stmt->bind_param('ssssi', $name, $address, $email, $phone, $company_id);
+                $result = query($mysqli, $sql, [$name, $address, $email, $phone, $company_id]);
             }
 
-            if ($stmt->execute()) {
-                $new_company_id = ($action === 'add') ? $mysqli->insert_id : $company_id;
+            if ($result['success']) {
+                $new_company_id = ($action === 'add') ? $result['insert_id'] : $company_id;
 
                 // Fetch the complete company data to send back to the frontend
-                $company_query = "SELECT * FROM companies WHERE id = ?";
-                $company_stmt = $mysqli->prepare($company_query);
-                $company_stmt->bind_param('i', $new_company_id);
-                $company_stmt->execute();
-                $result = $company_stmt->get_result();
-                $company_data = $result->fetch_assoc();
+                $company_query = query($mysqli, "SELECT * FROM companies WHERE id = ?", [$new_company_id]);
 
-                $response = ['success' => true, 'message' => 'Company saved successfully!', 'company' => $company_data];
+                if ($company_query['success'] && !empty($company_query['data'])) {
+                    $company_data = $company_query['data'][0];
+                    $response = ['success' => true, 'message' => 'Company saved successfully!', 'company' => $company_data];
+                } else {
+                    $response = ['success' => false, 'message' => 'Company saved but could not retrieve updated data.'];
+                }
             } else {
-                $response['message'] = 'Database error: ' . $stmt->error;
+                $response['message'] = 'Database error: ' . ($result['error'] ?? 'Unknown error');
             }
         }
         break;
@@ -57,15 +92,26 @@ switch ($action) {
     case 'delete':
         if ($method === 'POST') {
             $company_id = isset($_POST['company_id']) ? (int) $_POST['company_id'] : 0;
-            if ($company_id > 0) {
-                $sql = "DELETE FROM companies WHERE id = ?";
-                $stmt = $mysqli->prepare($sql);
-                $stmt->bind_param('i', $company_id);
-                if ($stmt->execute()) {
-                    $response = ['success' => true, 'message' => 'Company deleted successfully!'];
-                } else {
-                    $response['message'] = 'Failed to delete company.';
-                }
+
+            // Validation
+            if ($company_id <= 0) {
+                $response['message'] = 'Invalid company ID provided.';
+                break;
+            }
+
+            // Check if company exists before deletion
+            $check_result = query($mysqli, "SELECT id FROM companies WHERE id = ?", [$company_id]);
+            if (!$check_result['success'] || empty($check_result['data'])) {
+                $response['message'] = 'Company not found.';
+                break;
+            }
+
+            $delete_result = query($mysqli, "DELETE FROM companies WHERE id = ?", [$company_id]);
+
+            if ($delete_result['success']) {
+                $response = ['success' => true, 'message' => 'Company deleted successfully!'];
+            } else {
+                $response['message'] = 'Failed to delete company: ' . ($delete_result['error'] ?? 'Unknown error');
             }
         }
         break;
