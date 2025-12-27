@@ -36,7 +36,6 @@ require_once '../components/layout/header.php';
   <div class="p-3 p-md-4" style="flex: 1;">
     <h2 class="h3 mb-4 text-gray-800"><i class="ti ti-briefcase me-2"></i>HR Dashboard</h2>
 
-    <!-- Stat Cards Row -->
     <div class="row">
       <div class="col-xl-3 col-md-6 mb-4">
         <div class="card stat-card shadow-sm">
