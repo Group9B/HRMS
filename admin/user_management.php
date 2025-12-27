@@ -46,7 +46,7 @@ require_once '../components/layout/header.php';
             </div>
             <div class="card-body">
                 <div class="table-responsive overflow-auto" style="max-height: 60vh;">
-                    <table class="table table-hover table-sm align-middle" id="usersTable">
+                    <table class="table table-hover table-sm align-middle table-bordered" id="usersTable">
                         <thead class="">
                             <tr>
                                 <th>Username</th>
@@ -78,7 +78,6 @@ require_once '../components/layout/header.php';
                                     </td>
                                     <td>
                                         <div class="action-dropdown text-end" data-user='<?= json_encode($user); ?>'>
-                                            <!-- Dropdown will be inserted by JavaScript -->
                                         </div>
                                     </td>
                                 </tr>

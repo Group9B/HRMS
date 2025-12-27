@@ -327,3 +327,24 @@
 .action::after {
 	content: none;
 }
+
+.sidebar-active {
+	background-color: var(--bs-primary-bg-subtle) !important;
+	color: var(--bs-primary-text) !important;
+	border-radius: var(--bs-border-radius) !important;
+	font-size: 3rem !important;
+	transition: all 1s ease-in-out;
+}
+
+.sidebar-active .nav-link {
+	color: var(--bs-body-color-rgb) !important;
+}
+
+.sidebar-active i {
+	color: var(--bs-primary) !important;
+}
+
+.sidebar-active:hover {
+	background-color: var(--bs-primary-bg-subtle) !important;
+	color: var(--bs-primary-text) !important;
+}

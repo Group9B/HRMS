@@ -307,11 +307,11 @@ function isActivePage($url)
     </div>
     <?php foreach ($navigation_menu as $key => $item): ?>
       <?php if (shouldShowMenuItem($item)): ?>
-        <li class="nav-item mb-2">
+        <li class="nav-item mb-2 <?php echo isActivePage($item['url']) ? 'sidebar-active' : 'text-muted'; ?>">
           <?php if (empty($item['submenu'])): ?>
-            <a class="nav-link d-flex align-items-center py-2 px-3 rounded <?php echo isActivePage($item['url']) ? 'active bg-primary text-white' : 'text-muted'; ?>"
+            <a class="nav-link d-flex align-items-center py-2 px-3 rounded text-muted"
               href="<?php echo htmlspecialchars($item['url']); ?>">
-              <i class="<?php echo htmlspecialchars($item['icon']); ?> me-2" style="width: 20px;"></i>
+              <i class="<?php echo htmlspecialchars($item['icon']); ?> me-2 fs-5" style="width: 20px;"></i>
               <span style="font-size: 0.95rem;"><?php echo htmlspecialchars($item['title']); ?></span>
             </a>
           <?php else: ?>

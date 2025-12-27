@@ -20,13 +20,12 @@ $recent_companies_result = query($mysqli, "SELECT c.id, c.name, c.created_at, (S
 $recent_companies = $recent_companies_result['success'] ? $recent_companies_result['data'] : [];
 
 require_once '../components/layout/header.php';
-$additionalScripts[] = '/hrms/assets/js/chart.js'
-  ?>
+// $additionalScripts[] = '/hrms/assets/js/chart.js'
+?>
 
 <div class="d-flex">
   <?php require_once '../components/layout/sidebar.php'; ?>
   <div class="p-3 p-md-4" style="flex: 1;">
-    <!-- Stat Cards Row -->
     <div class="row" id="dashboardStats"></div>
     <div class="row">
       <div class="col-lg-8 mb-4">
@@ -45,7 +44,7 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
                     </div>
                     <div class="d-flex align-items-center">
                       <div class="created-at text-muted"><?= date('F j, Y', strtotime($company['created_at'])); ?></div>
-                      <div class="vr mx-2"></div><span class="badge bg-success">Active</span>
+                      <div class="vr mx-2"></div><span class="badge bg-success-subtle text-success-emphasis">Active</span>
                     </div>
                   </div>
                 <?php endforeach; else: ?>
@@ -62,8 +61,9 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
           </div>
           <div class="card-body quick-actions">
             <div class="d-grid gap-2">
-              <a href="companies.php" class="btn btn-primary"><i class="ti ti-plus"></i> Add New Company</a>
-              <a href="user_management.php" class="btn btn-success"><i class="ti ti-user-plus"></i> Create Admin
+              <a href="companies.php" class="btn btn-secondary"><i class="ti ti-plus"></i> Add New
+                Company</a>
+              <a href="user_management.php" class="btn btn-secondary"><i class="ti ti-user-plus"></i> Create Admin
                 User</a>
             </div>
           </div>
@@ -77,7 +77,8 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
             <h6 class="m-0 font-weight-bold">Uploads Storage (5GB)</h6>
           </div>
           <div class="card-body d-flex align-items-center justify-content-center p-sm-0"><canvas id="storageChart"
-              class="" style="aspect-ratio: 1/1; height: 200px; width: 200px;"></canvas>
+              class=""
+              style="position:relative !important; aspect-ratio: 1/1 !important; height: 280px !important; width: 280px !important;"></canvas>
           </div>
         </div>
       </div>
@@ -87,7 +88,8 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
             <h6 class="m-0 font-weight-bold">User Role Distribution</h6>
           </div>
           <div class="card-body d-flex align-items-center justify-content-center p-sm-0"><canvas
-              id="roleDistributionChart" class="" style="aspect-ratio: 1/1; height: 200px; width: 200px;"></canvas>
+              id="roleDistributionChart" class=""
+              style="aspect-ratio: 1/1 !important; height: 280px !important; width: 280px !important;"></canvas>
           </div>
         </div>
       </div>
@@ -140,7 +142,10 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
 
     fetch('api_dashboard.php?action=get_storage_usage').then(res => res.json()).then(result => {
       if (result.success) {
-        const ctx = document.getElementById('storageChart').getContext('2d');
+        const canvas = document.getElementById('storageChart');
+        canvas.width = 409;
+        canvas.height = 409;
+        const ctx = canvas.getContext('2d');
         new Chart(ctx, {
           type: 'doughnut',
           data: {
@@ -151,7 +156,7 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
               hoverBackgroundColor: ['#2e59d9', '#9D6807'],
             }]
           },
-          options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
+          options: { responsive: false, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
         });
       }
     });
@@ -160,7 +165,10 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
     fetch('/hrms/api/api_reports_superadmin.php').then(res => res.json()).then(result => {
       if (result.success && result.data.userRole) {
         const roleData = result.data.userRole;
-        const ctx = document.getElementById('roleDistributionChart').getContext('2d');
+        const canvas = document.getElementById('roleDistributionChart');
+        canvas.width = 409;
+        canvas.height = 409;
+        const ctx = canvas.getContext('2d');
         new Chart(ctx, {
           type: 'doughnut',
           data: {
@@ -178,8 +186,8 @@ $additionalScripts[] = '/hrms/assets/js/chart.js'
             }]
           },
           options: {
-            responsive: true,
-            maintainAspectRatio: true,
+            responsive: false,
+            maintainAspectRatio: false,
             plugins: {
               legend: { position: 'bottom' }
             }
