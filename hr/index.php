@@ -36,9 +36,9 @@ $additionalScripts = ['attendance-calendar.js', 'attendance-checkin.js'];
   <div class="p-3 p-md-4" style="flex: 1;">
     <div class="row" id="statCardsContainer"></div>
 
-    <!-- Clock In/Out Card -->
+    <!-- Row 1: Today's Work Hours | Pending Leave Requests -->
     <div class="row">
-      <div class="col-lg-5 mb-4">
+      <div class="col-md-4 mb-4">
         <div class="card shadow-sm h-100">
           <div class="card-header">
             <h6 class="m-0 font-weight-bold">Today's Work Hours</h6>
@@ -48,7 +48,7 @@ $additionalScripts = ['attendance-calendar.js', 'attendance-checkin.js'];
           </div>
         </div>
       </div>
-      <div class="col-lg-7 mb-4">
+      <div class="col-md-8 mb-4">
         <div class="card shadow-sm h-100">
           <div class="card-header d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold">Pending Leave Requests</h6>
@@ -74,13 +74,17 @@ $additionalScripts = ['attendance-calendar.js', 'attendance-checkin.js'];
           </div>
         </div>
       </div>
-      <div class="col-lg-6 mb-4">
-        <div class="card shadow-sm h-100">
+    </div>
+
+    <!-- Row 2: Recent Hires | My Attendance -->
+    <div class="row">
+      <div class="col-md-8 mb-4">
+        <div class="card shadow-sm">
           <div class="card-header">
             <h6 class="m-0 font-weight-bold">Recent Hires</h6>
           </div>
           <div class="card-body">
-            <div class="list-group list-group-flush">
+            <div class="list-group list-group-flush pt-0">
               <?php if (!empty($recent_hires)):
                 foreach ($recent_hires as $hire): ?>
                   <div class="list-group-item">
@@ -94,8 +98,33 @@ $additionalScripts = ['attendance-calendar.js', 'attendance-checkin.js'];
           </div>
         </div>
       </div>
-
-      <div class="col-lg-4 mb-4">
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+          <div class="card-header">
+            <h6 class="m-0 font-weight-bold">My Attendance (Current Month)</h6>
+          </div>
+          <div class="card-body">
+            <div id="attendanceCalendarContainer"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+          <div class="card-header">
+            <h6 class="m-0 font-weight-bold">My To-Do List</h6>
+          </div>
+          <div class="card-body">
+            <form id="todoForm" class="d-flex mb-3">
+              <input type="text" name="task" class="form-control me-2" placeholder="Add a new task..." required>
+              <button type="submit" class="btn btn-primary">Add</button>
+            </form>
+            <ul class="todo-list" id="todoList"></ul>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-8 mb-4">
         <div class="card shadow-sm h-100">
           <div class="card-header">
             <h6 class="m-0 font-weight-bold">Quick Actions</h6>
@@ -109,30 +138,6 @@ $additionalScripts = ['attendance-calendar.js', 'attendance-checkin.js'];
               <a href="/hrms/company/leaves.php" class="btn btn-secondary"><i class="ti ti-check"></i> Approve
                 Leaves</a>
             </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-4 mb-4">
-        <div class="card shadow-sm">
-          <div class="card-header">
-            <h6 class="m-0 font-weight-bold">My Attendance (Current Month)</h6>
-          </div>
-          <div class="card-body">
-            <div id="attendanceCalendarContainer"></div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-4 mb-4">
-        <div class="card shadow-sm">
-          <div class="card-header">
-            <h6 class="m-0 font-weight-bold">My To-Do List</h6>
-          </div>
-          <div class="card-body">
-            <form id="todoForm" class="d-flex mb-3">
-              <input type="text" name="task" class="form-control me-2" placeholder="Add a new task..." required>
-              <button type="submit" class="btn btn-primary">Add</button>
-            </form>
-            <ul class="todo-list" id="todoList"></ul>
           </div>
         </div>
       </div>
@@ -158,7 +163,7 @@ $additionalScripts = ['attendance-calendar.js', 'attendance-checkin.js'];
     new AttendanceCalendar({
       containerId: 'attendanceCalendarContainer',
       showMonthNavigation: true,
-      employeeId: null, // Will be handled by API with current_user_only
+      employeeId: null,
       onlyCurrentEmployee: true
     });
 
