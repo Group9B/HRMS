@@ -12,7 +12,6 @@ $company_id = $_SESSION['company_id'];
 $departments = query($mysqli, "SELECT id, name FROM departments WHERE company_id = ? ORDER BY name ASC", [$company_id])['data'] ?? [];
 $interviewers = query($mysqli, "SELECT u.id, e.first_name, e.last_name FROM users u JOIN employees e ON u.id = e.user_id JOIN departments d ON e.department_id = d.id WHERE d.company_id = ? ORDER BY e.first_name ASC", [$company_id])['data'] ?? [];
 
-
 require_once '../components/layout/header.php';
 ?>
 

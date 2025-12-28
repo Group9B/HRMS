@@ -419,8 +419,8 @@ switch ($action) {
         $totalApplications = $totalAppResult['data'][0]['count'] ?? 0;
 
         // Hired this month
-        $hiredMonthResult = query($mysqli, "SELECT COUNT(*) as count FROM job_applications ja JOIN jobs j ON ja.job_id = j.id WHERE j.company_id = ? AND ja.status = 'hired' AND MONTH(ja.updated_at) = MONTH(NOW()) AND YEAR(ja.updated_at) = YEAR(NOW())", [$company_id]);
-        $hiredThisMonth = $hiredMonthResult['data'][0]['count'] ?? 0;
+        $new_hires_this_month = query($mysqli, "SELECT COUNT(e.id) as count FROM employees e JOIN departments d ON e.department_id = d.id WHERE MONTH(e.date_of_joining) = MONTH(CURDATE()) AND YEAR(e.date_of_joining) = YEAR(CURDATE()) AND d.company_id = ?", [$company_id])['data'][0]['count'] ?? 0;
+        $hiredThisMonth = $new_hires_this_month;
 
         // Open positions (sum of openings for open jobs)
         $openPosResult = query($mysqli, "SELECT COALESCE(SUM(openings), 0) as count FROM jobs WHERE company_id = ? AND status = 'open'", [$company_id]);

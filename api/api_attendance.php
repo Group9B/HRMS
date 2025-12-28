@@ -5,7 +5,7 @@ require_once '../includes/functions.php';
 
 $response = ['success' => false, 'message' => 'An unknown error occurred.'];
 
-if (!isLoggedIn() || !in_array($_SESSION['role_id'], [2, 3])) {
+if (!isLoggedIn() || !in_array($_SESSION['role_id'], [2, 3, 4, 6])) {
     http_response_code(403);
     echo json_encode(['error' => 'Unauthorized access.']);
     exit();
@@ -55,9 +55,68 @@ switch ($action) {
         $sql_where_conditions = "u.company_id = ?";
         $sql_params = [$company_id];
 
-        if ($logged_in_role_id == 3) {
+        $current_user_only = isset($_GET['current_user_only']) && $_GET['current_user_only'] == 1;
+
+        // Role-based filtering
+        // Role 2: Company Admin - can see all employees
+        // Role 3: HR Manager - can see all employees except themselves (unless current_user_only=1)
+        // Role 4: Employee - can only see themselves
+        // Role 6: Manager - can see their team members (or only themselves if current_user_only=1)
+
+        if ($logged_in_role_id == 3 && !$current_user_only) {
+            // HR Manager sees others
             $sql_where_conditions .= " AND e.user_id != ?";
             $sql_params[] = $logged_in_user_id;
+        } elseif ($logged_in_role_id == 4) {
+            // Employee can only see their own attendance
+            $user_employee_query = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$logged_in_user_id]);
+            if ($user_employee_query['success'] && !empty($user_employee_query['data'])) {
+                $employee_id = $user_employee_query['data'][0]['id'];
+                $sql_where_conditions .= " AND e.id = ?";
+                $sql_params[] = $employee_id;
+            } else {
+                echo json_encode(['error' => 'No employee record found for current user.']);
+                exit();
+            }
+        } elseif ($logged_in_role_id == 6 && !$current_user_only) {
+            // Manager can see their team members
+            $team_members = query(
+                $mysqli,
+                "SELECT e.id FROM employees e 
+                 WHERE e.manager_id = (SELECT id FROM employees WHERE user_id = ?) 
+                 AND e.department_id IN (
+                    SELECT id FROM departments WHERE company_id = ?
+                 )",
+                [$logged_in_user_id, $company_id]
+            );
+
+            if ($team_members['success'] && !empty($team_members['data'])) {
+                $team_ids = array_column($team_members['data'], 'id');
+                $placeholders = implode(',', array_fill(0, count($team_ids), '?'));
+                $sql_where_conditions .= " AND e.id IN ($placeholders)";
+                $sql_params = array_merge($sql_params, $team_ids);
+            } else {
+                // Manager has no team, show only themselves
+                $user_employee_query = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$logged_in_user_id]);
+                if ($user_employee_query['success'] && !empty($user_employee_query['data'])) {
+                    $employee_id = $user_employee_query['data'][0]['id'];
+                    $sql_where_conditions .= " AND e.id = ?";
+                    $sql_params[] = $employee_id;
+                }
+            }
+        }
+
+        if ($current_user_only) {
+            // Override: Get only the current user's attendance
+            $user_employee_query = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$logged_in_user_id]);
+            if ($user_employee_query['success'] && !empty($user_employee_query['data'])) {
+                $employee_id = $user_employee_query['data'][0]['id'];
+                $sql_where_conditions .= " AND e.id = ?";
+                $sql_params[] = $employee_id;
+            } else {
+                echo json_encode(['error' => 'No employee record found for current user.']);
+                exit();
+            }
         }
 
         if ($single_employee_id > 0) {

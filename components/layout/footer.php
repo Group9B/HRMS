@@ -8,6 +8,13 @@
 <script src="/hrms/assets/js/chart.js"></script>
 <script src="/hrms/assets/js/main.js"></script>
 <?php
+if (isset($additionalScripts) && is_array($additionalScripts)) {
+    foreach ($additionalScripts as $script) {
+        echo '<script src="/hrms/assets/js/' . htmlspecialchars($script) . '"></script>' . PHP_EOL;
+    }
+}
+?>
+<?php
 if (isLoggedIn()):
     ?>
     <script>

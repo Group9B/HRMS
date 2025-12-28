@@ -13,6 +13,7 @@ $employee_name_result = query($mysqli, "SELECT first_name FROM employees WHERE u
 $employee_name = $employee_name_result['data'][0]['first_name'] ?? 'Employee';
 
 require_once '../components/layout/header.php';
+$additionalScripts = ['attendance-calendar.js'];
 ?>
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
@@ -101,6 +102,19 @@ require_once '../components/layout/header.php';
                 </div>
             </div>
         </div>
+
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold">My Attendance (Current Month)</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="attendanceCalendarContainer"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 <?php require_once '../components/layout/footer.php'; ?>
@@ -109,6 +123,13 @@ require_once '../components/layout/header.php';
         initializeTodoList('#todoForm', '#todoList');
         loadDashboardStats();
         loadAttendanceStatus();
+
+        // Initialize attendance calendar
+        new AttendanceCalendar({
+            containerId: 'attendanceCalendarContainer',
+            showMonthNavigation: true,
+            onlyCurrentEmployee: true
+        });
 
         $('#checkInBtn').on('click', () => handleAttendanceAction('check_in'));
         $('#checkOutBtn').on('click', () => handleAttendanceAction('check_out'));

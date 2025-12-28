@@ -3,11 +3,10 @@ require_once '../config/db.php';
 require_once '../includes/functions.php';
 $title = "HR Dashboard";
 
-// --- SECURITY & SESSION ---
 if (!isLoggedIn()) {
   redirect("/hrms/auth/login.php");
 }
-// This dashboard is for HR Managers (role_id = 3)
+// This dashboard is for Human Resources (role_id = 3)
 if ($_SESSION['role_id'] !== 3) {
   redirect("/hrms/pages/unauthorized.php");
 }
@@ -17,7 +16,7 @@ $user_id = $_SESSION['user_id'];
 // --- DATA FETCHING for HR Manager ---
 $total_employees = query($mysqli, "SELECT COUNT(e.id) as count FROM employees e JOIN departments d ON e.department_id = d.id WHERE d.company_id = ?", [$company_id])['data'][0]['count'] ?? 0;
 $pending_leaves = query($mysqli, "SELECT COUNT(l.id) as count FROM leaves l JOIN employees e ON l.employee_id = e.id JOIN departments d ON e.department_id = d.id WHERE l.status = 'pending' AND d.company_id = ?", [$company_id])['data'][0]['count'] ?? 0;
-$open_tickets = query($mysqli, "SELECT COUNT(t.id) as count FROM support_tickets t JOIN users u ON t.user_id = u.id WHERE t.status = 'open' AND u.company_id = ?", [$company_id])['data'][0]['count'] ?? 0;
+$new_candidate_applications = query($mysqli, "SELECT COUNT(a.id) as count FROM job_applications a JOIN job_postings j ON a.job_id = j.id WHERE a.status = 'pending' AND j.company_id = ?", [$company_id])['data'][0]['count'] ?? 0;
 $new_hires_this_month = query($mysqli, "SELECT COUNT(e.id) as count FROM employees e JOIN departments d ON e.department_id = d.id WHERE MONTH(e.date_of_joining) = MONTH(CURDATE()) AND YEAR(e.date_of_joining) = YEAR(CURDATE()) AND d.company_id = ?", [$company_id])['data'][0]['count'] ?? 0;
 
 // Recent Hires List
@@ -29,63 +28,27 @@ $pending_leaves_list_result = query($mysqli, "SELECT l.*, e.first_name, e.last_n
 $pending_leaves_list = $pending_leaves_list_result['success'] ? $pending_leaves_list_result['data'] : [];
 
 require_once '../components/layout/header.php';
+$additionalScripts = ['attendance-calendar.js', 'attendance-checkin.js'];
 ?>
 
 <div class="d-flex">
   <?php require_once '../components/layout/sidebar.php'; ?>
   <div class="p-3 p-md-4" style="flex: 1;">
-    <h2 class="h3 mb-4 text-gray-800"><i class="ti ti-briefcase me-2"></i>HR Dashboard</h2>
+    <div class="row" id="statCardsContainer"></div>
 
+    <!-- Clock In/Out Card -->
     <div class="row">
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stat-card shadow-sm">
-          <div class="card-body">
-            <div class="icon-circle bg-primary"><i class="ti ti-users"></i></div>
-            <div>
-              <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Employees</div>
-              <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $total_employees ?></div>
-            </div>
+      <div class="col-lg-5 mb-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header">
+            <h6 class="m-0 font-weight-bold">Today's Work Hours</h6>
+          </div>
+          <div class="card-body d-flex flex-column justify-content-center">
+            <div id="hrCheckInContainer"></div>
           </div>
         </div>
       </div>
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stat-card shadow-sm">
-          <div class="card-body">
-            <div class="icon-circle bg-info"><i class="ti ti-plane"></i></div>
-            <div>
-              <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Pending Leaves</div>
-              <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $pending_leaves ?></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stat-card shadow-sm">
-          <div class="card-body">
-            <div class="icon-circle bg-warning"><i class="ti ti-help"></i></div>
-            <div>
-              <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Open Tickets</div>
-              <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $open_tickets ?></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stat-card shadow-sm">
-          <div class="card-body">
-            <div class="icon-circle bg-success"><i class="ti ti-user-plus"></i></div>
-            <div>
-              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">New Hires (Month)</div>
-              <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $new_hires_this_month ?></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Main Content Row -->
-    <div class="row">
-      <div class="col-lg-8 mb-4">
+      <div class="col-lg-7 mb-4">
         <div class="card shadow-sm h-100">
           <div class="card-header d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold">Pending Leave Requests</h6>
@@ -111,26 +74,6 @@ require_once '../components/layout/header.php';
           </div>
         </div>
       </div>
-      <div class="col-lg-4 mb-4">
-        <div class="card shadow-sm h-100">
-          <div class="card-header">
-            <h6 class="m-0 font-weight-bold">Quick Actions</h6>
-          </div>
-          <div class="card-body quick-actions">
-            <div class="d-grid gap-2">
-              <a href="/hrms/company/employees.php" class="btn btn-primary"><i class="ti ti-user-plus"></i> Add
-                Employee</a>
-              <a href="/hrms/company/attendance.php" class="btn btn-info"><i class="ti ti-calendar-check"></i> Mark
-                Attendance</a>
-              <a href="/hrms/company/leaves.php" class="btn btn-success"><i class="ti ti-check"></i> Approve
-                Leaves</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="row">
       <div class="col-lg-6 mb-4">
         <div class="card shadow-sm h-100">
           <div class="card-header">
@@ -152,9 +95,35 @@ require_once '../components/layout/header.php';
         </div>
       </div>
 
-      <!-- My To-Do List -->
-      <div class="col-lg-6 mb-4">
+      <div class="col-lg-4 mb-4">
         <div class="card shadow-sm h-100">
+          <div class="card-header">
+            <h6 class="m-0 font-weight-bold">Quick Actions</h6>
+          </div>
+          <div class="card-body quick-actions">
+            <div class="d-grid gap-2">
+              <a href="/hrms/company/employees.php" class="btn btn-secondary"><i class="ti ti-user-plus"></i> Add
+                Employee</a>
+              <a href="/hrms/company/attendance.php" class="btn btn-secondary"><i class="ti ti-calendar-check"></i> Mark
+                Attendance</a>
+              <a href="/hrms/company/leaves.php" class="btn btn-secondary"><i class="ti ti-check"></i> Approve
+                Leaves</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm">
+          <div class="card-header">
+            <h6 class="m-0 font-weight-bold">My Attendance (Current Month)</h6>
+          </div>
+          <div class="card-body">
+            <div id="attendanceCalendarContainer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm">
           <div class="card-header">
             <h6 class="m-0 font-weight-bold">My To-Do List</h6>
           </div>
@@ -176,5 +145,50 @@ require_once '../components/layout/header.php';
   $(function () {
     // Initialize the modular To-Do list
     initializeTodoList('#todoForm', '#todoList');
+
+    // Initialize attendance check-in
+    new AttendanceCheckIn({
+      containerId: 'hrCheckInContainer',
+      allowCheckIn: true,
+      allowCheckOut: true,
+      refreshInterval: 60000
+    });
+
+    // Initialize attendance calendar
+    new AttendanceCalendar({
+      containerId: 'attendanceCalendarContainer',
+      showMonthNavigation: true,
+      employeeId: null, // Will be handled by API with current_user_only
+      onlyCurrentEmployee: true
+    });
+
+    // Render stat cards using the renderStatCards function
+    const stats = [
+      {
+        label: 'Total Employees',
+        value: <?= $total_employees ?>,
+        color: 'primary',
+        icon: 'users'
+      },
+      {
+        label: 'Pending Leaves',
+        value: <?= $pending_leaves ?>,
+        color: 'info',
+        icon: 'plane'
+      },
+      {
+        label: 'New Applications',
+        value: <?= $new_candidate_applications ?>,
+        color: 'warning',
+        icon: 'briefcase'
+      },
+      {
+        label: 'New Hires (Month)',
+        value: <?= $new_hires_this_month ?>,
+        color: 'success',
+        icon: 'user-plus'
+      }
+    ];
+    renderStatCards('statCardsContainer', stats);
   });
 </script>

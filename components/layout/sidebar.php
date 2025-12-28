@@ -145,6 +145,13 @@ switch ($_SESSION['role_id']) {
         'permission' => null,
         'submenu' => []
       ],
+      'Recruitment' => [
+        'title' => 'Recruitment',
+        'icon' => 'ti ti-user-plus',
+        'url' => '/hrms/company/recruitment.php',
+        'permission' => null,
+        'submenu' => []
+      ],
       'Payslips' => [
         'title' => 'Payslips',
         'icon' => 'ti ti-receipt',
@@ -152,7 +159,6 @@ switch ($_SESSION['role_id']) {
         'permission' => null,
         'submenu' => []
       ],
-      /* Add more HR specific menu items here */
     ];
     break;
   case 4://Employee
