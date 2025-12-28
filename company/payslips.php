@@ -7,8 +7,9 @@ requireAuth();
 
 // Allow HR Manager, Company Admin, Super Admin
 $user = getCurrentUser($mysqli);
-$roleName = $user['role_name'] ?? '';
-if (!in_array($roleName, ['Human Resource', 'Company Owner', 'Admin'], true)) {
+$role_id = $_SESSION['role_id'];
+
+if (!in_array($role_id, [1, 2, 3], true)) {
   header('Location: /hrms/pages/unauthorized.php');
   exit;
 }

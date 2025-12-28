@@ -679,7 +679,7 @@
                                     <i class="ti ti-robot fs-2 text-primary"></i>
                                 </div>
                                 <p class="card-text text-body mb-0">
-                                    Friendly <span class="text-body fw-bold">HR chatbot Zia</span> to help you with your
+                                    Friendly <span class="text-body fw-bold">HR chatbot Nexus</span> to help you with your
                                     daily HR tasks.
                                 </p>
                             </div>

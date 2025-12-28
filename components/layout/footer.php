@@ -21,8 +21,11 @@ if (isLoggedIn()):
         createAvatar({ id: <?= $_SESSION['user_id'] ?? 0 ?>, username: "<?= $_SESSION['username'] ?? 'User' ?>" });
     </script>
     <?php
+      // Include NexusBot Chat Widget
+    include __DIR__ . '/../../nexusbot/chat_widget.php';
 endif;
 ?>
+
 </body>
 
 </html>
