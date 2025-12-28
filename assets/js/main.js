@@ -547,7 +547,7 @@ function createActionDropdown(config, options = {}) {
 function createStatCard(label, value, color, icon) {
 	return `
 		<div class="col-xl-3 col-md-6 mb-3">
-			<div class="card shadow-sm bg-${color}-subtle">
+			<div class="card shadow-sm">
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
 						<div>

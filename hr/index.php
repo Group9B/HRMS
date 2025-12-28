@@ -36,7 +36,6 @@ $additionalScripts = ['attendance-calendar.js', 'attendance-checkin.js'];
   <div class="p-3 p-md-4" style="flex: 1;">
     <div class="row" id="statCardsContainer"></div>
 
-    <!-- Row 1: Today's Work Hours | Pending Leave Requests -->
     <div class="row">
       <div class="col-md-4 mb-4">
         <div class="card shadow-sm h-100">
@@ -76,68 +75,73 @@ $additionalScripts = ['attendance-calendar.js', 'attendance-checkin.js'];
       </div>
     </div>
 
-    <!-- Row 2: Recent Hires | My Attendance -->
     <div class="row">
-      <div class="col-md-8 mb-4">
-        <div class="card shadow-sm">
-          <div class="card-header">
-            <h6 class="m-0 font-weight-bold">Recent Hires</h6>
+      <div class="col-md-8 order-md-1 order-2">
+        <div class="row">
+          <div class="col-12 mb-4">
+            <div class="card shadow-sm">
+              <div class="card-header">
+                <h6 class="m-0 font-weight-bold">Recent Hires</h6>
+              </div>
+              <div class="card-body">
+                <div class="list-group list-group-flush pt-0">
+                  <?php if (!empty($recent_hires)):
+                    foreach ($recent_hires as $hire): ?>
+                      <div class="list-group-item">
+                        <strong><?= htmlspecialchars($hire['first_name'] . ' ' . $hire['last_name']) ?></strong>
+                        <small
+                          class="d-block text-muted"><?= htmlspecialchars($hire['designation_name'] ?? 'N/A') ?></small>
+                      </div>
+                    <?php endforeach; else: ?>
+                    <p class="text-center text-muted p-3 mb-0">No recent hires this month.</p>
+                  <?php endif; ?>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="card-body">
-            <div class="list-group list-group-flush pt-0">
-              <?php if (!empty($recent_hires)):
-                foreach ($recent_hires as $hire): ?>
-                  <div class="list-group-item">
-                    <strong><?= htmlspecialchars($hire['first_name'] . ' ' . $hire['last_name']) ?></strong>
-                    <small class="d-block text-muted"><?= htmlspecialchars($hire['designation_name'] ?? 'N/A') ?></small>
-                  </div>
-                <?php endforeach; else: ?>
-                <p class="text-center text-muted p-3 mb-0">No recent hires this month.</p>
-              <?php endif; ?>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+              <div class="card-header">
+                <h6 class="m-0 font-weight-bold">My To-Do List</h6>
+              </div>
+              <div class="card-body">
+                <form id="todoForm" class="d-flex mb-3">
+                  <input type="text" name="task" class="form-control me-2" placeholder="Add a new task..." required>
+                  <button type="submit" class="btn btn-primary">Add</button>
+                </form>
+                <ul class="todo-list" id="todoList"></ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+              <div class="card-header">
+                <h6 class="m-0 font-weight-bold">Quick Actions</h6>
+              </div>
+              <div class="card-body quick-actions">
+                <div class="d-grid gap-2">
+                  <a href="/hrms/company/employees.php" class="btn btn-secondary"><i class="ti ti-user-plus"></i> Add
+                    Employee</a>
+                  <a href="/hrms/company/attendance.php" class="btn btn-secondary"><i class="ti ti-calendar-check"></i>
+                    Mark
+                    Attendance</a>
+                  <a href="/hrms/company/leaves.php" class="btn btn-secondary"><i class="ti ti-check"></i> Approve
+                    Leaves</a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="col-md-4 mb-4">
+      <div class="col-md-4 mb-4 order-md-2 order-1">
         <div class="card shadow-sm">
           <div class="card-header">
             <h6 class="m-0 font-weight-bold">My Attendance (Current Month)</h6>
           </div>
           <div class="card-body">
             <div id="attendanceCalendarContainer"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-4 mb-4">
-        <div class="card shadow-sm">
-          <div class="card-header">
-            <h6 class="m-0 font-weight-bold">My To-Do List</h6>
-          </div>
-          <div class="card-body">
-            <form id="todoForm" class="d-flex mb-3">
-              <input type="text" name="task" class="form-control me-2" placeholder="Add a new task..." required>
-              <button type="submit" class="btn btn-primary">Add</button>
-            </form>
-            <ul class="todo-list" id="todoList"></ul>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-8 mb-4">
-        <div class="card shadow-sm h-100">
-          <div class="card-header">
-            <h6 class="m-0 font-weight-bold">Quick Actions</h6>
-          </div>
-          <div class="card-body quick-actions">
-            <div class="d-grid gap-2">
-              <a href="/hrms/company/employees.php" class="btn btn-secondary"><i class="ti ti-user-plus"></i> Add
-                Employee</a>
-              <a href="/hrms/company/attendance.php" class="btn btn-secondary"><i class="ti ti-calendar-check"></i> Mark
-                Attendance</a>
-              <a href="/hrms/company/leaves.php" class="btn btn-secondary"><i class="ti ti-check"></i> Approve
-                Leaves</a>
-            </div>
           </div>
         </div>
       </div>
