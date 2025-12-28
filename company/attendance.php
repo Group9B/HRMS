@@ -135,44 +135,6 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
-<style>
-    .dept-card {
-        cursor: pointer;
-        transition: transform 0.3s ease;
-    }
-
-    .dept-card:hover {
-        transform: translateY(-3px);
-    }
-
-    .day-square.empty {
-        cursor: not-allowed !important;
-    }
-
-    .skeleton-line {
-        height: 8px;
-        background: linear-gradient(90deg, var(--bs-border-color) 25%, var(--bs-surface) 50%, var(--bs-border-color) 75%);
-        background-size: 200% 100%;
-        animation: skeleton-loading 1.5s infinite;
-        border-radius: 3px;
-        margin-bottom: 4px;
-    }
-
-    .skeleton-line:last-child {
-        margin-bottom: 0;
-    }
-
-    @keyframes skeleton-loading {
-        0% {
-            background-position: 200% 0;
-        }
-
-        100% {
-            background-position: -200% 0;
-        }
-    }
-</style>
-
 <div class="modal fade" id="attendanceModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

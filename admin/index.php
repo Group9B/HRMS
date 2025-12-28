@@ -114,31 +114,15 @@ require_once '../components/layout/header.php';
 
 <script>
   $(function () {
-    // Render dashboard stats
+    // Render dashboard stats using modular function
     const stats = [
-      { label: 'Active Companies', value: <?= $active_companies ?>, color: 'primary-subtle', icon: 'building', textColor: 'primary' },
-      { label: 'Active Users', value: <?= $total_users ?>, color: 'success-subtle', icon: 'users', textColor: 'success' },
-      { label: 'Total Employees', value: <?= $total_employees ?>, color: 'info-subtle', icon: 'users-group', textColor: 'info' },
-      { label: 'Open Support Tickets', value: <?= $open_tickets ?>, color: 'warning-subtle', icon: 'help', textColor: 'warning' }
+      { label: 'Active Companies', value: <?= $active_companies ?>, color: 'primary', icon: 'building' },
+      { label: 'Active Users', value: <?= $total_users ?>, color: 'success', icon: 'users' },
+      { label: 'Total Employees', value: <?= $total_employees ?>, color: 'info', icon: 'users-group' },
+      { label: 'Open Support Tickets', value: <?= $open_tickets ?>, color: 'warning', icon: 'help' }
     ];
 
-    let statsHtml = '';
-    stats.forEach(stat => {
-      statsHtml += `<div class="col-xl-3 col-md-6 mb-3">
-        <div class="card shadow-sm bg-${stat.color}">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <div class="text-xs font-weight-bold text-uppercase mb-1">${stat.label}</div>
-                <div class="h5 mb-0 font-weight-bold" style="color: var(--bs-${stat.textColor});">${stat.value}</div>
-              </div>
-              <i class="ti ti-${stat.icon} text-${stat.textColor}" style="font-size: 2.5rem; opacity: 0.5;"></i>
-            </div>
-          </div>
-        </div>
-      </div>`;
-    });
-    $('#dashboardStats').html(statsHtml);
+    renderStatCards('dashboardStats', stats);
 
     fetch('api_dashboard.php?action=get_storage_usage').then(res => res.json()).then(result => {
       if (result.success) {

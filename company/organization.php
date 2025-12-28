@@ -65,9 +65,7 @@ require_once '../components/layout/header.php';
         </ul>
 
         <div class="tab-content" id="orgTabContent">
-            <!-- Dashboard Tab -->
             <div id="dashboardSection" class="tab-pane fade show active" role="tabpanel">
-                <!-- Overview Cards -->
                 <div class="row mb-4">
                     <div class="col-md-6 col-lg-3 mb-3">
                         <div class="card shadow-sm">
@@ -123,9 +121,8 @@ require_once '../components/layout/header.php';
                     </div>
                 </div>
 
-                <!-- Charts -->
                 <div class="row">
-                    <div class="col-lg-6 mb-4">
+                    <div class="col-lg-8 mb-4">
                         <div class="card shadow-sm">
                             <div class="card-header border-bottom">
                                 <h5 class="mb-0">Employees by Department</h5>
@@ -135,7 +132,7 @@ require_once '../components/layout/header.php';
                             </div>
                         </div>
                     </div>
-                    <div class="col-lg-6 mb-4">
+                    <div class="col-lg-4 mb-4">
                         <div class="card shadow-sm">
                             <div class="card-header border-bottom">
                                 <h5 class="mb-0">Shift Distribution</h5>
@@ -161,7 +158,8 @@ require_once '../components/layout/header.php';
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle" id="departmentsTable" width="100%">
+                            <table class="table table-hover table-bordered align-middle" id="departmentsTable"
+                                width="100%">
                                 <thead>
                                     <tr>
                                         <th>Name</th>
@@ -194,7 +192,8 @@ require_once '../components/layout/header.php';
                             </div>
                         <?php endif; ?>
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle" id="designationsTable" width="100%">
+                            <table class="table table-hover table-bordered align-middle" id="designationsTable"
+                                width="100%">
                                 <thead>
                                     <tr>
                                         <th>Name</th>
@@ -220,7 +219,7 @@ require_once '../components/layout/header.php';
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle" id="teamsTable" width="100%">
+                            <table class="table table-hover table-bordered align-middle" id="teamsTable" width="100%">
                                 <thead>
                                     <tr>
                                         <th>Name</th>
@@ -246,7 +245,7 @@ require_once '../components/layout/header.php';
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle" id="shiftsTable" width="100%">
+                            <table class="table table-hover table-bordered align-middle" id="shiftsTable" width="100%">
                                 <thead>
                                     <tr>
                                         <th>Shift Name</th>
@@ -368,7 +367,7 @@ require_once '../components/layout/header.php';
                 tab.addEventListener('shown.bs.tab', function (e) {
                     const target = e.target.getAttribute('data-bs-target');
                     const sectionId = target.replace('#', '').replace('Section', '');
-                    
+
                     // Load table data only if not already loaded
                     if (!loadedTabs.has(sectionId)) {
                         loadedTabs.add(sectionId);
@@ -377,12 +376,12 @@ require_once '../components/layout/header.php';
                         // Reload data to get fresh content
                         tables[sectionId].ajax.reload(null, false);
                     }
-                    
+
                     // Adjust table columns
                     if (tables[sectionId]) {
                         tables[sectionId].columns.adjust();
                     }
-                    
+
                     // Trigger chart resize on tab show
                     if (sectionId === 'dashboard') {
                         window.deptChart?.resize();
@@ -394,7 +393,7 @@ require_once '../components/layout/header.php';
 
         function initializeTableForSection(sectionId) {
             if (sectionId === 'dashboard') return; // Dashboard doesn't need a table
-            
+
             const type = sectionId.replace('s', '').replace('Designation', 'designation').replace('Team', 'team').replace('Shift', 'shift').replace('Department', 'department');
             // Map sectionId to type
             const typeMap = {
@@ -403,12 +402,12 @@ require_once '../components/layout/header.php';
                 'team': 'team',
                 'shift': 'shift'
             };
-            
+
             const actualType = Object.keys(typeMap).find(key => key === sectionId.replace(/s$/, '').replace('s', ''));
             if (!actualType) {
-                const simplified = sectionId === 'departments' ? 'department' : 
-                                  sectionId === 'designations' ? 'designation' : 
-                                  sectionId === 'teams' ? 'team' : 'shift';
+                const simplified = sectionId === 'departments' ? 'department' :
+                    sectionId === 'designations' ? 'designation' :
+                        sectionId === 'teams' ? 'team' : 'shift';
                 initTableForType(simplified);
             } else {
                 initTableForType(actualType);
@@ -417,7 +416,7 @@ require_once '../components/layout/header.php';
 
         function initTableForType(type) {
             if (tables[type]) return; // Already initialized
-            
+
             const columns = getTableColumns(type);
             tables[type] = $(`#${type}sTable`).DataTable({
                 responsive: true,
@@ -818,7 +817,7 @@ require_once '../components/layout/header.php';
         function refreshDepartments() {
             fetch('/hrms/api/organization.php?action=get_departments')
                 .then(res => res.json())
-                .then(result => { 
+                .then(result => {
                     if (result.data) departmentsData = result.data;
                     // Reload designations table immediately if loaded
                     if (tables.designation && loadedTabs.has('designation')) {

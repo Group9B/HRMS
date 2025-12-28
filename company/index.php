@@ -14,7 +14,6 @@ if ($_SESSION['role_id'] !== 2) {
 // Get the company_id from the logged-in user's session
 $company_id = $_SESSION['company_id'];
 
-
 // --- DATA FETCHING (Scoped to the Company Admin's Company) ---
 
 // Stat Card: Total Employees
@@ -74,20 +73,19 @@ if ($hires_chart_result['success']) {
     }
 }
 
-
 // --- UI Component Data ---
 
 // Define the stat cards
 $stat_cards = [
-    ['title' => 'Active Employees', 'value' => $total_employees, 'icon' => 'ti ti-users', 'color' => 'primary'],
-    ['title' => 'Departments', 'value' => $total_departments, 'icon' => 'ti ti-sitemap', 'color' => 'info'],
-    ['title' => 'Pending Leaves', 'value' => $pending_leaves, 'icon' => 'ti ti-hourglass-empty', 'color' => 'danger'],
-    ['title' => 'On Leave Today', 'value' => $on_leave_today, 'icon' => 'ti ti-user-clock', 'color' => 'warning']
+    ['label' => 'Active Employees', 'value' => $total_employees, 'icon' => 'users', 'color' => 'primary'],
+    ['label' => 'Departments', 'value' => $total_departments, 'icon' => 'sitemap', 'color' => 'info'],
+    ['label' => 'Pending Leaves', 'value' => $pending_leaves, 'icon' => 'hourglass-empty', 'color' => 'danger'],
+    ['label' => 'On Leave Today', 'value' => $on_leave_today, 'icon' => 'user-clock', 'color' => 'warning']
 ];
 
 // Define the quick actions
 $quick_actions = [
-    ['title' => 'Add New Employee', 'url' => 'employees.php', 'icon' => 'ti ti-user-plus'],
+    ['title' => 'Hire New Employee', 'url' => 'recruitment.php', 'icon' => 'ti ti-user-plus'],
     ['title' => 'Manage Departments', 'url' => 'organization.php', 'icon' => 'ti ti-sitemap'],
     ['title' => 'Approve Leaves', 'url' => 'leaves.php', 'icon' => 'ti ti-calendar-check'],
     ['title' => 'View Reports', 'url' => '#', 'icon' => 'ti ti-chart-bar', 'onclick' => "alert('This Feature will be Available soon..!');"]
@@ -102,47 +100,51 @@ require_once '../components/layout/header.php';
     <div class="p-3 p-md-4" style="flex: 1;">
 
         <!-- Render Stat Cards -->
-        <div class="row">
-            <?php
-            foreach ($stat_cards as $card) {
-                echo render_stat_card($card['title'], $card['value'], $card['icon'], $card['color']);
-            }
-            ?>
-        </div>
+        <div class="row" id="companyStatsContainer"></div>
 
         <div class="row">
-            <!-- Recent Hires and Trend Chart -->
             <div class="col-lg-7 mb-4">
                 <div class="card main-content-card shadow-sm h-100">
-                    <div class="card-header py-3">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
                         <h6 class="m-0 font-weight-bold">Recent Hires & Trends (Last 3 Months)</h6>
+                        <a href="employees.php" class="btn btn-sm btn-primary"><i class="ti ti-user-plus"></i> Add
+                            Employee</a>
                     </div>
                     <div class="card-body">
-                        <div class="mb-4" style="position: relative; height:250px">
-                            <canvas id="hiresChart"></canvas>
-                        </div>
-                        <hr>
-                        <div class="recent-companies-list">
-                            <?php if (!empty($recent_hires)): ?>
-                                <?php foreach ($recent_hires as $hire): ?>
-                                    <div class="list-item">
-                                        <div>
-                                            <div class="company-name">
-                                                <?= htmlspecialchars(ucwords($hire['first_name'] . ' ' . $hire['last_name'])); ?>
+                        <?php if (empty($chart_data)): ?>
+                            <div class="text-center text-muted p-5">
+                                <i class="ti ti-chart-line"
+                                    style="font-size: 3rem; opacity: 0.3; display: block; margin-bottom: 1rem;"></i>
+                                <p>No hiring data available yet.</p>
+                                <a href="employees.php" class="btn btn-primary btn-sm">Start Adding Employees</a>
+                            </div>
+                        <?php else: ?>
+                            <div class="mb-4" style="position: relative; height:250px">
+                                <canvas id="hiresChart"></canvas>
+                            </div>
+                            <hr>
+                            <div class="recent-companies-list">
+                                <?php if (!empty($recent_hires)): ?>
+                                    <?php foreach ($recent_hires as $hire): ?>
+                                        <div class="list-item">
+                                            <div>
+                                                <div class="company-name">
+                                                    <?= htmlspecialchars(ucwords($hire['first_name'] . ' ' . $hire['last_name'])); ?>
+                                                </div>
+                                                <div class="user-count text-muted">
+                                                    <?= htmlspecialchars($hire['designation_name'] ?? 'N/A'); ?>
+                                                </div>
                                             </div>
-                                            <div class="user-count text-muted">
-                                                <?= htmlspecialchars($hire['designation_name'] ?? 'N/A'); ?>
+                                            <div class="created-at text-muted">
+                                                Hired on <?= date('F j, Y', strtotime($hire['date_of_joining'])); ?>
                                             </div>
                                         </div>
-                                        <div class="created-at text-muted">
-                                            Hired on <?= date('F j, Y', strtotime($hire['date_of_joining'])); ?>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <div class="text-center text-muted p-4">No recent hires to display.</div>
-                            <?php endif; ?>
-                        </div>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <div class="text-center text-muted p-4">No recent hires to display.</div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -161,6 +163,16 @@ require_once '../components/layout/header.php';
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Render stat cards using modular function
+        const stats = [
+            { label: 'Active Employees', value: <?= $total_employees ?>, color: 'primary', icon: 'users' },
+            { label: 'Departments', value: <?= $total_departments ?>, color: 'info', icon: 'sitemap' },
+            { label: 'Pending Leaves', value: <?= $pending_leaves ?>, color: 'danger', icon: 'hourglass-empty' },
+            { label: 'On Leave Today', value: <?= $on_leave_today ?>, color: 'warning', icon: 'calendar-off' }
+        ];
+
+        renderStatCards('companyStatsContainer', stats);
+
         // Initialize To-Do List
         initializeTodoList('#todo-form', '#todo-list');
 

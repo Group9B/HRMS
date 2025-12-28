@@ -535,3 +535,54 @@ function createActionDropdown(config, options = {}) {
 
 	return dropdownHtml;
 }
+
+/**
+ * Creates a stat card HTML element
+ * @param {string} label - The stat card label
+ * @param {number} value - The stat value to display
+ * @param {string} color - Bootstrap color class (primary, success, info, warning, danger)
+ * @param {string} icon - Tabler icon class (e.g., 'building', 'users', 'users-group')
+ * @returns {string} - HTML string for the stat card
+ */
+function createStatCard(label, value, color, icon) {
+	return `
+		<div class="col-xl-3 col-md-6 mb-3">
+			<div class="card shadow-sm bg-${color}-subtle">
+				<div class="card-body">
+					<div class="d-flex justify-content-between align-items-center">
+						<div>
+							<div class="text-xs font-weight-bold text-uppercase mb-1">${label}</div>
+							<div class="h5 mb-0 font-weight-bold" style="color: var(--bs-${color});">${value}</div>
+						</div>
+						<i class="ti ti-${icon} text-${color}" style="font-size: 2.5rem; opacity: 0.5;"></i>
+					</div>
+				</div>
+			</div>
+		</div>
+	`;
+}
+
+/**
+ * Renders multiple stat cards to a container
+ * @param {string} containerId - The ID of the container element
+ * @param {Array} stats - Array of stat objects with label, value, color, and icon properties
+ */
+function renderStatCards(containerId, stats) {
+	const container = document.getElementById(containerId);
+	if (!container) return;
+
+	let html = "";
+	stats.forEach((stat) => {
+		html += createStatCard(stat.label, stat.value, stat.color, stat.icon);
+	});
+	container.innerHTML = html;
+}
+
+const initToolTip = () => {
+	const tooltipTriggerList = document.querySelectorAll(
+		'[data-bs-toggle="tooltip"]'
+	);
+	const tooltipList = [...tooltipTriggerList].map(
+		(tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
+	);
+};

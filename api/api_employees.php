@@ -20,7 +20,7 @@ $company_id = $_SESSION['company_id']; // All operations are scoped to this comp
 switch ($action) {
     case 'get_employees':
         $sql = "
-            SELECT e.*, d.name as department_name, des.name as designation_name, s.name as shift_name
+            SELECT e.*, d.name as department_name, des.name as designation_name, s.name as shift_name, s.start_time, s.end_time
             FROM employees e
             LEFT JOIN departments d ON e.department_id = d.id
             LEFT JOIN designations des ON e.designation_id = des.id

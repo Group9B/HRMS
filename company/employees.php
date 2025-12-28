@@ -13,7 +13,7 @@ $is_c_admin = $_SESSION['role_id'] === 2;
 // --- INITIAL DATA FETCHING for MODAL DROPDOWNS ---
 $all_users = query($mysqli, "SELECT id, username FROM users WHERE company_id = ? AND id != ? ORDER BY username ASC", [$company_id, $_SESSION['user_id']])['data'] ?? [];
 $departments = query($mysqli, "SELECT id, name FROM departments WHERE company_id = ? ORDER BY name ASC", [$company_id])['data'] ?? [];
-$shifts = query($mysqli, "SELECT id, name FROM shifts WHERE company_id = ? ORDER BY name ASC", [$company_id])['data'] ?? [];
+$shifts = query($mysqli, "SELECT id, name, start_time, end_time FROM shifts WHERE company_id = ? ORDER BY name ASC", [$company_id])['data'] ?? [];
 $assignable_roles = $is_c_admin ? query($mysqli, "SELECT id, name FROM roles WHERE id IN (3, 4, 6) ORDER BY name ASC")['data'] ?? [] : query($mysqli, "SELECT id, name FROM roles WHERE id IN (3, 6) ORDER BY name ASC")['data'] ?? [];
 
 require_once '../components/layout/header.php';
@@ -45,6 +45,14 @@ require_once '../components/layout/header.php';
                         </thead>
                         <tbody></tbody>
                     </table>
+                    <div id="emptyState" class="text-center text-muted p-5" style="display: none;">
+                        <i class="ti ti-users"
+                            style="font-size: 3rem; opacity: 0.3; display: block; margin-bottom: 1rem;"></i>
+                        <p>No employees found.</p>
+                        <button class="btn btn-primary btn-sm" onclick="validateAndOpenAddModal()">
+                            <i class="ti ti-plus me-2"></i>Add First Employee
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -93,9 +101,11 @@ require_once '../components/layout/header.php';
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3"><label class="form-label">Shift</label><select class="form-select"
-                                name="shift_id">
+                                name="shift_id" id="shiftSelect">
                                 <option value="">-- Select --</option><?php foreach ($shifts as $shift): ?>
-                                    <option value="<?= $shift['id'] ?>"><?= htmlspecialchars($shift['name']) ?></option>
+                                    <option value="<?= $shift['id'] ?>" data-start-time="<?= $shift['start_time'] ?>"
+                                        data-end-time="<?= $shift['end_time'] ?>"><?= htmlspecialchars($shift['name']) ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select></div>
                         <div class="col-md-6 mb-3"><label class="form-label">Date of Joining</label>
@@ -178,11 +188,24 @@ require_once '../components/layout/header.php';
 
             responsive: true,
             processing: true,
-            ajax: { url: '/hrms/api/api_employees.php?action=get_employees', dataSrc: 'data' },
+            ajax: {
+                url: '/hrms/api/api_employees.php?action=get_employees',
+                dataSrc: 'data',
+                complete: function () {
+                    toggleEmptyState();
+                }
+            },
             columns: [
                 { data: null, render: (d, t, r) => `<strong>${escapeHTML(r.first_name)} ${escapeHTML(r.last_name)}</strong>` },
                 { data: 'department_name' }, { data: 'designation_name', defaultContent: 'N/A' },
-                { data: 'shift_name', defaultContent: 'N/A' },
+                {
+                    data: null, render: (d, t, r) => {
+                        if (!r.shift_name) return 'N/A';
+                        if (!r.start_time || !r.end_time) return escapeHTML(r.shift_name);
+                        const shiftTimes = `${formatTime(r.start_time)} → ${formatTime(r.end_time)}`;
+                        return `<span data-bs-toggle="tooltip" title="${shiftTimes}">${escapeHTML(r.shift_name)}</span>`;
+                    }
+                },
                 { data: 'status', render: (d) => `<span class="badge bg-${d === 'active' ? 'success-subtle text-success-emphasis' : 'danger-subtle text-danger-emphasis'}">${capitalize(d)}</span>` },
                 {
                     data: null, orderable: false, render: (d, t, r) => {
@@ -190,7 +213,7 @@ require_once '../components/layout/header.php';
                             {
                                 onEdit: () => prepareEditModal(r),
                                 <?php if ($is_c_admin): ?>
-                                            onDelete: () => deleteEmployee(r.id)
+                                                     onDelete: () => deleteEmployee(r.id)
                                 <?php endif; ?>
                             },
                             {
@@ -201,18 +224,49 @@ require_once '../components/layout/header.php';
                     }
                 }
             ],
-            order: [[0, 'asc']]
-        });
-
-        $('#employeeForm').on('submit', handleEmployeeFormSubmit);
+            order: [[0, 'asc']],
+            drawCallback: function () {
+                const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+                tooltipTriggerList.forEach(tooltipTriggerEl => {
+                    if (!bootstrap.Tooltip.getInstance(tooltipTriggerEl)) {
+                        new bootstrap.Tooltip(tooltipTriggerEl);
+                    }
+                });
+            }
+        }); $('#employeeForm').on('submit', handleEmployeeFormSubmit);
         $('#createUserForm').on('submit', handleCreateUserFormSubmit);
         $('#checkUsernameBtn').on('click', checkUsernameAvailability);
+
+        // Add debounced username availability checker for create user modal
+        $('#usernameInput').on('input', function () {
+            debounceUsernameCheck();
+        });
 
         // Add event listener for department change to populate designations
         $('[name="department_id"]').on('change', function () {
             populateDesignations();
         });
     });
+
+    /**
+     * Toggle empty state visibility based on table data
+     */
+    function toggleEmptyState() {
+        const rowCount = employeesTable.rows().count();
+        const emptyState = $('#emptyState');
+        const tableResponsive = $('.table-responsive');
+        const datatablesWrapper = $('#employeesTable_wrapper');
+
+        if (rowCount === 0) {
+            tableResponsive.find('table').hide();
+            datatablesWrapper.find('.dataTables_length, .dataTables_filter, .dataTables_paginate').hide();
+            emptyState.show();
+        } else {
+            tableResponsive.find('table').show();
+            datatablesWrapper.find('.dataTables_length, .dataTables_filter, .dataTables_paginate').show();
+            emptyState.hide();
+        }
+    }
 
     /**
      * Validate the employee form with comprehensive frontend validations
@@ -329,6 +383,73 @@ require_once '../components/layout/header.php';
             });
     }
 
+    /**
+     * Format time from 24-hour format to 12-hour format
+     */
+    function formatTime(timeStr) {
+        if (!timeStr) return '';
+        const [h, m] = timeStr.split(':');
+        let hours = parseInt(h, 10);
+        const minutes = parseInt(m, 10);
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12;
+        return `${hours}:${minutes < 10 ? '0' + minutes : minutes} ${ampm}`;
+    }
+
+    /**
+     * Initialize tooltips for shift select dropdown - shows shift times on hover
+     */
+    function initializeShiftTooltips() {
+        const shiftSelect = $('#shiftSelect');
+        const shiftOptions = shiftSelect.find('option[data-start-time]');
+
+        const shiftTimesMap = {};
+        shiftOptions.each(function () {
+            const value = $(this).val();
+            const startTime = $(this).data('start-time');
+            const endTime = $(this).data('end-time');
+            if (value && startTime && endTime) {
+                shiftTimesMap[value] = `${formatTime(startTime)} → ${formatTime(endTime)}`;
+            }
+        });
+
+        let tooltipElement;
+        shiftSelect.on('focus click', function () {
+            const selectedValue = $(this).val();
+            const shiftTime = shiftTimesMap[selectedValue];
+            if (shiftTime) {
+                if (!tooltipElement) {
+                    tooltipElement = $('<div class="shift-time-tooltip"></div>')
+                        .css({
+                            'position': 'absolute',
+                            'background': '#222',
+                            'color': '#fff',
+                            'padding': '6px 10px',
+                            'border-radius': '4px',
+                            'font-size': '12px',
+                            'z-index': '10000',
+                            'pointer-events': 'none',
+                            'white-space': 'nowrap',
+                            'box-shadow': '0 2px 8px rgba(0,0,0,0.15)'
+                        })
+                        .appendTo('body');
+                }
+                tooltipElement.text(shiftTime).show();
+                const offset = shiftSelect.offset();
+                tooltipElement.css({
+                    'left': offset.left + 'px',
+                    'top': (offset.top + shiftSelect.outerHeight() + 5) + 'px'
+                });
+            }
+        });
+
+        shiftSelect.on('blur change', function () {
+            if (tooltipElement) {
+                tooltipElement.hide();
+            }
+        });
+    }
+
     function validateAndOpenAddModal() {
         let missing = [];
         if (!hasDepartments) missing.push('departments');
@@ -368,6 +489,7 @@ require_once '../components/layout/header.php';
                     showToast(data.message, 'success');
                     employeeModal.hide();
                     employeesTable.ajax.reload();
+                    toggleEmptyState();
                 } else { showToast(data.message, 'error'); }
             })
             .catch(error => {
@@ -409,6 +531,55 @@ require_once '../components/layout/header.php';
             });
     }
 
+    /**
+     * Check password complexity requirements (client-side validation)
+     * Must match server-side requirements in includes/functions.php
+     */
+    function checkPasswordComplexity(password) {
+        const errors = [];
+
+        if (password.length < 8) {
+            errors.push('Password must be at least 8 characters long');
+        }
+
+        if (!/[A-Z]/.test(password)) {
+            errors.push('Password must contain at least one uppercase letter');
+        }
+
+        if (!/[a-z]/.test(password)) {
+            errors.push('Password must contain at least one lowercase letter');
+        }
+
+        if (!/[0-9]/.test(password)) {
+            errors.push('Password must contain at least one number');
+        }
+
+        if (!/[!@#$%^&*]/.test(password)) {
+            errors.push('Password must contain at least one special character (!@#$%^&*)');
+        }
+
+        return errors;
+    }
+
+    /**
+     * Debounced username availability checker for create user modal
+     */
+    let usernameCheckTimeout;
+    function debounceUsernameCheck() {
+        clearTimeout(usernameCheckTimeout);
+        const username = $('#usernameInput').val().trim();
+
+        // Don't check if username is empty or too short
+        if (!username || username.length < 3) {
+            return;
+        }
+
+        // Debounce the check - wait 500ms before making the API call
+        usernameCheckTimeout = setTimeout(function () {
+            checkUsernameAvailability();
+        }, 500);
+    }
+
     function handleCreateUserFormSubmit(e) {
         e.preventDefault();
 
@@ -416,6 +587,19 @@ require_once '../components/layout/header.php';
         const usernameStatus = $('#usernameStatus').text();
         if (!usernameStatus.includes('available')) {
             showToast('Please verify that username is available before creating user.', 'error');
+            return;
+        }
+
+        // Validate password complexity
+        const password = $('form#createUserForm [name="password"]').val();
+        if (!password) {
+            showToast('Password is required.', 'error');
+            return;
+        }
+
+        const passwordErrors = checkPasswordComplexity(password);
+        if (passwordErrors.length > 0) {
+            showToast('Password requirements not met: ' + passwordErrors.join(', '), 'error');
             return;
         }
 
@@ -460,6 +644,9 @@ require_once '../components/layout/header.php';
 
         // Set date constraints for joining date
         setJoiningDateConstraints();
+
+        // Initialize shift tooltips
+        initializeShiftTooltips();
     }
 
     /**
@@ -524,6 +711,9 @@ require_once '../components/layout/header.php';
 
         // Set date constraints based on whether date is in past
         setEditJoiningDateConstraints(employee.date_of_joining);
+
+        // Initialize shift tooltips
+        initializeShiftTooltips();
 
         employeeModal.show();
     }
@@ -590,6 +780,7 @@ require_once '../components/layout/header.php';
                         if (data.success) {
                             showToast(data.message, 'success');
                             employeesTable.ajax.reload();
+                            toggleEmptyState();
                         } else { showToast(data.message, 'error'); }
                     });
             },

@@ -14,8 +14,7 @@ $company_result = query($mysqli, "SELECT * FROM companies WHERE id = ?", [$compa
 $company = ($company_result['success'] && !empty($company_result['data'])) ? $company_result['data'][0] : null;
 
 if (!$company) {
-    // Handle case where company data might be missing
-    die("Error: Could not retrieve company information.");
+    redirect("/hrms/pages/404.php");
 }
 
 require_once '../components/layout/header.php';
@@ -24,8 +23,6 @@ require_once '../components/layout/header.php';
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
-        <h2 class="h3 mb-4 text-gray-800"><i class="ti ti-building me-2"></i>Company Profile & Settings</h2>
-
         <div class="card shadow-sm">
             <div class="card-header">
                 <h6 class="m-0 font-weight-bold">Company Information</h6>
