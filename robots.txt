@@ -1,0 +1,22 @@
+# robots.txt for StaffSync HRMS
+User-agent: *
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /company/
+Disallow: /config/
+Disallow: /database/
+Disallow: /employee/
+Disallow: /hr/
+Disallow: /includes/
+Disallow: /manager/
+Disallow: /nexusbot/
+Disallow: /uploads/
+Disallow: /candidate/
+Allow: /assets/
+
+# Allow only the landing page
+Allow: /index.php
+Allow: /$
+
+Sitemap: https://yourdomain.com/hrms/sitemap.xml

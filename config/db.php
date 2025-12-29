@@ -30,6 +30,11 @@ $pass = getenv('DB_PASS') ?: '';
 $charset = 'utf8mb4';
 
 define('APP_ROOT', __DIR__ . '/');
+
+// Error logging configuration
+$log_file = __DIR__ . '/../error.log';
+$enable_logging = getenv('APP_DEBUG') === 'true';
+
 try {
     $mysqli = new mysqli($host, $user, $pass, $db);
 
@@ -42,8 +47,14 @@ try {
     $mysqli->set_charset($charset);
 
 } catch (Exception $e) {
+    // Log the error if logging is enabled
+    if ($enable_logging && is_writable(dirname($log_file))) {
+        $error_message = date('[Y-m-d H:i:s] ') . "Database Error: " . $e->getMessage() . PHP_EOL;
+        error_log($error_message, 3, $log_file);
+    }
+    
     http_response_code(500);
-    echo "Database connection failed: " . htmlspecialchars($e->getMessage());
+    echo "Database connection failed. Please contact the administrator.";
     exit;
 }
 if (PHP_SESSION_NONE === session_status()) {
