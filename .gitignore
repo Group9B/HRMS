@@ -10,6 +10,7 @@ Thumbs.db
 uploads/*
 !uploads/.htaccess
 !uploads/index.php
+!uploads/policies/
 uploads/policies/*
 !uploads/policies/index.php
 *.swp

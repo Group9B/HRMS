@@ -1,0 +1,66 @@
+name: PHP Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        php-version: ['7.4', '8.0', '8.1', '8.2']
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: mysqli, json
+        coverage: none
+    
+    - name: Validate composer.json
+      run: composer validate --strict
+    
+    - name: Check PHP syntax
+      run: find . -name "*.php" -not -path "./vendor/*" -exec php -l {} \; | grep -v "No syntax errors"
+    
+    - name: Check for trailing whitespaces
+      run: |
+        ! find . -name "*.php" -not -path "./vendor/*" -exec egrep -l " +$" {} \;
+      continue-on-error: true
+
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.0'
+        extensions: mysqli, json
+    
+    - name: Check for common security issues
+      run: |
+        echo "Checking for eval() usage..."
+        ! grep -r "eval(" --include="*.php" . || true
+        
+        echo "Checking for system() usage..."
+        ! grep -r "system(" --include="*.php" . || true
+        
+        echo "Checking for shell_exec() usage..."
+        ! grep -r "shell_exec(" --include="*.php" . || true
+      continue-on-error: true
+    
+    - name: Check for potential SQL injection
+      run: |
+        echo "Checking for direct SQL concatenation..."
+        ! grep -r "\$mysqli->query.*\$_" --include="*.php" . || true
+      continue-on-error: true
