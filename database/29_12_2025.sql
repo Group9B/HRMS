@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 27, 2025 at 06:32 AM
+-- Generation Time: Dec 29, 2025 at 04:01 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -54,6 +54,114 @@ CREATE TABLE `attendance` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `attendance`
+--
+
+INSERT INTO `attendance` (`id`, `employee_id`, `date`, `check_in`, `check_out`, `status`, `remarks`, `created_at`) VALUES
+(1, 3, '2025-12-01', NULL, NULL, 'present', NULL, '2025-12-27 17:45:40'),
+(2, 3, '2025-12-02', NULL, NULL, 'present', NULL, '2025-12-27 17:45:45'),
+(3, 3, '2025-12-03', NULL, NULL, 'present', NULL, '2025-12-27 17:45:47'),
+(4, 3, '2025-12-04', NULL, NULL, 'present', NULL, '2025-12-27 17:45:51'),
+(5, 3, '2025-12-05', NULL, NULL, 'present', NULL, '2025-12-27 17:45:54'),
+(6, 3, '2025-12-08', NULL, NULL, 'present', NULL, '2025-12-27 17:45:57'),
+(7, 3, '2025-12-09', NULL, NULL, 'present', NULL, '2025-12-27 17:46:00'),
+(8, 3, '2025-12-12', NULL, NULL, 'present', NULL, '2025-12-27 17:46:03'),
+(9, 3, '2025-12-13', NULL, NULL, 'present', NULL, '2025-12-27 17:46:07'),
+(10, 3, '2025-12-19', NULL, NULL, 'present', NULL, '2025-12-27 17:46:15'),
+(11, 3, '2025-12-10', NULL, NULL, 'present', NULL, '2025-12-27 17:46:19'),
+(12, 3, '2025-12-17', NULL, NULL, 'absent', NULL, '2025-12-27 17:46:22'),
+(13, 3, '2025-12-18', NULL, NULL, 'present', NULL, '2025-12-27 17:46:27'),
+(14, 3, '2025-12-11', NULL, NULL, 'present', NULL, '2025-12-27 17:46:30'),
+(15, 3, '2025-12-27', NULL, NULL, 'absent', NULL, '2025-12-27 17:46:34'),
+(16, 3, '2025-12-26', NULL, NULL, 'present', NULL, '2025-12-27 17:46:36'),
+(17, 3, '2025-12-23', NULL, NULL, 'present', NULL, '2025-12-27 17:46:39'),
+(18, 3, '2025-12-16', NULL, NULL, 'present', NULL, '2025-12-27 17:46:42'),
+(19, 3, '2025-12-15', NULL, NULL, 'present', NULL, '2025-12-27 17:46:44'),
+(20, 3, '2025-12-22', NULL, NULL, 'present', NULL, '2025-12-27 17:46:48'),
+(21, 6, '2025-12-01', NULL, NULL, 'present', NULL, '2025-12-27 17:46:55'),
+(22, 6, '2025-12-02', NULL, NULL, 'present', NULL, '2025-12-27 17:46:57'),
+(23, 6, '2025-12-03', NULL, NULL, 'present', NULL, '2025-12-27 17:47:00'),
+(24, 6, '2025-12-04', NULL, NULL, 'present', NULL, '2025-12-27 17:47:02'),
+(25, 6, '2025-12-05', NULL, NULL, 'present', NULL, '2025-12-27 17:47:05'),
+(26, 6, '2025-12-11', NULL, NULL, 'absent', NULL, '2025-12-27 17:47:08'),
+(27, 6, '2025-12-12', NULL, NULL, 'present', NULL, '2025-12-27 17:47:11'),
+(28, 6, '2025-12-13', NULL, NULL, 'present', NULL, '2025-12-27 17:47:14'),
+(29, 6, '2025-12-22', NULL, NULL, 'absent', NULL, '2025-12-27 17:47:17'),
+(31, 6, '2025-12-10', NULL, NULL, 'present', NULL, '2025-12-27 17:47:21'),
+(32, 6, '2025-12-09', NULL, NULL, 'present', NULL, '2025-12-27 17:47:27'),
+(33, 6, '2025-12-08', NULL, NULL, 'present', NULL, '2025-12-27 17:47:30'),
+(34, 6, '2025-12-15', NULL, NULL, 'present', NULL, '2025-12-27 17:47:38'),
+(35, 6, '2025-12-16', NULL, NULL, 'absent', NULL, '2025-12-27 17:47:44'),
+(36, 6, '2025-12-17', NULL, NULL, 'present', NULL, '2025-12-27 17:47:47'),
+(37, 6, '2025-12-18', NULL, NULL, 'leave', NULL, '2025-12-27 17:47:52'),
+(38, 6, '2025-12-19', NULL, NULL, 'leave', NULL, '2025-12-27 17:47:57'),
+(39, 6, '2025-12-23', NULL, NULL, 'present', NULL, '2025-12-27 17:47:59'),
+(40, 6, '2025-12-26', NULL, NULL, 'leave', NULL, '2025-12-27 17:48:02'),
+(41, 6, '2025-12-27', NULL, NULL, 'absent', NULL, '2025-12-27 17:48:05'),
+(42, 7, '2025-12-01', NULL, NULL, 'present', NULL, '2025-12-27 17:48:08'),
+(43, 7, '2025-12-02', NULL, NULL, 'present', NULL, '2025-12-27 17:48:10'),
+(44, 7, '2025-12-03', NULL, NULL, 'present', NULL, '2025-12-27 17:48:12'),
+(45, 7, '2025-12-04', NULL, NULL, 'present', NULL, '2025-12-27 17:48:15'),
+(46, 7, '2025-12-05', NULL, NULL, 'present', NULL, '2025-12-27 17:48:17'),
+(47, 7, '2025-12-08', NULL, NULL, 'half-day', NULL, '2025-12-27 17:48:19'),
+(48, 7, '2025-12-09', NULL, NULL, 'absent', NULL, '2025-12-27 17:48:22'),
+(49, 7, '2025-12-10', NULL, NULL, 'present', NULL, '2025-12-27 17:48:25'),
+(50, 7, '2025-12-18', NULL, NULL, 'present', NULL, '2025-12-27 17:48:28'),
+(51, 7, '2025-12-19', NULL, NULL, 'half-day', NULL, '2025-12-27 17:48:30'),
+(52, 7, '2025-12-12', NULL, NULL, 'present', NULL, '2025-12-27 17:48:33'),
+(53, 7, '2025-12-13', NULL, NULL, 'present', NULL, '2025-12-27 17:48:36'),
+(54, 7, '2025-12-11', NULL, NULL, 'present', NULL, '2025-12-27 17:48:38'),
+(55, 7, '2025-12-17', NULL, NULL, 'absent', NULL, '2025-12-27 17:48:40'),
+(56, 7, '2025-12-23', NULL, NULL, 'present', NULL, '2025-12-27 17:48:43'),
+(57, 7, '2025-12-15', NULL, NULL, 'present', NULL, '2025-12-27 17:48:46'),
+(58, 7, '2025-12-16', NULL, NULL, 'present', NULL, '2025-12-27 17:48:49'),
+(59, 7, '2025-12-22', NULL, NULL, 'leave', NULL, '2025-12-27 17:48:52'),
+(61, 7, '2025-12-27', NULL, NULL, 'leave', NULL, '2025-12-27 17:48:58'),
+(62, 7, '2025-12-26', NULL, NULL, 'present', NULL, '2025-12-27 17:49:02'),
+(63, 4, '2025-12-01', NULL, NULL, 'absent', NULL, '2025-12-27 17:49:15'),
+(64, 4, '2025-12-02', NULL, NULL, 'present', NULL, '2025-12-27 17:49:18'),
+(65, 4, '2025-12-03', NULL, NULL, 'present', NULL, '2025-12-27 17:49:20'),
+(66, 4, '2025-12-04', NULL, NULL, 'present', NULL, '2025-12-27 17:49:23'),
+(67, 4, '2025-12-05', NULL, NULL, 'present', NULL, '2025-12-27 17:49:25'),
+(68, 4, '2025-12-08', NULL, NULL, 'present', NULL, '2025-12-27 17:49:28'),
+(69, 4, '2025-12-09', NULL, NULL, 'present', NULL, '2025-12-27 17:49:31'),
+(70, 4, '2025-12-10', NULL, NULL, 'present', NULL, '2025-12-27 17:49:34'),
+(71, 4, '2025-12-11', NULL, NULL, 'present', NULL, '2025-12-27 17:49:39'),
+(72, 4, '2025-12-12', NULL, NULL, 'absent', NULL, '2025-12-27 17:49:42'),
+(73, 4, '2025-12-13', NULL, NULL, 'half-day', NULL, '2025-12-27 17:49:47'),
+(74, 4, '2025-12-16', NULL, NULL, 'present', NULL, '2025-12-27 17:49:49'),
+(75, 4, '2025-12-23', NULL, NULL, 'present', NULL, '2025-12-27 17:49:52'),
+(76, 4, '2025-12-15', NULL, NULL, 'present', NULL, '2025-12-27 17:49:56'),
+(77, 4, '2025-12-26', NULL, NULL, 'absent', NULL, '2025-12-27 17:50:00'),
+(78, 4, '2025-12-19', NULL, NULL, 'present', NULL, '2025-12-27 17:50:03'),
+(79, 4, '2025-12-22', NULL, NULL, 'present', NULL, '2025-12-27 17:50:05'),
+(80, 4, '2025-12-17', NULL, NULL, 'present', NULL, '2025-12-27 17:50:08'),
+(81, 4, '2025-12-27', NULL, NULL, 'present', NULL, '2025-12-27 17:50:11'),
+(82, 4, '2025-12-18', NULL, NULL, 'absent', NULL, '2025-12-27 17:50:14'),
+(83, 5, '2025-12-04', NULL, NULL, 'present', NULL, '2025-12-27 17:51:04'),
+(84, 1, '2025-12-01', NULL, NULL, 'present', NULL, '2025-12-28 06:48:53'),
+(85, 1, '2025-12-02', NULL, NULL, 'present', NULL, '2025-12-28 06:48:55'),
+(86, 1, '2025-12-03', NULL, NULL, 'present', NULL, '2025-12-28 06:48:58'),
+(87, 1, '2025-12-04', NULL, NULL, 'present', NULL, '2025-12-28 06:49:01'),
+(88, 1, '2025-12-05', NULL, NULL, 'present', NULL, '2025-12-28 06:49:27'),
+(89, 1, '2025-12-08', NULL, NULL, 'present', NULL, '2025-12-28 06:49:33'),
+(90, 1, '2025-12-10', NULL, NULL, 'present', NULL, '2025-12-28 06:49:41'),
+(91, 1, '2025-12-11', NULL, NULL, 'present', NULL, '2025-12-28 06:49:43'),
+(92, 1, '2025-12-09', NULL, NULL, 'present', NULL, '2025-12-28 06:49:45'),
+(93, 1, '2025-12-12', NULL, NULL, 'absent', NULL, '2025-12-28 06:49:47'),
+(94, 1, '2025-12-13', NULL, NULL, 'present', NULL, '2025-12-28 06:49:50'),
+(95, 1, '2025-12-15', NULL, NULL, 'absent', NULL, '2025-12-28 06:49:52'),
+(96, 1, '2025-12-16', NULL, NULL, 'present', NULL, '2025-12-28 06:49:54'),
+(97, 1, '2025-12-17', NULL, NULL, 'absent', NULL, '2025-12-28 06:49:56'),
+(98, 1, '2025-12-18', NULL, NULL, 'half-day', NULL, '2025-12-28 06:49:58'),
+(99, 1, '2025-12-19', NULL, NULL, 'present', NULL, '2025-12-28 06:50:01'),
+(100, 1, '2025-12-22', NULL, NULL, 'absent', NULL, '2025-12-28 06:50:03'),
+(101, 1, '2025-12-23', NULL, NULL, 'present', NULL, '2025-12-28 06:50:05'),
+(102, 1, '2025-12-26', NULL, NULL, 'present', NULL, '2025-12-28 06:50:08'),
+(117, 1, '2025-12-28', '21:30:01', NULL, 'present', NULL, '2025-12-28 16:00:01'),
+(118, 3, '2025-12-29', '18:13:21', '18:40:42', 'half-day', NULL, '2025-12-29 12:43:21');
+
 -- --------------------------------------------------------
 
 --
@@ -103,6 +211,13 @@ CREATE TABLE `companies` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `companies`
+--
+
+INSERT INTO `companies` (`id`, `name`, `address`, `email`, `phone`, `created_at`) VALUES
+(1, 'Rathod Software', 'Jamnagar, Gujarat', 'Rsjamnagar@mail.com', '+91 9745681234', '2025-04-10 06:09:30');
+
 -- --------------------------------------------------------
 
 --
@@ -114,6 +229,13 @@ CREATE TABLE `company_holiday_settings` (
   `company_id` int(11) NOT NULL,
   `saturday_policy` enum('none','2nd_4th','1st_3rd','all') NOT NULL DEFAULT 'none'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `company_holiday_settings`
+--
+
+INSERT INTO `company_holiday_settings` (`id`, `company_id`, `saturday_policy`) VALUES
+(1, 1, '1st_3rd');
 
 -- --------------------------------------------------------
 
@@ -128,6 +250,18 @@ CREATE TABLE `departments` (
   `description` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `departments`
+--
+
+INSERT INTO `departments` (`id`, `company_id`, `name`, `description`) VALUES
+(1, 1, 'Information Technology', 'IT Deparment Managing the Infrastructure of Network'),
+(2, 1, 'Software Development - Engineering', 'Development Dept.'),
+(3, 1, 'Quality Assurance', 'Performance & Security Testing'),
+(4, 1, 'Product Management', 'Requirement Analysis & Roadmap Planning'),
+(5, 1, 'UI - UX Design', 'Wireframes Prototypes'),
+(6, 1, 'Human Resource', 'Dept. for managing employees');
+
 -- --------------------------------------------------------
 
 --
@@ -140,6 +274,24 @@ CREATE TABLE `designations` (
   `name` varchar(100) NOT NULL,
   `description` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `designations`
+--
+
+INSERT INTO `designations` (`id`, `department_id`, `name`, `description`) VALUES
+(1, 1, 'IT Manager', 'Manager Of IT Dept.'),
+(2, 1, 'System Administrator', 'Adminitrator Of internal systems and networks'),
+(3, 1, 'Infrastructure Engineer', 'Manager of whole cyber Infrastructure'),
+(4, 4, 'Product Manager', 'Manager of all information about the product'),
+(5, 4, 'Associate Product Manager', 'Assistant of Product Manager'),
+(6, 4, 'Requirement Analyst', 'Requirement Analyser of the Product'),
+(7, 3, 'Quality Assurance', 'Manager of QA Dept.'),
+(8, 3, 'QA Engineer', 'QA Engineer testing and Assuring the quality'),
+(9, 2, 'Senior Software Engineer', 'Experienced Developer'),
+(10, 2, 'Junior Software Engineer', 'Newbie in this dept.'),
+(11, 6, 'Senior Human Resource', 'Experienced HR'),
+(12, 6, 'Human Resource Associate', 'Assistant of the HR.');
 
 -- --------------------------------------------------------
 
@@ -224,6 +376,19 @@ CREATE TABLE `employees` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `employees`
+--
+
+INSERT INTO `employees` (`id`, `user_id`, `employee_code`, `first_name`, `last_name`, `dob`, `gender`, `contact`, `address`, `department_id`, `designation_id`, `shift_id`, `date_of_joining`, `status`, `created_at`) VALUES
+(1, 30, 'RS-2025-001', 'Devesh', 'Shah', NULL, NULL, NULL, NULL, 6, 11, 2, '2025-07-01', 'active', '0000-00-00 00:00:00'),
+(2, 31, 'RS-2025-002', 'Arjav', 'Maheshwari', NULL, NULL, NULL, NULL, 4, 4, 3, '2025-10-08', 'active', '2025-12-27 17:32:17'),
+(3, 32, 'RS-2025-003', 'Jayraj', 'Singh', '2000-06-29', 'male', '987456210', 'Ahmedabad', 1, 3, 2, '2025-11-03', 'active', '2025-12-27 17:34:23'),
+(4, 33, 'RS-2025-004', 'Jay', 'Kothari', NULL, NULL, NULL, NULL, 3, 7, 1, '2025-10-23', 'active', '2025-12-27 17:36:14'),
+(5, 34, 'RS-2025-005', 'Meet', 'Nankani', NULL, NULL, NULL, NULL, 6, 12, 4, '2025-10-09', 'active', '2025-12-27 17:37:07'),
+(6, 35, 'RS-2025-006', 'Monil', 'Shah', NULL, NULL, NULL, NULL, 2, 10, 1, '2025-12-01', 'active', '2025-12-27 17:38:29'),
+(7, 36, 'RS-2025-007', 'Smit', 'Makawana', NULL, NULL, NULL, NULL, 2, 9, 4, '2025-08-09', 'active', '2025-12-27 17:39:54');
+
 -- --------------------------------------------------------
 
 --
@@ -265,7 +430,7 @@ INSERT INTO `global_holidays` (`id`, `holiday_name`, `holiday_date`) VALUES
 (8, 'Guru Ravidas Jayanti', '2025-02-12'),
 (9, 'Shivaji Jayanti', '2025-02-19'),
 (10, 'Maharishi Dayanand Saraswati Jayanti', '2025-02-23'),
-(11, 'Maha Shivaratri/Shivaratri', '2025-02-26'),
+(11, 'Maha Shivaratri', '2025-02-26'),
 (12, 'Ramadan Start', '2025-03-02'),
 (13, 'Holika Dahana', '2025-03-13'),
 (14, 'Holi', '2025-03-14'),
@@ -276,18 +441,18 @@ INSERT INTO `global_holidays` (`id`, `holiday_name`, `holiday_date`) VALUES
 (22, 'Mahavir Jayanti', '2025-04-10'),
 (23, 'Vaisakhi', '2025-04-13'),
 (24, 'Ambedkar Jayanti', '2025-04-14'),
-(26, 'Bahag Bihu/Vaisakhadi', '2025-04-15'),
+(26, 'Bahag Bihu', '2025-04-15'),
 (27, 'Good Friday', '2025-04-18'),
 (28, 'Easter Day', '2025-04-20'),
 (29, 'Birthday of Rabindranath', '2025-05-09'),
-(30, 'Buddha Purnima/Vesak', '2025-05-12'),
+(30, 'Buddha Purnima', '2025-05-12'),
 (31, 'Bakrid', '2025-06-07'),
 (32, 'Rath Yatra', '2025-06-27'),
 (33, 'Muharram/Ashura', '2025-07-06'),
-(34, 'Raksha Bandhan (Rakhi)', '2025-08-09'),
+(34, 'Raksha Bandhan', '2025-08-09'),
 (35, 'Independence Day', '2025-08-15'),
 (38, 'Janmashtami', '2025-08-16'),
-(39, 'Ganesh Chaturthi/Vinayaka Chaturthi', '2025-08-27'),
+(39, 'Ganesh Chaturthi', '2025-08-27'),
 (40, 'Milad un-Nabi', '2025-09-05'),
 (42, 'First Day of Sharad Navratri', '2025-09-22'),
 (43, 'First Day of Durga Puja Festivities', '2025-09-28'),
@@ -296,7 +461,7 @@ INSERT INTO `global_holidays` (`id`, `holiday_name`, `holiday_date`) VALUES
 (46, 'Maha Navami', '2025-10-01'),
 (47, 'Mahatma Gandhi Jayanti', '2025-10-02'),
 (49, 'Maharishi Valmiki Jayanti', '2025-10-07'),
-(50, 'Karaka Chaturthi (Karva Chauth)', '2025-10-10'),
+(50, 'Karaka Chaturthi', '2025-10-10'),
 (51, 'Diwali/Deepavali', '2025-10-20'),
 (53, 'Govardhan Puja', '2025-10-22'),
 (54, 'Bhai Duj', '2025-10-23'),
@@ -304,53 +469,7 @@ INSERT INTO `global_holidays` (`id`, `holiday_name`, `holiday_date`) VALUES
 (56, 'Guru Nanak Jayanti', '2025-11-05'),
 (57, 'Guru Tegh Bahadur\'s Martyrdom Day', '2025-11-24'),
 (58, 'Christmas Eve', '2025-12-24'),
-(59, 'Christmas', '2025-12-25'),
-(60, 'New Year\'s Day', '2026-01-01'),
-(61, 'Hazarat Ali\'s Birthday', '2026-01-03'),
-(62, 'Makar Sankranti', '2026-01-14'),
-(64, 'Vasant Panchami', '2026-01-23'),
-(65, 'Republic Day', '2026-01-26'),
-(66, 'Guru Ravidas Jayanti', '2026-02-01'),
-(67, 'Maharishi Dayanand Saraswati Jayanti', '2026-02-12'),
-(68, 'Maha Shivaratri', '2026-02-15'),
-(69, 'Ramadan Start (tentative)', '2026-02-19'),
-(71, 'Holika Dahana', '2026-03-03'),
-(72, 'Holi', '2026-03-04'),
-(73, 'Gudi Padwa', '2026-03-19'),
-(75, 'Jamat Ul-Vida', '2026-03-20'),
-(76, 'Ramzan Id (tentative)', '2026-03-21'),
-(77, 'Rama Navami', '2026-03-26'),
-(78, 'Mahavir Jayanti', '2026-03-31'),
-(79, 'Good Friday', '2026-04-03'),
-(80, 'Easter Day', '2026-04-05'),
-(81, 'Ambedkar Jayanti', '2026-04-14'),
-(84, 'Bahag Bihu', '2026-04-15'),
-(85, 'Buddha Purnima', '2026-05-01'),
-(86, 'Birthday of Rabindranath', '2026-05-09'),
-(87, 'Bakrid (tentative)', '2026-05-27'),
-(88, 'Muharram/Ashura (tentative)', '2026-06-26'),
-(89, 'Rath Yatra', '2026-07-16'),
-(90, 'Independence Day', '2026-08-15'),
-(91, 'Milad un-Nabi (tentative)', '2026-08-26'),
-(93, 'Raksha Bandhan', '2026-08-28'),
-(94, 'Janmashtami (Smarta)', '2026-09-04'),
-(96, 'Ganesh Chaturthi', '2026-09-14'),
-(97, 'Mahatma Gandhi Jayanti', '2026-10-02'),
-(98, 'First Day of Sharad Navratri', '2026-10-11'),
-(99, 'First Day of Durga Puja Festivities', '2026-10-17'),
-(100, 'Maha Saptami', '2026-10-18'),
-(101, 'Maha Ashtami', '2026-10-19'),
-(102, 'Dussehra', '2026-10-20'),
-(103, 'Maharishi Valmiki Jayanti', '2026-10-26'),
-(104, 'Karaka Chaturthi', '2026-10-29'),
-(105, 'Naraka Chaturdasi', '2026-11-08'),
-(107, 'Govardhan Puja', '2026-11-09'),
-(108, 'Bhai Duj', '2026-11-11'),
-(109, 'Chhat Puja (Pratihar Sashthi/Surya Sashthi)', '2026-11-15'),
-(110, 'Guru Tegh Bahadur\'s Martyrdom Day', '2026-11-24'),
-(112, 'Hazarat Ali\'s Birthday', '2026-12-23'),
-(113, 'Christmas Eve', '2026-12-24'),
-(114, 'Christmas', '2026-12-25');
+(59, 'Christmas', '2025-12-25');
 
 -- --------------------------------------------------------
 
@@ -364,6 +483,60 @@ CREATE TABLE `holidays` (
   `holiday_name` varchar(100) NOT NULL,
   `holiday_date` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `holidays`
+--
+
+INSERT INTO `holidays` (`id`, `company_id`, `holiday_name`, `holiday_date`) VALUES
+(1, 1, 'New Year\'s Day', '2025-01-01'),
+(2, 1, 'Guru Govind Singh Jayanti', '2025-01-06'),
+(3, 1, 'Makar Sankranti', '2025-01-14'),
+(4, 1, 'Republic Day', '2025-01-26'),
+(5, 1, 'Vasant Panchami', '2025-02-02'),
+(6, 1, 'Guru Ravidas Jayanti', '2025-02-12'),
+(7, 1, 'Shivaji Jayanti', '2025-02-19'),
+(8, 1, 'Maharishi Dayanand Saraswati Jayanti', '2025-02-23'),
+(9, 1, 'Maha Shivaratri', '2025-02-26'),
+(10, 1, 'Ramadan Start', '2025-03-02'),
+(11, 1, 'Holika Dahana', '2025-03-13'),
+(12, 1, 'Holi', '2025-03-14'),
+(13, 1, 'Jamat Ul-Vida', '2025-03-28'),
+(14, 1, 'Ugadi', '2025-03-30'),
+(15, 1, 'Ramzan Id', '2025-03-31'),
+(16, 1, 'Rama Navami', '2025-04-06'),
+(17, 1, 'Mahavir Jayanti', '2025-04-10'),
+(18, 1, 'Vaisakhi', '2025-04-13'),
+(19, 1, 'Ambedkar Jayanti', '2025-04-14'),
+(20, 1, 'Bahag Bihu', '2025-04-15'),
+(21, 1, 'Good Friday', '2025-04-18'),
+(22, 1, 'Easter Day', '2025-04-20'),
+(23, 1, 'Birthday of Rabindranath', '2025-05-09'),
+(24, 1, 'Buddha Purnima', '2025-05-12'),
+(25, 1, 'Bakrid', '2025-06-07'),
+(26, 1, 'Rath Yatra', '2025-06-27'),
+(27, 1, 'Muharram/Ashura', '2025-07-06'),
+(28, 1, 'Raksha Bandhan', '2025-08-09'),
+(29, 1, 'Independence Day', '2025-08-15'),
+(30, 1, 'Janmashtami', '2025-08-16'),
+(31, 1, 'Ganesh Chaturthi', '2025-08-27'),
+(32, 1, 'Milad un-Nabi', '2025-09-05'),
+(33, 1, 'First Day of Sharad Navratri', '2025-09-22'),
+(34, 1, 'First Day of Durga Puja Festivities', '2025-09-28'),
+(35, 1, 'Maha Saptami', '2025-09-29'),
+(36, 1, 'Maha Ashtami', '2025-09-30'),
+(37, 1, 'Maha Navami', '2025-10-01'),
+(38, 1, 'Mahatma Gandhi Jayanti', '2025-10-02'),
+(39, 1, 'Maharishi Valmiki Jayanti', '2025-10-07'),
+(40, 1, 'Karaka Chaturthi', '2025-10-10'),
+(41, 1, 'Diwali/Deepavali', '2025-10-20'),
+(42, 1, 'Govardhan Puja', '2025-10-22'),
+(43, 1, 'Bhai Duj', '2025-10-23'),
+(44, 1, 'Chhat Puja (Pratihar Sashthi/Surya Sashthi)', '2025-10-28'),
+(45, 1, 'Guru Nanak Jayanti', '2025-11-05'),
+(46, 1, 'Guru Tegh Bahadur\'s Martyrdom Day', '2025-11-24'),
+(47, 1, 'Christmas Eve', '2025-12-24'),
+(48, 1, 'Christmas', '2025-12-25');
 
 -- --------------------------------------------------------
 
@@ -463,6 +636,15 @@ CREATE TABLE `leave_policies` (
   `days_per_year` int(11) NOT NULL,
   `is_accruable` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Can be carried over/encashed'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `leave_policies`
+--
+
+INSERT INTO `leave_policies` (`id`, `company_id`, `leave_type`, `days_per_year`, `is_accruable`) VALUES
+(1, 1, 'Sick leave', 7, 0),
+(2, 1, 'Annual leave', 12, 0),
+(3, 1, 'Accurable Leave', 5, 1);
 
 -- --------------------------------------------------------
 
@@ -595,13 +777,13 @@ CREATE TABLE `roles` (
 --
 
 INSERT INTO `roles` (`id`, `name`, `description`) VALUES
-(1, 'Super Admin', 'System-wide administrator'),
-(2, 'Company Admin', 'Company-level administrator'),
-(3, 'HR Manager', 'Manages HR operations'),
+(1, 'Admin', 'System-wide administrator'),
+(2, 'Company Owner', 'Company-level administrator'),
+(3, 'Human Resource', 'Manages HR operations'),
 (4, 'Employee', 'Regular employee'),
 (5, 'Auditor', 'Read-only access for audits'),
 (6, 'Manager', 'Department Manager'),
-(7, 'candidate', 'This role is for the candidate who applies for job role in company');
+(7, 'Candidate', 'This role is for the candidate who applies for job role in company');
 
 -- --------------------------------------------------------
 
@@ -617,6 +799,16 @@ CREATE TABLE `shifts` (
   `end_time` time NOT NULL,
   `description` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `shifts`
+--
+
+INSERT INTO `shifts` (`id`, `company_id`, `name`, `start_time`, `end_time`, `description`) VALUES
+(1, 1, 'Normal Shift', '09:00:00', '17:00:00', '9-5 Normal Shift'),
+(2, 1, 'Early Morning Shift', '07:00:00', '15:00:00', '7-3 Early Morning Shift'),
+(3, 1, 'After-Noon Shift', '00:00:00', '17:00:00', 'After Noon/Lunch Time Shift'),
+(4, 1, 'Noon Shift', '13:00:00', '18:00:00', 'After Lunch Shift');
 
 -- --------------------------------------------------------
 
@@ -696,6 +888,13 @@ CREATE TABLE `teams` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `teams`
+--
+
+INSERT INTO `teams` (`id`, `company_id`, `name`, `description`, `created_by`, `created_at`, `updated_by`, `updated_at`) VALUES
+(1, 1, 'Backend Developers', 'Team of the backend developers ', 33, '2025-12-29 12:11:21', NULL, '2025-12-29 12:11:21');
+
 -- --------------------------------------------------------
 
 --
@@ -711,6 +910,14 @@ CREATE TABLE `team_members` (
   `assigned_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `team_members`
+--
+
+INSERT INTO `team_members` (`id`, `team_id`, `employee_id`, `role_in_team`, `assigned_by`, `assigned_at`) VALUES
+(1, 1, 6, NULL, 33, '2025-12-29 12:12:11'),
+(2, 1, 7, NULL, 33, '2025-12-29 12:12:11');
+
 -- --------------------------------------------------------
 
 --
@@ -724,6 +931,21 @@ CREATE TABLE `todo_list` (
   `is_completed` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `todo_list`
+--
+
+INSERT INTO `todo_list` (`id`, `user_id`, `task`, `is_completed`, `created_at`) VALUES
+(1, 29, 'Create the Departments of ( HR and QA)', 1, '2025-12-27 17:53:34'),
+(2, 29, 'Hire new Employees in Software Dept.', 0, '2025-12-27 17:54:09'),
+(3, 29, 'Meeting with Australia Client', 1, '2025-12-27 17:54:43'),
+(4, 29, 'LAN Party on 31st Dec.', 0, '2025-12-27 17:55:03'),
+(5, 29, 'Wife\'s birthday on 2nd Jan.', 0, '2025-12-27 17:55:29'),
+(6, 30, 'Hire Interns ', 0, '2025-12-28 06:31:38'),
+(7, 30, 'Compete the onboarding process of few employees', 1, '2025-12-28 06:32:06'),
+(8, 30, 'Schedule Interviews for New Candiadates', 0, '2025-12-28 06:32:33'),
+(9, 30, 'Verify Attendence ', 1, '2025-12-28 06:32:51');
 
 -- --------------------------------------------------------
 
@@ -747,7 +969,15 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `company_id`, `role_id`, `username`, `email`, `password`, `status`, `created_at`) VALUES
-(1, NULL, 1, 'admin', 'super_admin@mail.com', '$2y$10$4oXGSu5Ip7f2oJFXksjqA.927pO76waLG1YCGuyiQNj6QMoqrJW/W', 'active', '2025-09-06 06:34:45');
+(1, NULL, 1, 'admin', 'admin@mail.com', '$2y$10$4oXGSu5Ip7f2oJFXksjqA.927pO76waLG1YCGuyiQNj6QMoqrJW/W', 'active', '2025-09-06 06:34:45'),
+(29, 1, 2, 'Vishal_rathod', 'rsc_admin@mail.com', '$2y$10$IitvhR3mufph8Y7OaJkIz.aBaxBl2l02uoL8zXWILglVkU0NxUKmu', 'active', '2025-12-27 06:30:33'),
+(30, 1, 3, 'devesh_shah', 'devesh@mail.com', '$2y$10$qSX3BPxpszg0QXi2yd4nCeprYeNT8odESE1IfeaBJPgq4Brjwd5Ue', 'active', '2025-12-27 17:26:57'),
+(31, 1, 4, 'arjav_maheswari', 'arjav@mail.com', '$2y$10$iz0T.Dvf7ol9vGOuCmGOMuLvoLkwxFZ63OV9sXLBQwdy8ZELxYCT2', 'active', '2025-12-27 17:31:34'),
+(32, 1, 4, 'jayraj_singh', 'jayraj@mail.com', '$2y$10$/0OJPPfKegcSfqsfbHKl5Ol2Ok0Yq4ANP3QQ7GmHNRJX1tRHvh4hm', 'active', '2025-12-27 17:33:49'),
+(33, 1, 6, 'Jay_kothari', 'jay@mail.com', '$2y$10$76sT3cCVm7MlCEyRAYjx/OGl9TnNXNzNoq98rSjcmV1kh0kl/N6hO', 'active', '2025-12-27 17:35:22'),
+(34, 1, 3, 'meet_nankani', 'meet@mail.com', '$2y$10$rW7whjwBQHzg9u5uNMpoFuI4Pk.eXbdQ4YL8UlUeOyjySqsZvK52i', 'active', '2025-12-27 17:36:44'),
+(35, 1, 4, 'monil_shah', 'monil@mail.com', '$2y$10$Bsh.ZYvuFFlI6Mg/S74qXuqzbFAuwBx2qJNXA.Zh6P5cUvAQREd1G', 'active', '2025-12-27 17:38:03'),
+(36, 1, 4, 'Smit_Makawana', 'smit@mail.com', '$2y$10$bBvXCD3dPY7PxVv.KEOTKe9flYoXHVBfDy02y6.tdZtXEMI5G2p/G', 'active', '2025-12-27 17:39:14');
 
 -- --------------------------------------------------------
 
@@ -1080,7 +1310,7 @@ ALTER TABLE `activity_logs`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=119;
 
 --
 -- AUTO_INCREMENT for table `audit_logs`
@@ -1098,25 +1328,25 @@ ALTER TABLE `candidates`
 -- AUTO_INCREMENT for table `companies`
 --
 ALTER TABLE `companies`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `company_holiday_settings`
 --
 ALTER TABLE `company_holiday_settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `departments`
 --
 ALTER TABLE `departments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `designations`
 --
 ALTER TABLE `designations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `documents`
@@ -1140,7 +1370,7 @@ ALTER TABLE `email_templates`
 -- AUTO_INCREMENT for table `employees`
 --
 ALTER TABLE `employees`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `feedback`
@@ -1152,13 +1382,13 @@ ALTER TABLE `feedback`
 -- AUTO_INCREMENT for table `global_holidays`
 --
 ALTER TABLE `global_holidays`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=115;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
 
 --
 -- AUTO_INCREMENT for table `holidays`
 --
 ALTER TABLE `holidays`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
 
 --
 -- AUTO_INCREMENT for table `interviews`
@@ -1194,13 +1424,13 @@ ALTER TABLE `leave_balances`
 -- AUTO_INCREMENT for table `leave_policies`
 --
 ALTER TABLE `leave_policies`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `payroll`
@@ -1242,7 +1472,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `shifts`
 --
 ALTER TABLE `shifts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `support_tickets`
@@ -1266,25 +1496,25 @@ ALTER TABLE `tasks`
 -- AUTO_INCREMENT for table `teams`
 --
 ALTER TABLE `teams`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `team_members`
 --
 ALTER TABLE `team_members`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `todo_list`
 --
 ALTER TABLE `todo_list`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT for table `user_preferences`

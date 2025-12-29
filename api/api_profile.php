@@ -48,7 +48,6 @@ switch ($action) {
         $gender = $_POST['gender'] ?? '';
         $contact = $_POST['contact'] ?? '';
         $address = $_POST['address'] ?? '';
-        $emergency_contact = $_POST['emergency_contact'] ?? '';
 
         if (empty($first_name) || empty($last_name)) {
             $response['message'] = 'First name and last name are required.';
@@ -56,8 +55,8 @@ switch ($action) {
         }
 
         // Securely update the employee record for the logged-in user
-        $sql = "UPDATE employees SET first_name = ?, last_name = ?, dob = ?, gender = ?, contact = ?, address = ?, emergency_contact = ? WHERE user_id = ?";
-        $params = [$first_name, $last_name, $dob, $gender, $contact, $address, $emergency_contact, $user_id];
+        $sql = "UPDATE employees SET first_name = ?, last_name = ?, dob = ?, gender = ?, contact = ?, address = ? WHERE user_id = ?";
+        $params = [$first_name, $last_name, $dob, $gender, $contact, $address, $user_id];
         $result = query($mysqli, $sql, $params);
 
         if ($result['success']) {
@@ -66,7 +65,7 @@ switch ($action) {
             $response['message'] = 'Failed to update profile. Error: ' . $result['error'];
         }
         break;
-        
+
     default:
         $response['message'] = 'Invalid action specified.';
         break;
