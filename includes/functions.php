@@ -324,12 +324,15 @@ function getCurrentUser($mysqli)
     if (!isLoggedIn()) {
         return null;
     }
-    // Return details of the current user including role information
-    $stmt = $mysqli->prepare("SELECT u.*, r.name as role_name FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = ?");
-    $stmt->bind_param("i", $_SESSION['user_id']);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    return $result->fetch_assoc();
+    
+    // Use the query() function for proper resource management
+    $result = query($mysqli, "SELECT u.*, r.name as role_name FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = ?", [$_SESSION['user_id']]);
+    
+    if ($result['success'] && !empty($result['data'])) {
+        return $result['data'][0];
+    }
+    
+    return null;
 }
 
 /**

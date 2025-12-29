@@ -49,14 +49,30 @@ try {
 
 } catch (Exception $e) {
     // Log the error with sanitized message if logging is enabled
-    if ($enable_logging && is_writable(dirname($log_file))) {
+    if ($enable_logging) {
         $error_id = uniqid('db_error_', true);
         $error_message = date('[Y-m-d H:i:s] ') . "Database Error ID: " . $error_id . PHP_EOL;
-        error_log($error_message, 3, $log_file);
+        
+        // Create log file if it doesn't exist and log the error
+        if (is_writable(dirname($log_file))) {
+            if (!file_exists($log_file)) {
+                touch($log_file);
+                chmod($log_file, 0640);
+            }
+            if (is_writable($log_file) || !file_exists($log_file)) {
+                error_log($error_message, 3, $log_file);
+            }
+        }
         
         // Log full error to separate file only accessible to admin
         if (is_writable(dirname($detailed_log_file))) {
-            error_log($error_message . "Details: " . $e->getMessage() . PHP_EOL, 3, $detailed_log_file);
+            if (!file_exists($detailed_log_file)) {
+                touch($detailed_log_file);
+                chmod($detailed_log_file, 0640);
+            }
+            if (is_writable($detailed_log_file) || !file_exists($detailed_log_file)) {
+                error_log($error_message . "Details: " . $e->getMessage() . PHP_EOL, 3, $detailed_log_file);
+            }
         }
     }
     
