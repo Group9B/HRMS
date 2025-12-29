@@ -28,7 +28,14 @@ jobs:
       run: composer validate --strict
     
     - name: Check PHP syntax
-      run: find . -name "*.php" -not -path "./vendor/*" -exec php -l {} \; | grep -v "No syntax errors"
+      run: |
+        output=$(find . -name "*.php" -not -path "./vendor/*" -exec php -l {} \; 2>&1)
+        echo "$output"
+        if echo "$output" | grep -q "Parse error"; then
+          echo "PHP syntax errors found!"
+          exit 1
+        fi
+        echo "No syntax errors detected"
     
     - name: Check for trailing whitespaces
       run: |

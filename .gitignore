@@ -5,6 +5,7 @@
 /composer.lock
 *.log
 error.log
+error_detailed.log
 .DS_Store
 Thumbs.db
 uploads/*

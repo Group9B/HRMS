@@ -1,15 +1,15 @@
 # Prevent directory listing
 Options -Indexes
 
-# Only allow specific file types to be accessed directly
+# Allow specific file types
 <FilesMatch "\.(pdf|doc|docx|jpg|jpeg|png)$">
     Require all granted
 </FilesMatch>
 
-# Deny access to all other files
-<FilesMatch "^(?!.*\.(pdf|doc|docx|jpg|jpeg|png)$).*$">
+# Deny everything else by default
+<Files "*">
     Require all denied
-</FilesMatch>
+</Files>
 
 # Prevent PHP execution in uploads directory
 <FilesMatch "\.php$">

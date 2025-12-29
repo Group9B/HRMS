@@ -19,4 +19,4 @@ Allow: /assets/
 Allow: /index.php
 Allow: /$
 
-Sitemap: https://yourdomain.com/hrms/sitemap.xml
+Sitemap: /sitemap.xml

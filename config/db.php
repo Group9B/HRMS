@@ -40,17 +40,20 @@ try {
 
     // Check connection
     if ($mysqli->connect_error) {
-        throw new Exception("Connection failed: " . $mysqli->connect_error);
+        throw new Exception("Connection failed");
     }
 
     // Set charset
     $mysqli->set_charset($charset);
 
 } catch (Exception $e) {
-    // Log the error if logging is enabled
+    // Log the error with sanitized message if logging is enabled
     if ($enable_logging && is_writable(dirname($log_file))) {
-        $error_message = date('[Y-m-d H:i:s] ') . "Database Error: " . $e->getMessage() . PHP_EOL;
+        $error_id = uniqid('db_error_', true);
+        $error_message = date('[Y-m-d H:i:s] ') . "Database Error ID: " . $error_id . PHP_EOL;
         error_log($error_message, 3, $log_file);
+        // Log full error to separate file only accessible to admin
+        error_log($error_message . "Details: " . $e->getMessage() . PHP_EOL, 3, __DIR__ . '/../error_detailed.log');
     }
     
     http_response_code(500);
