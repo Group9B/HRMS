@@ -10,8 +10,3 @@ Options -Indexes
 <Files "*">
     Require all denied
 </Files>
-
-# Prevent PHP execution in uploads directory
-<FilesMatch "\.php$">
-    Require all denied
-</FilesMatch>

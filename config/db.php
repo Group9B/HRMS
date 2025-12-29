@@ -33,6 +33,7 @@ define('APP_ROOT', __DIR__ . '/');
 
 // Error logging configuration
 $log_file = __DIR__ . '/../error.log';
+$detailed_log_file = __DIR__ . '/../error_detailed.log';
 $enable_logging = getenv('APP_DEBUG') === 'true';
 
 try {
@@ -52,8 +53,11 @@ try {
         $error_id = uniqid('db_error_', true);
         $error_message = date('[Y-m-d H:i:s] ') . "Database Error ID: " . $error_id . PHP_EOL;
         error_log($error_message, 3, $log_file);
+        
         // Log full error to separate file only accessible to admin
-        error_log($error_message . "Details: " . $e->getMessage() . PHP_EOL, 3, __DIR__ . '/../error_detailed.log');
+        if (is_writable(dirname($detailed_log_file))) {
+            error_log($error_message . "Details: " . $e->getMessage() . PHP_EOL, 3, $detailed_log_file);
+        }
     }
     
     http_response_code(500);
