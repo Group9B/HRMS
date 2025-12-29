@@ -1,0 +1,40 @@
+{
+    "name": "group9b/staffsync-hrms",
+    "description": "A comprehensive HR management solution for modern businesses",
+    "type": "project",
+    "keywords": ["hrms", "hr", "human-resources", "payroll", "attendance"],
+    "homepage": "https://github.com/Group9B/HRMS",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Group9B",
+            "email": "support@staffsync.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4.0",
+        "ext-mysqli": "*",
+        "ext-json": "*",
+        "ext-session": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    },
+    "autoload": {
+        "files": [
+            "config/db.php",
+            "includes/functions.php"
+        ]
+    },
+    "scripts": {
+        "test": "phpunit --colors=always",
+        "check": [
+            "@test"
+        ]
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    }
+}

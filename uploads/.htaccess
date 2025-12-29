@@ -1,0 +1,12 @@
+# Prevent directory listing
+Options -Indexes
+
+# Deny everything by default
+<Files "*">
+    Require all denied
+</Files>
+
+# Allow only specific file types
+<FilesMatch "\.(pdf|doc|docx|jpg|jpeg|png)$">
+    Require all granted
+</FilesMatch>
