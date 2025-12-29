@@ -20,9 +20,7 @@ if (!$isEmployee && !$isManager && !$isHR) {
 $viewEmployeeId = null;
 $isOwner = false;
 
-// First, check if viewing someone else's profile (managers/HR with employee_id param)
 if (($isManager || $isHR) && isset($_GET['employee_id'])) {
-    // Manager/HR viewing a team member
     $viewEmployeeId = (int) $_GET['employee_id'];
 } else {
     $emp_result = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$userId]);
@@ -39,7 +37,6 @@ require_once '../components/layout/header.php';
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
         <?php
-        // Fetch employee profile data
         $profile_query = "SELECT e.*, u.username, u.email, u.id as user_id, d.name AS department_name, g.name AS designation_name, s.name AS shift_name, s.start_time, s.end_time
                          FROM employees e
                          JOIN users u ON e.user_id = u.id
@@ -90,7 +87,6 @@ require_once '../components/layout/header.php';
                                         </small>
                                     </div>
                                 </div>
-                                <!-- Edit Button in Profile Header -->
                                 <?php if ($isOwner): ?>
                                     <div class="flex-shrink-0">
                                         <button class="btn btn-primary" id="editProfileBtnHeader">
@@ -103,9 +99,7 @@ require_once '../components/layout/header.php';
                     </div>
                 </div>
 
-                <!-- Main Content Grid -->
                 <div class="row">
-                    <!-- Personal Information Card -->
                     <div class="col-lg-8 mb-4">
                         <div class="card shadow-sm">
                             <div class="card-header">
@@ -163,9 +157,7 @@ require_once '../components/layout/header.php';
                         </div>
                     </div>
 
-                    <!-- Sidebar: Employment & Status -->
                     <div class="col-lg-4 mb-4">
-                        <!-- Employment Information Card -->
                         <div class="card shadow-sm mb-4">
                             <div class="card-header">
                                 <h6 class="m-0 font-weight-bold d-flex align-items-center">
@@ -205,7 +197,6 @@ require_once '../components/layout/header.php';
                 </div>
             </div>
 
-            <!-- Edit Mode (Editable Form) -->
             <div id="editMode" style="display: none;">
                 <div class="row">
                     <div class="col-lg-8 mb-4">
@@ -311,6 +302,17 @@ require_once '../components/layout/header.php';
 <?php require_once '../components/layout/footer.php'; ?>
 
 <script>
+    // Store original profile data for cancel functionality
+    let originalProfileData = {
+        first_name: <?= json_encode($profile['first_name'] ?? '') ?>,
+        last_name: <?= json_encode($profile['last_name'] ?? '') ?>,
+        dob: <?= json_encode($profile['dob'] ?? '') ?>,
+        gender: <?= json_encode($profile['gender'] ?? '') ?>,
+        contact: <?= json_encode($profile['contact'] ?? '') ?>,
+        email: <?= json_encode($profile['email'] ?? '') ?>,
+        address: <?= json_encode($profile['address'] ?? '') ?>
+    };
+
     $(function () {
         // Initialize avatar on page load
         initializeAvatar({
@@ -318,7 +320,8 @@ require_once '../components/layout/header.php';
             username: <?= json_encode($profile['username'] ?? '') ?>
         });
 
-        loadProfileData();
+        // Populate form fields on page load from PHP data
+        populateFormFromPhpData(originalProfileData);
 
         // Real-time validation for first name
         $('#editProfileForm [name="first_name"]').on('input', function () {
@@ -351,6 +354,13 @@ require_once '../components/layout/header.php';
 
         // Cancel button - toggle back to view mode
         $('#cancelEditBtn').on('click', function () {
+            // Reset form to original data
+            populateFormFromPhpData(originalProfileData);
+
+            // Remove any validation error classes
+            $('#editProfileForm').find('input, select, textarea').removeClass('is-invalid');
+
+            // Switch back to view mode
             $('#editMode').css('display', 'none');
             $('#viewMode').css('display', 'block');
             $('#editProfileBtnHeader').html('<i class="ti ti-edit me-2"></i>Edit Profile');
@@ -403,14 +413,25 @@ require_once '../components/layout/header.php';
                     if (data.success) {
                         showToast(data.message, 'success');
 
-                        // Update display mode with new data dynamically
-                        setTimeout(() => {
-                            loadProfileData();
-                            $('#editMode').css('display', 'none');
-                            $('#viewMode').css('display', 'block');
-                            $('#editProfileBtnHeader').html('<i class="ti ti-edit me-2"></i>Edit Profile');
-                            $('#editProfileBtnHeader').css('position', 'relative').css('top', 'auto').css('right', 'auto').css('z-index', 'auto');
-                        }, 500);
+                        // Get updated form values and update view mode immediately
+                        const updatedData = {
+                            first_name: $('#editProfileForm [name="first_name"]').val(),
+                            last_name: $('#editProfileForm [name="last_name"]').val(),
+                            dob: $('#editProfileForm [name="dob"]').val(),
+                            gender: $('#editProfileForm [name="gender"]').val(),
+                            contact: $('#editProfileForm [name="contact"]').val(),
+                            email: $('#editProfileForm [name="email"]').val(),
+                            address: $('#editProfileForm [name="address"]').val()
+                        };
+
+                        // Update view mode display with new data
+                        updateViewModeDisplay(updatedData);
+
+                        // Switch back to view mode
+                        $('#editMode').css('display', 'none');
+                        $('#viewMode').css('display', 'block');
+                        $('#editProfileBtnHeader').html('<i class="ti ti-edit me-2"></i>Edit Profile');
+                        $('#editProfileBtnHeader').css('position', 'relative').css('top', 'auto').css('right', 'auto').css('z-index', 'auto');
                     } else {
                         showToast(data.message, 'error');
                     }
@@ -426,6 +447,61 @@ require_once '../components/layout/header.php';
         });
     });
 
+    function updateViewModeDisplay(profileData) {
+        // Update name in profile header
+        $('#viewMode h4').text(profileData.first_name + ' ' + profileData.last_name);
+
+        // Update personal information fields in view mode
+        // First Name
+        $('#viewMode').find('.col-lg-8').find('.col-md-6').eq(0).find('p').text(profileData.first_name);
+
+        // Last Name
+        $('#viewMode').find('.col-lg-8').find('.col-md-6').eq(1).find('p').text(profileData.last_name);
+
+        // Date of Birth
+        let dobDisplay = 'Not provided';
+        if (profileData.dob) {
+            dobDisplay = new Date(profileData.dob).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+        $('#viewMode').find('.col-lg-8').find('.col-md-6').eq(2).find('p').html(dobDisplay);
+
+        // Gender
+        let genderDisplay = '<span class="text-muted">Not provided</span>';
+        if (profileData.gender) {
+            genderDisplay = profileData.gender.charAt(0).toUpperCase() + profileData.gender.slice(1);
+        }
+        $('#viewMode').find('.col-lg-8').find('.col-md-6').eq(3).find('p').html(genderDisplay);
+
+        // Contact Number
+        let contactDisplay = '<span class="text-muted">Not provided</span>';
+        if (profileData.contact) {
+            contactDisplay = profileData.contact;
+        }
+        $('#viewMode').find('.col-lg-8').find('.col-md-6').eq(4).find('p').html(contactDisplay);
+
+        // Email (in same row as contact)
+        $('#viewMode').find('.col-lg-8').find('.col-md-6').eq(5).find('p').html(
+            '<a href="mailto:' + profileData.email + '" class="text-decoration-none">' + profileData.email + '</a>'
+        );
+
+        // Address (in separate div)
+        let addressDisplay = '<span class="text-muted">Not provided</span>';
+        if (profileData.address) {
+            addressDisplay = profileData.address;
+        }
+        $('#viewMode').find('.col-lg-8').find('div:last').find('p').html(addressDisplay);
+    }
+
+    function populateFormFromPhpData(profileData) {
+        $('#editProfileForm [name="first_name"]').val(profileData.first_name);
+        $('#editProfileForm [name="last_name"]').val(profileData.last_name);
+        $('#editProfileForm [name="dob"]').val(profileData.dob || '');
+        $('#editProfileForm [name="gender"]').val(profileData.gender || '');
+        $('#editProfileForm [name="contact"]').val(profileData.contact || '');
+        $('#editProfileForm [name="email"]').val(profileData.email);
+        $('#editProfileForm [name="address"]').val(profileData.address || '');
+    }
+
     function loadProfileData() {
         fetch('/hrms/api/api_emp.php?action=get_profile')
             .then(res => res.json())
@@ -434,13 +510,15 @@ require_once '../components/layout/header.php';
                     const profile = data.data;
 
                     // Populate edit form
-                    $('#editProfileForm [name="first_name"]').val(profile.first_name);
-                    $('#editProfileForm [name="last_name"]').val(profile.last_name);
-                    $('#editProfileForm [name="dob"]').val(profile.dob || '');
-                    $('#editProfileForm [name="gender"]').val(profile.gender || '');
-                    $('#editProfileForm [name="contact"]').val(profile.contact || '');
-                    $('#editProfileForm [name="email"]').val(profile.email);
-                    $('#editProfileForm [name="address"]').val(profile.address || '');
+                    populateFormFromPhpData({
+                        first_name: profile.first_name,
+                        last_name: profile.last_name,
+                        dob: profile.dob,
+                        gender: profile.gender,
+                        contact: profile.contact,
+                        email: profile.email,
+                        address: profile.address
+                    });
 
                     // Update view mode display data dynamically
                     // Update name
@@ -475,19 +553,13 @@ require_once '../components/layout/header.php';
                     });
 
                     // Generate and set avatar using main.js utilities with user_id
-                    if (typeof generateAvatarData === 'function' && typeof getInitialsFromUsername === 'function') {
+                    if (typeof generateAvatarData === 'function') {
                         const user = {
                             id: profile.user_id,
                             username: profile.username || (profile.first_name + ' ' + profile.last_name)
                         };
 
-                        const avatarData = generateAvatarData(user);
-                        const avatarEl = document.querySelector('.avatar-container .avatar');
-
-                        if (avatarEl && avatarData) {
-                            avatarEl.textContent = avatarData.initials;
-                            avatarEl.style.backgroundColor = avatarData.color;
-                        }
+                        initializeAvatar(user);
                     }
                 }
             });
