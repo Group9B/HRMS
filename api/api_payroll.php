@@ -19,13 +19,14 @@ $user_id = $_SESSION['user_id'];
 switch ($action) {
     case 'list_templates':
         // HR or Admins only
-        requireRole(['HR Manager', 'Company Admin', 'Super Admin']);
+        // HR or Admins only
+        requireRole([3, 2, 1]);
         $companyId = $_SESSION['company_id'] ?? null;
         $params = [];
         $sql = "SELECT * FROM payslip_templates WHERE is_active = 1 AND (company_id IS NULL";
         if ($companyId) {
             $sql .= " OR company_id = ?";
-            $params[] = (int)$companyId;
+            $params[] = (int) $companyId;
         }
         $sql .= ") ORDER BY company_id IS NULL DESC, id DESC";
         $result = query($mysqli, $sql, $params);
@@ -38,63 +39,96 @@ switch ($action) {
 
     case 'create_template':
         // HR or Admins only
-        requireRole(['HR Manager', 'Company Admin', 'Super Admin']);
+        requireRole([3, 2, 1]);
         $currentUser = getCurrentUser($mysqli);
         $companyId = $currentUser['company_id'] ?? null;
         $name = trim($_POST['name'] ?? '');
         $subject = trim($_POST['subject'] ?? 'Your payslip for {{period}}');
         $bodyHtml = $_POST['body_html'] ?? '';
         $components = json_decode($_POST['components'] ?? '[]', true);
-        $isActive = isset($_POST['is_active']) ? (int)($_POST['is_active'] ? 1 : 0) : 1;
-        if ($name === '' || $bodyHtml === '') { $response['message'] = 'Name and body are required.'; break; }
-        $basePlaceholders = ['company_name','period','employee_name','employee_code','department_name','designation_name','earnings_rows','deductions_rows','gross_salary','net_salary','currency','generated_at'];
+        $isActive = isset($_POST['is_active']) ? (int) ($_POST['is_active'] ? 1 : 0) : 1;
+        if ($name === '' || $bodyHtml === '') {
+            $response['message'] = 'Name and body are required.';
+            break;
+        }
+        $basePlaceholders = ['company_name', 'period', 'employee_name', 'employee_code', 'department_name', 'designation_name', 'earnings_rows', 'deductions_rows', 'gross_salary', 'net_salary', 'currency', 'generated_at'];
         $selected = is_array($components) ? array_values(array_unique(array_filter($components, 'is_string'))) : [];
         $placeholders = json_encode(array_values(array_unique(array_merge($basePlaceholders, $selected))));
         $insert = query($mysqli, "INSERT INTO payslip_templates (company_id, name, subject, body_html, placeholders, is_active, created_by) VALUES (?,?,?,?,?,?,?)", [
-            $companyId, $name, $subject, $bodyHtml, $placeholders, $isActive, $user_id
+            $companyId,
+            $name,
+            $subject,
+            $bodyHtml,
+            $placeholders,
+            $isActive,
+            $user_id
         ]);
         if ($insert['success']) {
             $response = ['success' => true, 'data' => ['template_id' => $insert['insert_id']]];
         } else {
-            $response['success'] = false; $response['message'] = 'Failed to create template';
+            $response['success'] = false;
+            $response['message'] = 'Failed to create template';
         }
         break;
 
     case 'update_template':
         // HR or Admins only
-        requireRole(['HR Manager', 'Company Admin', 'Super Admin']);
+        requireRole([3, 2, 1]);
         $currentUser = getCurrentUser($mysqli);
         $companyId = $currentUser['company_id'] ?? null;
-        $templateId = (int)($_POST['id'] ?? 0);
+        $templateId = (int) ($_POST['id'] ?? 0);
         $name = trim($_POST['name'] ?? '');
         $subject = trim($_POST['subject'] ?? 'Your payslip for {{period}}');
         $bodyHtml = $_POST['body_html'] ?? '';
         $components = json_decode($_POST['components'] ?? '[]', true);
-        $isActive = isset($_POST['is_active']) ? (int)($_POST['is_active'] ? 1 : 0) : 1;
-        if ($templateId <= 0) { $response['message'] = 'Invalid template id'; break; }
-        if ($name === '' || $bodyHtml === '') { $response['message'] = 'Name and body are required.'; break; }
-        $basePlaceholders = ['company_name','period','employee_name','employee_code','department_name','designation_name','earnings_rows','deductions_rows','gross_salary','net_salary','currency','generated_at'];
+        $isActive = isset($_POST['is_active']) ? (int) ($_POST['is_active'] ? 1 : 0) : 1;
+        if ($templateId <= 0) {
+            $response['message'] = 'Invalid template id';
+            break;
+        }
+        if ($name === '' || $bodyHtml === '') {
+            $response['message'] = 'Name and body are required.';
+            break;
+        }
+        $basePlaceholders = ['company_name', 'period', 'employee_name', 'employee_code', 'department_name', 'designation_name', 'earnings_rows', 'deductions_rows', 'gross_salary', 'net_salary', 'currency', 'generated_at'];
         $selected = is_array($components) ? array_values(array_unique(array_filter($components, 'is_string'))) : [];
         $placeholders = json_encode(array_values(array_unique(array_merge($basePlaceholders, $selected))));
         // Restrict update within company scope (or allow Super Admin to update any)
-        if (($currentUser['role_name'] ?? '') === 'Super Admin') {
+        if (($currentUser['role_id'] ?? 0) === 1) {
             $upd = query($mysqli, "UPDATE payslip_templates SET name=?, subject=?, body_html=?, placeholders=?, is_active=?, updated_by=? WHERE id=?", [
-                $name, $subject, $bodyHtml, $placeholders, $isActive, $user_id, $templateId
+                $name,
+                $subject,
+                $bodyHtml,
+                $placeholders,
+                $isActive,
+                $user_id,
+                $templateId
             ]);
         } else {
             $upd = query($mysqli, "UPDATE payslip_templates SET name=?, subject=?, body_html=?, placeholders=?, is_active=?, updated_by=? WHERE id=? AND (company_id = ? OR company_id IS NULL)", [
-                $name, $subject, $bodyHtml, $placeholders, $isActive, $user_id, $templateId, $companyId
+                $name,
+                $subject,
+                $bodyHtml,
+                $placeholders,
+                $isActive,
+                $user_id,
+                $templateId,
+                $companyId
             ]);
         }
-        if ($upd['success']) { $response = ['success' => true]; } else { $response['message'] = 'Failed to update template'; }
+        if ($upd['success']) {
+            $response = ['success' => true];
+        } else {
+            $response['message'] = 'Failed to update template';
+        }
         break;
 
     case 'preview_payslip':
         // HR or Admins only
-        requireRole(['HR Manager', 'Company Admin', 'Super Admin']);
-        $employeeId = (int)($_POST['employee_id'] ?? 0);
+        requireRole([3, 2, 1]);
+        $employeeId = (int) ($_POST['employee_id'] ?? 0);
         $period = trim($_POST['period'] ?? '');
-        $templateId = isset($_POST['template_id']) ? (int)$_POST['template_id'] : null;
+        $templateId = isset($_POST['template_id']) ? (int) $_POST['template_id'] : null;
         $currency = trim($_POST['currency'] ?? 'INR');
         $earnings = json_decode($_POST['earnings'] ?? '[]', true) ?: [];
         $deductions = json_decode($_POST['deductions'] ?? '[]', true) ?: [];
@@ -111,13 +145,13 @@ switch ($action) {
             break;
         }
         $emp = $empRes['data'][0];
-        $company = $emp['company_id'] ? getCompanyById($mysqli, (int)$emp['company_id']) : null;
+        $company = $emp['company_id'] ? getCompanyById($mysqli, (int) $emp['company_id']) : null;
 
         // Load template (company specific first, then global)
         if ($templateId) {
             $tplRes = query($mysqli, "SELECT * FROM payslip_templates WHERE id = ? AND is_active = 1", [$templateId]);
         } else {
-            $tplRes = query($mysqli, "SELECT * FROM payslip_templates WHERE is_active = 1 AND (company_id = ? OR company_id IS NULL) ORDER BY company_id IS NULL DESC, id DESC LIMIT 1", [(int)($emp['company_id'] ?? 0)]);
+            $tplRes = query($mysqli, "SELECT * FROM payslip_templates WHERE is_active = 1 AND (company_id = ? OR company_id IS NULL) ORDER BY company_id IS NULL DESC, id DESC LIMIT 1", [(int) ($emp['company_id'] ?? 0)]);
         }
         if (!$tplRes['success'] || empty($tplRes['data'])) {
             $response['message'] = 'No active template found.';
@@ -125,8 +159,14 @@ switch ($action) {
         }
         $tpl = $tplRes['data'][0];
 
-        $gross = 0.0; foreach ($earnings as $it) { $gross += (float)($it['amount'] ?? 0); }
-        $ded = 0.0; foreach ($deductions as $it) { $ded += (float)($it['amount'] ?? 0); }
+        $gross = 0.0;
+        foreach ($earnings as $it) {
+            $gross += (float) ($it['amount'] ?? 0);
+        }
+        $ded = 0.0;
+        foreach ($deductions as $it) {
+            $ded += (float) ($it['amount'] ?? 0);
+        }
         $net = $gross - $ded;
 
         $html = renderPayslipHTML($tpl['body_html'], [
@@ -157,10 +197,17 @@ switch ($action) {
 
     case 'generate_payslip':
         // HR only generation
-        requireRole(['HR Manager', 'Company Admin', 'Super Admin']);
-        $employeeId = (int)($_POST['employee_id'] ?? 0);
+        requireRole([3, 2, 1]);
+        $employeeId = (int) ($_POST['employee_id'] ?? 0);
         $period = trim($_POST['period'] ?? '');
-        $templateId = isset($_POST['template_id']) ? (int)$_POST['template_id'] : null;
+
+        // Validation: Prevent future payslips
+        if (strtotime($period) > time()) {
+            $response['message'] = 'Cannot generate payslips for future periods.';
+            break;
+        }
+
+        $templateId = isset($_POST['template_id']) ? (int) $_POST['template_id'] : null;
         $currency = trim($_POST['currency'] ?? 'INR');
         $earnings = json_decode($_POST['earnings'] ?? '[]', true) ?: [];
         $deductions = json_decode($_POST['deductions'] ?? '[]', true) ?: [];
@@ -190,7 +237,7 @@ switch ($action) {
         if ($templateId) {
             $tplRes = query($mysqli, "SELECT * FROM payslip_templates WHERE id = ? AND is_active = 1", [$templateId]);
         } else {
-            $tplRes = query($mysqli, "SELECT * FROM payslip_templates WHERE is_active = 1 AND (company_id = ? OR company_id IS NULL) ORDER BY company_id IS NULL DESC, id DESC LIMIT 1", [(int)($emp['company_id'] ?? 0)]);
+            $tplRes = query($mysqli, "SELECT * FROM payslip_templates WHERE is_active = 1 AND (company_id = ? OR company_id IS NULL) ORDER BY company_id IS NULL DESC, id DESC LIMIT 1", [(int) ($emp['company_id'] ?? 0)]);
         }
         if (!$tplRes['success'] || empty($tplRes['data'])) {
             $response['message'] = 'No active template found.';
@@ -198,13 +245,27 @@ switch ($action) {
         }
         $tpl = $tplRes['data'][0];
 
-        $gross = 0.0; foreach ($earnings as $it) { $gross += (float)($it['amount'] ?? 0); }
-        $ded = 0.0; foreach ($deductions as $it) { $ded += (float)($it['amount'] ?? 0); }
+        $gross = 0.0;
+        foreach ($earnings as $it) {
+            $gross += (float) ($it['amount'] ?? 0);
+        }
+        $ded = 0.0;
+        foreach ($deductions as $it) {
+            $ded += (float) ($it['amount'] ?? 0);
+        }
         $net = $gross - $ded;
 
         $insert = query($mysqli, "INSERT INTO payslips (company_id, employee_id, period, currency, earnings_json, deductions_json, gross_salary, net_salary, template_id, generated_by) VALUES (?,?,?,?,?,?,?,?,?,?)", [
-            (int)($emp['company_id'] ?? null), $employeeId, $period, $currency,
-            json_encode($earnings), json_encode($deductions), $gross, $net, $tpl['id'] ?? null, $user_id
+            (int) ($emp['company_id'] ?? null),
+            $employeeId,
+            $period,
+            $currency,
+            json_encode($earnings),
+            json_encode($deductions),
+            $gross,
+            $net,
+            $tpl['id'] ?? null,
+            $user_id
         ]);
         if (!$insert['success']) {
             $response['message'] = 'Failed to generate payslip.';
@@ -222,10 +283,10 @@ switch ($action) {
 
     case 'send_payslip':
         // HR only send
-        requireRole(['HR Manager', 'Company Admin', 'Super Admin']);
-        $payslipId = (int)($_POST['payslip_id'] ?? 0);
-        $toEmployee = isset($_POST['to_employee']) ? (bool)$_POST['to_employee'] : true;
-        $toManager = isset($_POST['to_manager']) ? (bool)$_POST['to_manager'] : false;
+        requireRole([3, 2, 1]);
+        $payslipId = (int) ($_POST['payslip_id'] ?? 0);
+        $toEmployee = isset($_POST['to_employee']) ? (bool) $_POST['to_employee'] : true;
+        $toManager = isset($_POST['to_manager']) ? (bool) $_POST['to_manager'] : false;
         $managerEmailInput = trim($_POST['manager_email'] ?? '');
         if ($payslipId <= 0) {
             $response['message'] = 'Missing payslip_id.';
@@ -239,7 +300,7 @@ switch ($action) {
             break;
         }
         $ps = $psRes['data'][0];
-        $company = $ps['company_id'] ? getCompanyById($mysqli, (int)$ps['company_id']) : null;
+        $company = $ps['company_id'] ? getCompanyById($mysqli, (int) $ps['company_id']) : null;
 
         $earnings = json_decode($ps['earnings_json'] ?? '[]', true) ?: [];
         $deductions = json_decode($ps['deductions_json'] ?? '[]', true) ?: [];
@@ -250,8 +311,8 @@ switch ($action) {
             'employee_code' => $ps['employee_code'] ?? '',
             'department_name' => $ps['department_name'] ?? '',
             'designation_name' => $ps['designation_name'] ?? '',
-            'gross_salary' => number_format((float)$ps['gross_salary'], 2),
-            'net_salary' => number_format((float)$ps['net_salary'], 2),
+            'gross_salary' => number_format((float) $ps['gross_salary'], 2),
+            'net_salary' => number_format((float) $ps['net_salary'], 2),
             'currency' => $ps['currency'] ?? 'INR',
             'generated_at' => $ps['generated_at'] ?? date('Y-m-d H:i:s'),
             'earnings' => $earnings,
@@ -266,16 +327,16 @@ switch ($action) {
         // Recipients
         $recipients = [];
         if ($toEmployee && !empty($ps['email'])) {
-            $recipients[] = ['user_id' => (int)$ps['employee_user_id'], 'email' => $ps['email']];
+            $recipients[] = ['user_id' => (int) $ps['employee_user_id'], 'email' => $ps['email']];
         }
         if ($toManager) {
             $managerEmail = $managerEmailInput;
             if ($managerEmail === '') {
                 // Try to find a manager in the same company
-                $mgrRes = query($mysqli, "SELECT email, id FROM users WHERE company_id = ? AND role_id = 6 ORDER BY id ASC LIMIT 1", [(int)($ps['company_id'] ?? 0)]);
+                $mgrRes = query($mysqli, "SELECT email, id FROM users WHERE company_id = ? AND role_id = 6 ORDER BY id ASC LIMIT 1", [(int) ($ps['company_id'] ?? 0)]);
                 if ($mgrRes['success'] && !empty($mgrRes['data'])) {
                     $managerEmail = $mgrRes['data'][0]['email'];
-                    $recipients[] = ['user_id' => (int)$mgrRes['data'][0]['id'], 'email' => $managerEmail];
+                    $recipients[] = ['user_id' => (int) $mgrRes['data'][0]['id'], 'email' => $managerEmail];
                 }
             } else {
                 $recipients[] = ['user_id' => null, 'email' => $managerEmail];
@@ -288,16 +349,30 @@ switch ($action) {
         }
         $allLogged = true;
         foreach ($recipients as $rcpt) {
-            if (empty($rcpt['email'])) { $allLogged = false; $errors[] = 'Empty email for a recipient'; continue; }
+            if (empty($rcpt['email'])) {
+                $allLogged = false;
+                $errors[] = 'Empty email for a recipient';
+                continue;
+            }
             $logRes = query($mysqli, "INSERT INTO email_logs (user_id, email_to, email_from, subject, body, template_id, status, sent_at) VALUES (?,?,?,?,?,?, 'sent', NOW())", [
-                $rcpt['user_id'], $rcpt['email'], $emailFrom, $subject, $html, null
+                $rcpt['user_id'],
+                $rcpt['email'],
+                $emailFrom,
+                $subject,
+                $html,
+                null
             ]);
-            if (!$logRes['success']) { $allLogged = false; $errors[] = $logRes['error'] ?? 'log failed'; }
+            if (!$logRes['success']) {
+                $allLogged = false;
+                $errors[] = $logRes['error'] ?? 'log failed';
+            }
 
             // Create notifications for known users
             if (!empty($rcpt['user_id'])) {
                 query($mysqli, "INSERT INTO notifications (user_id, type, title, message, related_id, related_type) VALUES (?, 'payroll', 'Payslip', ?, ?, 'payslip')", [
-                    (int)$rcpt['user_id'], $subject, $payslipId
+                    (int) $rcpt['user_id'],
+                    $subject,
+                    $payslipId
                 ]);
             }
         }
@@ -316,26 +391,32 @@ switch ($action) {
 
     case 'get_company_payslips':
         // HR and Company Admin can see all company payslips; Manager can see team members' payslips
-        if (!isLoggedIn()) { $response['message'] = 'Unauthorized.'; break; }
+        if (!isLoggedIn()) {
+            $response['message'] = 'Unauthorized.';
+            break;
+        }
         $currentUser = getCurrentUser($mysqli);
-        $roleName = $currentUser['role_name'] ?? '';
+        $roleId = $currentUser['role_id'] ?? 0;
         $companyId = $currentUser['company_id'] ?? null;
-        if (in_array($roleName, ['HR Manager', 'Company Admin', 'Super Admin'], true)) {
-            if (!$companyId && $roleName !== 'Super Admin') { $response['message'] = 'No company scope.'; break; }
+        if (in_array($roleId, [3, 2, 1], true)) {
+            if (!$companyId && $roleId !== 1) {
+                $response['message'] = 'No company scope.';
+                break;
+            }
             $params = [];
             $sql = "SELECT p.*, e.first_name, e.last_name, e.employee_code FROM payslips p JOIN employees e ON p.employee_id = e.id";
-            if ($roleName === 'Super Admin') {
+            if ($roleId === 1) {
                 $sql .= " ORDER BY p.generated_at DESC";
             } else {
                 $sql .= " WHERE p.company_id = ? ORDER BY p.generated_at DESC";
-                $params[] = (int)$companyId;
+                $params[] = (int) $companyId;
             }
             $res = query($mysqli, $sql, $params);
             $response = $res['success'] ? ['success' => true, 'data' => $res['data']] : ['success' => false, 'message' => 'Failed to fetch company payslips'];
-        } elseif ($roleName === 'Manager') {
+        } elseif ($roleId === 6) {
             // Team-scoped: employees assigned by this manager in team_members
             $res = query($mysqli, "SELECT p.*, e.first_name, e.last_name, e.employee_code FROM payslips p JOIN employees e ON p.employee_id = e.id WHERE e.id IN (SELECT tm.employee_id FROM team_members tm WHERE tm.assigned_by = ?) ORDER BY p.generated_at DESC", [
-                (int)$currentUser['id']
+                (int) $currentUser['id']
             ]);
             $response = $res['success'] ? ['success' => true, 'data' => $res['data']] : ['success' => false, 'message' => 'Failed to fetch team payslips'];
         } else {
@@ -344,13 +425,19 @@ switch ($action) {
         }
         break;
     case 'get_payslip':
-        $payslip_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        if ($payslip_id <= 0) { $response['message'] = 'Invalid payslip ID.'; break; }
+        $payslip_id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        if ($payslip_id <= 0) {
+            $response['message'] = 'Invalid payslip ID.';
+            break;
+        }
 
         // Get employee ID for the current user
         $employee_result = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$user_id]);
-        if (!$employee_result['success'] || empty($employee_result['data'])) { $response['message'] = 'Employee profile not found.'; break; }
-        $employee_id = (int)$employee_result['data'][0]['id'];
+        if (!$employee_result['success'] || empty($employee_result['data'])) {
+            $response['message'] = 'Employee profile not found.';
+            break;
+        }
+        $employee_id = (int) $employee_result['data'][0]['id'];
 
         // Load generated payslip with template and employee details
         $sql = "SELECT p.*, e.first_name, e.last_name, e.employee_code, u.company_id, d.name AS department_name, g.name AS designation_name, t.subject, t.body_html
@@ -362,9 +449,12 @@ switch ($action) {
                 LEFT JOIN payslip_templates t ON p.template_id = t.id
                 WHERE p.id = ? AND p.employee_id = ?";
         $result = query($mysqli, $sql, [$payslip_id, $employee_id]);
-        if (!$result['success'] || empty($result['data'])) { $response['message'] = 'Payslip not found or access denied.'; break; }
+        if (!$result['success'] || empty($result['data'])) {
+            $response['message'] = 'Payslip not found or access denied.';
+            break;
+        }
         $ps = $result['data'][0];
-        $company = $ps['company_id'] ? getCompanyById($mysqli, (int)$ps['company_id']) : null;
+        $company = $ps['company_id'] ? getCompanyById($mysqli, (int) $ps['company_id']) : null;
         $earnings = json_decode($ps['earnings_json'] ?? '[]', true) ?: [];
         $deductions = json_decode($ps['deductions_json'] ?? '[]', true) ?: [];
         $templateHtml = $ps['body_html'];
@@ -378,21 +468,24 @@ switch ($action) {
             'employee_code' => $ps['employee_code'] ?? '',
             'department_name' => $ps['department_name'] ?? '',
             'designation_name' => $ps['designation_name'] ?? '',
-            'gross_salary' => number_format((float)$ps['gross_salary'], 2),
-            'net_salary' => number_format((float)$ps['net_salary'], 2),
+            'gross_salary' => number_format((float) $ps['gross_salary'], 2),
+            'net_salary' => number_format((float) $ps['net_salary'], 2),
             'currency' => $ps['currency'] ?? 'INR',
             'generated_at' => $ps['generated_at'] ?? date('Y-m-d H:i:s'),
             'earnings' => $earnings,
             'deductions' => $deductions,
         ]);
-        $response = ['success' => true, 'data' => [
-            'id' => $ps['id'],
-            'period' => $ps['period'],
-            'status' => $ps['status'],
-            'gross_salary' => $ps['gross_salary'],
-            'net_salary' => $ps['net_salary'],
-            'html' => $html,
-        ]];
+        $response = [
+            'success' => true,
+            'data' => [
+                'id' => $ps['id'],
+                'period' => $ps['period'],
+                'status' => $ps['status'],
+                'gross_salary' => $ps['gross_salary'],
+                'net_salary' => $ps['net_salary'],
+                'html' => $html,
+            ]
+        ];
         break;
 
     case 'get_payslips':

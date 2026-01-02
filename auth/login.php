@@ -34,7 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $error = "Invalid email or password.";
             } else {
                 // Password is correct - now check for employee record (except for Super Admin role_id = 1)
-                if (in_array($user['role_id'], [3, 4, 5, 6])) {
+                if (in_array($user['role_id'], [3, 4, 5, 6, 7])) {
                     // Check if employee record exists for non-admin users
                     $emp_result = query($mysqli, "SELECT id, status FROM employees WHERE user_id = ? LIMIT 1", [$user['id']]);
 
@@ -59,23 +59,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                             // Redirect based on role
                             switch ($user['role_id']) {
-                                case 1:
+                                case 1: // Admin
                                     redirect("/hrms/admin/");
                                     break;
-                                case 2:
+                                case 2: // Company Owner
                                     redirect("/hrms/company/");
                                     break;
-                                case 3:
+                                case 3: // Human Resource
                                     redirect("/hrms/hr/");
                                     break;
-                                case 4:
+                                case 4: // Employee
                                     redirect("/hrms/employee/");
                                     break;
-                                case 5:
+                                case 5: // Auditor
                                     redirect("/hrms/auditor/");
                                     break;
-                                case 6:
+                                case 6: // Manager
                                     redirect("/hrms/manager/");
+                                    break;
+                                case 7: // Candidate (Future Implementation)
+                                    // redirect("/hrms/candidate/");
                                     break;
                                 default:
                                     http_response_code(404);
@@ -86,7 +89,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         }
                     }
                 } else {
-                    // Super Admin role - proceed with login directly
+                    // Admin role - proceed with login directly
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['username'] = $user['username'];
                     $_SESSION['role_id'] = $user['role_id'];

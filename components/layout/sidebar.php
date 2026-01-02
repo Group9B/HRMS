@@ -2,7 +2,7 @@
 
 $current_page = $_SERVER['PHP_SELF'] ?? '';
 switch ($_SESSION['role_id']) {
-  case 1:// Super Admin
+  case 1:// Admin
     $navigation_menu = [
       'dashboard' => [
         'title' => 'Dashboard',
@@ -48,7 +48,7 @@ switch ($_SESSION['role_id']) {
       ],
     ];
     break;
-  case 2://Company Admin
+  case 2://Company Owner
     $navigation_menu = [
       'dashboard' => [
         'title' => 'Dashboard',
@@ -108,7 +108,7 @@ switch ($_SESSION['role_id']) {
       ],
     ];
     break;
-  case 3://HR Manager
+  case 3://Human Resource
     $navigation_menu = [
       'dashboard' => [
         'title' => 'Dashboard',

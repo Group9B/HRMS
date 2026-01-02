@@ -21,19 +21,19 @@ $redirect_path = '';
 
 // Determine the correct dashboard path based on the user's role.
 switch ($role_id) {
-    case 1: // Super Admin
+    case 1: // Admin
         $redirect_path = '/hrms/admin/index.php';
         break;
-    case 2: // Company Admin
+    case 2: // Company Owner
         $redirect_path = '/hrms/company/index.php';
         break;
-    case 3: // HR Manager
-        $redirect_path = '/hrms/company/index.php';
+    case 3: // Human Resource
+        $redirect_path = '/hrms/hr/index.php';
         break;
     case 4: // Employee
         $redirect_path = '/hrms/employee/index.php';
         break;
-    case 6:
+    case 6: // Manager
         $redirect_path = '/hrms/manager/index.php';
         break;
     default:
