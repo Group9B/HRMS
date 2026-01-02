@@ -55,11 +55,10 @@ require_once '../components/layout/header.php';
         <?php else: ?>
             <!-- Display Mode (Read-Only View) -->
             <div id="viewMode" style="display: block;">
-                <!-- Profile Header with Avatar -->
                 <div class="row mb-4">
                     <div class="col-12">
                         <div class="card shadow-sm border-0">
-                            <div class="card-body d-flex flex-column flex-md-row align-items-center gap-4 p-4">
+                            <div class="card-body d-flex flex-column flex-md-row align-items-center gap-4 p-4 pt-0">
                                 <!-- Avatar -->
                                 <div class="avatar-container flex-shrink-0">
                                     <div class="avatar rounded-circle d-flex align-items-center justify-content-center"
