@@ -1,12 +1,20 @@
 <?php
 
+/**
+ * Check if a user is logged in
+ * 
+ * @return bool True if user is logged in, false otherwise
+ */
 function isLoggedIn()
 {
     return isset($_SESSION['user_id']);
 }
 
 /**
- * Require current user to have one of the allowed role names.
+ * Require current user to have one of the allowed role names
+ * 
+ * @param array $allowedRoleNames Array of allowed role names
+ * @return void Dies with JSON error if unauthorized
  */
 function requireRole(array $allowedRoleNames)
 {
@@ -24,6 +32,12 @@ function requireRole(array $allowedRoleNames)
     }
 }
 
+/**
+ * Render a setting field for admin settings page
+ * 
+ * @param array $setting Setting configuration array with keys: setting_key, setting_value, description
+ * @return string HTML form field markup
+ */
 function render_setting_field($setting)
 {
     $key = htmlspecialchars($setting['setting_key']);
@@ -173,12 +187,25 @@ function getCompanyById(mysqli $mysqli, int $companyId): ?array
     return null;
 }
 
+/**
+ * Redirect to a specified URL and exit
+ * 
+ * @param string $url The URL to redirect to
+ * @return void Never returns (exits after redirect)
+ */
 function redirect(string $url): void
 {
     header("Location: $url");
     exit();
 }
 
+/**
+ * Add a flash message to session for display on next page load
+ * 
+ * @param string $type Message type (success, error, warning, info)
+ * @param string $message The message to display
+ * @return void
+ */
 function flash(string $type, string $message): void
 {
     if (!isset($_SESSION['toasts'])) {
@@ -191,6 +218,12 @@ function flash(string $type, string $message): void
     ];
 }
 
+/**
+ * Get icon class for a given file type
+ * 
+ * @param string $file_type File extension
+ * @return string Icon class name
+ */
 function getFileIcon($file_type)
 {
     switch ($file_type) {
@@ -280,19 +313,34 @@ function query(mysqli $mysqli, string $sql, array $params = []): array
     }
 }
 
+/**
+ * Get current logged-in user details with role information
+ * 
+ * @param mysqli $mysqli Database connection object
+ * @return array|null User details array or null if not logged in
+ */
 function getCurrentUser($mysqli)
 {
     if (!isLoggedIn()) {
         return null;
     }
-    //it will retrun details of the current user i think
-    $stmt = $mysqli->prepare("SELECT u.*, r.name as role_name FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = ?");
-    $stmt->bind_param("i", $_SESSION['user_id']);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    return $result->fetch_assoc();
+    
+    // Use the query() function for proper resource management
+    $result = query($mysqli, "SELECT u.*, r.name as role_name FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = ?", [$_SESSION['user_id']]);
+    
+    if ($result['success'] && !empty($result['data'])) {
+        return $result['data'][0];
+    }
+    
+    return null;
 }
 
+/**
+ * Require authentication - redirect to login if not authenticated
+ * Prevents redirect loops by checking if already on login page
+ * 
+ * @return void Exits if redirection is needed
+ */
 function requireAuth()
 {
     if (!isLoggedIn()) {
@@ -307,6 +355,12 @@ function requireAuth()
 
 
 
+/**
+ * Get Bootstrap background class for toast notification type
+ * 
+ * @param string $type Toast type (success, error, warning, info)
+ * @return string Bootstrap bg class
+ */
 function toastBgClass($type)
 {
     switch ($type) {
