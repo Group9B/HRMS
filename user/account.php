@@ -19,178 +19,272 @@ if (!$user) {
 $employeeRes = query($mysqli, "SELECT * FROM employees WHERE user_id = ?", [$user_id]);
 $employee = $employeeRes['success'] && !empty($employeeRes['data']) ? $employeeRes['data'][0] : null;
 
+// Get recent activity logs for the user
+$activityRes = query($mysqli, "SELECT * FROM activity_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT 10", [$user_id]);
+$activityLogs = $activityRes['success'] && !empty($activityRes['data']) ? $activityRes['data'] : [];
+
 require_once '../components/layout/header.php';
 ?>
 
-<div class="d-flex">
+<div class="d-flex" style="min-height: 100vh;">
     <?php require_once '../components/layout/sidebar.php'; ?>
 
-    <div class="p-3 p-md-4" style="flex: 1;">
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-4 pt-0">
-                        <div class="d-flex align-items-center gap-4">
-                            <!-- Avatar -->
-                            <div class="flex-shrink-0">
-                                <div class="avatar rounded-circle"
-                                    style="width: 100px; height: 100px; font-size: 40px; font-weight: bold; color: white; display: flex; align-items: center; justify-content: center;"
-                                    id="accountAvatar">
-                                </div>
+    <main style="flex: 1; overflow-y: auto;">
+        <div class="container-fluid">
+            <!-- Page Header with Profile -->
+            <div class="py-4 py-md-5 border-bottom">
+                <div class="container">
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="flex-shrink-0">
+                            <div class="avatar rounded-circle"
+                                style="width: 80px; height: 80px; font-size: 32px; font-weight: bold; color: white; display: flex; align-items: center; justify-content: center;"
+                                id="accountAvatar">
                             </div>
-                            <!-- User Info -->
-                            <div class="flex-grow-1">
-                                <h4 class="mb-1"><?= htmlspecialchars($user['username']) ?></h4>
-                                <p class="text-muted mb-3">
-                                    <i class="ti ti-mail me-1"></i><?= htmlspecialchars($user['email']) ?>
-                                </p>
-                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                        </div>
+                        <div class="flex-grow-1">
+                            <h4 class="mb-1"><?= htmlspecialchars($user['username']) ?></h4>
+                            <p class="text-muted mb-2">
+                                <i class="ti ti-mail me-1"></i><?= htmlspecialchars($user['email']) ?>
+                            </p>
+                            <small class="text-muted">
+                                <i class="ti ti-calendar me-1"></i>Member since
+                                <?= date('M d, Y', strtotime($user['created_at'])) ?>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-0" style="min-height: calc(100vh - 200px);">
+                <aside class="col-lg-3 border-end">
+                    <nav class="navbar navbar-expand-lg navbar-light d-lg-block">
+                        <div class="container-fluid px-3 px-lg-4 py-3">
+                            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#settingsNav" aria-controls="settingsNav" aria-expanded="false"
+                                aria-label="Toggle navigation">
+                                <span class="navbar-toggler-icon"></span>
+                            </button>
+                            <div class="collapse navbar-collapse" id="settingsNav">
+                                <ul class="nav nav-pills flex-column w-100" role="tablist">
+                                    <li class="nav-item mb-2">
+                                        <button class="nav-link text-body active w-100 text-start" id="profile-nav"
+                                            data-bs-toggle="tab" data-bs-target="#profileContent" type="button"
+                                            role="tab" aria-controls="profileContent" aria-selected="true">
+                                            Account
+                                        </button>
+                                    </li>
+                                    <li class="nav-item mb-2">
+                                        <button class="nav-link text-body w-100 text-start" id="privacy-nav"
+                                            data-bs-toggle="tab" data-bs-target="#privacyContent" type="button"
+                                            role="tab" aria-controls="privacyContent" aria-selected="false">
+                                            Privacy
+                                        </button>
+                                    </li>
+                                    <li class="nav-item mb-2">
+                                        <button class="nav-link text-body w-100 text-start" id="security-nav"
+                                            data-bs-toggle="tab" data-bs-target="#securityContent" type="button"
+                                            role="tab" aria-controls="securityContent" aria-selected="false">
+                                            Security
+                                        </button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link text-body w-100 text-start" id="appearance-nav"
+                                            data-bs-toggle="tab" data-bs-target="#appearanceContent" type="button"
+                                            role="tab" aria-controls="appearanceContent" aria-selected="false">
+                                            Appearance
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+                </aside>
+
+                <!-- Main Content -->
+                <div class="col-lg-9">
+                    <div class="tab-content p-4 p-lg-5">
+                        <!-- Account Tab -->
+                        <div class="tab-pane fade show active" id="profileContent" role="tabpanel"
+                            aria-labelledby="profile-nav">
+                            <h5 class="mb-1">Account</h5>
+                            <p class="text-muted mb-3">Manage your account information and preferences</p>
+
+                            <div class="bg-secondary-subtle p-4 rounded-2">
+                                <!-- Username Section -->
+                                <div class="d-flex justify-content-between align-items-center pb-4 mb-4 border-bottom">
+                                    <div>
+                                        <h6 class="mb-1 fw-semibold">Username</h6>
+                                        <p class="text-muted small mb-0">Change your display name</p>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                                        data-bs-target="#changeUsernameModal">
+                                        Edit
+                                    </button>
+                                </div>
+
+                                <!-- Email Section -->
+                                <div class="d-flex justify-content-between align-items-center pb-4 mb-4 border-bottom">
+                                    <div>
+                                        <h6 class="mb-1 fw-semibold">Email Address</h6>
+                                        <p class="text-muted small mb-0"><?= htmlspecialchars($user['email']) ?></p>
+                                    </div>
+                                    <span class="badge bg-secondary-subtle text-secondary-emphasis">Verified</span>
+                                </div>
+
+                                <!-- Account Status Section -->
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1 fw-semibold">Account Status</h6>
+                                        <p class="text-muted small mb-0">Current status of your account</p>
+                                    </div>
                                     <span
                                         class="badge bg-<?= $user['status'] === 'active' ? 'success-subtle text-success-emphasis' : 'danger-subtle text-danger-emphasis' ?>">
-                                        <i class="ti ti-circle-filled me-1"
-                                            style="font-size: 0.5rem;"></i><?= ucfirst(htmlspecialchars($user['status'])) ?>
+                                        <?= ucfirst(htmlspecialchars($user['status'])) ?>
                                     </span>
-                                    <small class="text-muted">
-                                        <i class="ti ti-calendar me-1"></i>Member since
-                                        <?= date('M d, Y', strtotime($user['created_at'])) ?>
-                                    </small>
+                                </div>
+
+                                <!-- Employee Profile Link -->
+                                <?php if ($employee): ?>
+                                    <hr class="my-4">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1 fw-semibold">Employment Profile</h6>
+                                            <p class="text-muted small mb-0">View detailed employee information</p>
+                                        </div>
+                                        <a href="/hrms/employee/profile.php" class="btn btn-sm btn-primary">
+                                            View Profile
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <!-- Privacy Tab -->
+                        <div class="tab-pane fade" id="privacyContent" role="tabpanel" aria-labelledby="privacy-nav">
+                            <h5 class="mb-1">Privacy</h5>
+                            <p class="text-muted mb-3">Control your profile visibility and data sharing</p>
+
+                            <div class="bg-secondary-subtle p-4 rounded-2">
+                                <!-- Public Profile Toggle -->
+                                <div class="d-flex justify-content-between align-items-start pb-4 mb-4 border-bottom">
+                                    <div style="flex: 1;">
+                                        <h6 class="mb-1 fw-semibold">Public Profile</h6>
+                                        <p class="text-muted small mb-0">Allow others to view your profile and activity
+                                        </p>
+                                    </div>
+                                    <div class="form-check form-switch ms-3 flex-shrink-0">
+                                        <input class="form-check-input" type="checkbox" id="profileVisibility" checked>
+                                        <label class="form-check-label" for="profileVisibility"></label>
+                                    </div>
+                                </div>
+
+                                <!-- Show Email Toggle -->
+                                <div class="d-flex justify-content-between align-items-start pb-4 mb-4 border-bottom">
+                                    <div style="flex: 1;">
+                                        <h6 class="mb-1 fw-semibold">Show Email Address</h6>
+                                        <p class="text-muted small mb-0">Display your email on your public profile</p>
+                                    </div>
+                                    <div class="form-check form-switch ms-3 flex-shrink-0">
+                                        <input class="form-check-input" type="checkbox" id="showEmail">
+                                        <label class="form-check-label" for="showEmail"></label>
+                                    </div>
+                                </div>
+
+                                <!-- Activity Logging Toggle -->
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div style="flex: 1;">
+                                        <h6 class="mb-1 fw-semibold">Activity Logging</h6>
+                                        <p class="text-muted small mb-0">Track and record your account activities for
+                                            security</p>
+                                    </div>
+                                    <div class="form-check form-switch ms-3 flex-shrink-0">
+                                        <input class="form-check-input" type="checkbox" id="activityLog" checked>
+                                        <label class="form-check-label" for="activityLog"></label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Main Content Row -->
-        <div class="row">
-            <!-- Left Column: Account Information -->
-            <div class="col-lg-8 mb-4">
-                <!-- Account Information Card -->
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header">
-                        <h6 class="mb-0 fw-bold d-flex align-items-center">
-                            <i class="ti ti-info-circle me-2"></i>Account Information
-                        </h6>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label class="form-label text-muted small fw-semibold mb-2">Username</label>
-                                    <p class="h6 mb-0"><?= htmlspecialchars($user['username']) ?></p>
+                        <!-- Security Tab -->
+                        <div class="tab-pane fade" id="securityContent" role="tabpanel" aria-labelledby="security-nav">
+                            <h5 class="mb-1">Security</h5>
+                            <p class="text-muted mb-3">Manage your account security and authentication</p>
+
+                            <div class="bg-secondary-subtle p-4 rounded-2">
+                                <!-- Change Password Section -->
+                                <div class="d-flex justify-content-between align-items-center pb-4 mb-4 border-bottom">
+                                    <div>
+                                        <h6 class="mb-1 fw-semibold">Password</h6>
+                                        <p class="text-muted small mb-0">Update your password regularly for security</p>
+                                    </div>
+                                    <a href="/hrms/user/change-password.php" class="btn btn-sm btn-primary">
+                                        Change Password
+                                    </a>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label class="form-label text-muted small fw-semibold mb-2">Email Address</label>
-                                    <p class="h6 mb-0"><?= htmlspecialchars($user['email']) ?></p>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label class="form-label text-muted small fw-semibold mb-2">Account Status</label>
-                                    <p class="h6 mb-0">
-                                        <span
-                                            class="badge bg-<?= $user['status'] === 'active' ? 'success-subtle text-success-emphasis' : 'danger-subtle text-danger-emphasis' ?>">
-                                            <?= ucfirst(htmlspecialchars($user['status'])) ?>
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label class="form-label text-muted small fw-semibold mb-2">Member Since</label>
-                                    <p class="h6 mb-0"><?= date('M d, Y', strtotime($user['created_at'])) ?></p>
+
+                                <!-- Recent Activity Section -->
+                                <div class="pb-4">
+                                    <h6 class="mb-3 fw-semibold">Recent Activity</h6>
+                                    <?php if (!empty($activityLogs)): ?>
+                                        <div class="list-group list-group-flush">
+                                            <?php foreach ($activityLogs as $log): ?>
+                                                <div class="list-group-item px-0 py-3">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <p class="small fw-semibold mb-1">
+                                                                <?= htmlspecialchars($log['action']) ?>
+                                                            </p>
+                                                            <p class="text-muted small mb-0">
+                                                                <i
+                                                                    class="ti ti-map-pin me-1"></i><?= htmlspecialchars($log['ip_address'] ?? 'Unknown IP') ?>
+                                                            </p>
+                                                        </div>
+                                                        <div class="text-end flex-shrink-0">
+                                                            <small
+                                                                class="text-muted d-block"><?= date('M d, Y', strtotime($log['created_at'])) ?></small>
+                                                            <small
+                                                                class="text-muted d-block"><?= date('H:i A', strtotime($log['created_at'])) ?></small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <p class="text-muted small text-center py-4">No activity logs found</p>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Employee Profile Link (if applicable) -->
-                <?php if ($employee): ?>
-                    <div class="card shadow-sm border-info-subtle mb-4">
-                        <div class="card-body p-4">
-                            <div class="d-flex align-items-center justify-content-between">
+                        <!-- Appearance Tab -->
+                        <div class="tab-pane fade" id="appearanceContent" role="tabpanel"
+                            aria-labelledby="appearance-nav">
+                            <h5 class="mb-1">Appearance</h5>
+                            <p class="text-muted mb-3">Customize how the application looks</p>
+
+                            <div class="bg-secondary-subtle p-4 rounded-2">
                                 <div>
-                                    <h6 class="mb-1 fw-bold d-flex align-items-center">
-                                        <i class="ti ti-briefcase me-2 text-info"></i>Employment Details
-                                    </h6>
-                                    <p class="text-muted small mb-0">View and manage your complete employee profile
-                                        including personal information, designation, department, and more.</p>
+                                    <h6 class="mb-3 fw-semibold">Theme</h6>
+                                    <p class="text-muted small mb-4">Choose your preferred color scheme</p>
+
+                                    <div class="btn-group w-100" role="group">
+                                        <button type="button" class="btn btn-outline-secondary flex-grow-1"
+                                            id="lightThemeBtn" title="Light Theme">
+                                            <i class="ti ti-sun me-2"></i>Light
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary flex-grow-1"
+                                            id="darkThemeBtn" title="Dark Theme">
+                                            <i class="ti ti-moon me-2"></i>Dark
+                                        </button>
+                                    </div>
                                 </div>
-                                <a href="/hrms/employee/profile.php" class="btn btn-info flex-shrink-0 ms-3">
-                                    <i class="ti ti-arrow-right me-1"></i>View Profile
-                                </a>
                             </div>
                         </div>
-                    </div>
-                <?php endif; ?>
-            </div>
-
-            <!-- Right Column: Security & Actions -->
-            <div class="col-lg-4 mb-4">
-                <!-- Security Settings Card -->
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header">
-                        <h6 class="mb-0 fw-bold d-flex align-items-center">
-                            <i class="ti ti-shield-lock me-2"></i>Security Settings
-                        </h6>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="mb-3">
-                            <label class="form-label text-muted small fw-semibold mb-2">Username</label>
-                            <p class="text-muted small mb-3">Update your username to something more personal.</p>
-                            <button class="btn btn-outline-info w-100 mb-3" data-bs-toggle="modal"
-                                data-bs-target="#changeUsernameModal">
-                                <i class="ti ti-edit me-2"></i>Change Username
-                            </button>
-                        </div>
-                        <div>
-                            <label class="form-label text-muted small fw-semibold mb-2">Password</label>
-                            <p class="text-muted small mb-3">Change your password regularly to keep your account secure.
-                            </p>
-                            <a href="/hrms/user/change-password.php" class="btn btn-outline-primary w-100">
-                                <i class="ti ti-lock-check me-2"></i>Change Password
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Quick Tips Card -->
-                <div class="card shadow-sm">
-                    <div class="card-body p-4">
-                        <h6 class="mb-3 fw-bold d-flex align-items-center">
-                            <i class="ti ti-lightbulb me-2 text-warning"></i>Account Tips
-                        </h6>
-                        <ul class="list-unstyled small">
-                            <li class="mb-2 d-flex gap-2">
-                                <i class="ti ti-point-filled text-warning flex-shrink-0 mt-1"
-                                    style="font-size: 0.5rem;"></i>
-                                <span class="text-muted">Keep your password secure and unique</span>
-                            </li>
-                            <li class="mb-2 d-flex gap-2">
-                                <i class="ti ti-point-filled text-warning flex-shrink-0 mt-1"
-                                    style="font-size: 0.5rem;"></i>
-                                <span class="text-muted">Update password every 3 months</span>
-                            </li>
-                            <li class="mb-2 d-flex gap-2">
-                                <i class="ti ti-point-filled text-warning flex-shrink-0 mt-1"
-                                    style="font-size: 0.5rem;"></i>
-                                <span class="text-muted">Never share your account details</span>
-                            </li>
-                            <li class="d-flex gap-2">
-                                <i class="ti ti-point-filled text-warning flex-shrink-0 mt-1"
-                                    style="font-size: 0.5rem;"></i>
-                                <span class="text-muted">Log out after using shared devices</span>
-                            </li>
-                        </ul>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 </div>
 
 <?php require_once '../components/layout/footer.php'; ?>
@@ -370,12 +464,53 @@ require_once '../components/layout/header.php';
     });
 
     document.addEventListener('DOMContentLoaded', function () {
+        // Initialize avatar
         const avatarElement = document.getElementById('accountAvatar');
         if (avatarElement) {
             const userData = { id: <?= json_encode($user['id']) ?>, username: "<?= htmlspecialchars($user['username']) ?>" };
             const avatarData = generateAvatarData(userData);
             avatarElement.style.backgroundColor = avatarData.color;
             avatarElement.textContent = avatarData.initials;
+        }
+
+        // Initialize theme settings
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        updateThemeDisplay(currentTheme);
+
+        // Theme button listeners
+        document.getElementById('lightThemeBtn').addEventListener('click', function () {
+            setTheme('light');
+        });
+
+        document.getElementById('darkThemeBtn').addEventListener('click', function () {
+            setTheme('dark');
+        });
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeDisplay(theme);
+        }
+
+        function updateThemeDisplay(theme) {
+            const lightBtn = document.getElementById('lightThemeBtn');
+            const darkBtn = document.getElementById('darkThemeBtn');
+
+            if (theme === 'dark') {
+                darkBtn.classList.add('active');
+                darkBtn.classList.remove('btn-outline-secondary');
+                darkBtn.classList.add('btn-secondary');
+
+                lightBtn.classList.remove('active', 'btn-secondary');
+                lightBtn.classList.add('btn-outline-secondary');
+            } else {
+                lightBtn.classList.add('active');
+                lightBtn.classList.remove('btn-outline-secondary');
+                lightBtn.classList.add('btn-secondary');
+
+                darkBtn.classList.remove('active', 'btn-secondary');
+                darkBtn.classList.add('btn-outline-secondary');
+            }
         }
     });
 </script>

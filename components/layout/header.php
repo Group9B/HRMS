@@ -86,31 +86,23 @@ if (isLoggedIn()) {
                         <?php endif; ?>
                         <div class="user-menu">
                             <div class="dropdown">
-                                <button class="btn dropdown-toggle d-flex justify-content-between align-items-center"
+                                <button class="btn dropdown-toggle d-flex justify-content-between align-items-center border-0"
                                     type="button" id="userMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                                     <div class="avatar"></div>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="userMenuButton">
                                     <?php if (in_array($_SESSION['role_id'] ?? 0, [3, 4, 6])): ?>
-                                        <li><a class="dropdown-item" href="/hrms/employee/profile.php">Profile</a></li>
+                                        <li><a class="dropdown-item" href="/hrms/employee/profile.php">
+                                                <i class="ti ti-user"></i> Profile</a></li>
                                     <?php endif; ?>
                                     <li><a class="dropdown-item" href="/hrms/user/account.php"><i
-                                                class="ti ti-user-circle me-2"></i>Account Settings</a></li>
-                                    <li><a class="dropdown-item" href="#">Settings</a></li>
+                                                class="ti ti-settings me-2"></i>Settings</a></li>
                                     <li>
                                         <hr class="dropdown-divider">
                                     </li>
-                                    <li>
-                                        <div class="theme-toggle-wrapper">
-                                            <div id="toggleThemeBtn" class="theme-toggle">
-                                                <div class="toggle-circle"></div>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <hr class="dropdown-divider">
-                                    </li>
-                                    <li><a class="dropdown-item text-danger" href="/hrms/auth/logout.php">Logout</a></li>
+                                    <li><a class="dropdown-item text-danger" href="/hrms/auth/logout.php"><i
+                                                class="ti ti-logout"></i>
+                                            Logout</a></li>
                                 </ul>
                             </div>
                         </div>
