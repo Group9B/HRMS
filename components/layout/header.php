@@ -94,6 +94,8 @@ if (isLoggedIn()) {
                                     <?php if (in_array($_SESSION['role_id'] ?? 0, [3, 4, 6])): ?>
                                         <li><a class="dropdown-item" href="/hrms/employee/profile.php">Profile</a></li>
                                     <?php endif; ?>
+                                    <li><a class="dropdown-item" href="/hrms/user/account.php"><i
+                                                class="ti ti-user-circle me-2"></i>Account Settings</a></li>
                                     <li><a class="dropdown-item" href="#">Settings</a></li>
                                     <li>
                                         <hr class="dropdown-divider">

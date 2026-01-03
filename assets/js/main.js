@@ -45,7 +45,7 @@ function generateColorFromId(id) {
 	}
 
 	const hue = Math.abs(hash) % 360; // Hue (0-360)
-	const saturation = 70; // Saturation (0-100)
+	const saturation = 70; // Saturation (0-100) 70
 	const lightness = 26; // Lightness (0-100)
 
 	return `hsl(${hue}, ${saturation}%, ${lightness}%)`;

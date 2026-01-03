@@ -110,6 +110,28 @@ switch ($action) {
         }
         break;
 
+    case 'update_username':
+        if ($method === 'POST') {
+            $user_id = isset($_POST['user_id']) ? (int) $_POST['user_id'] : 0;
+            $username = $_POST['username'] ?? '';
+
+            if ($user_id <= 0 || empty($username)) {
+                $response['message'] = 'User ID and username are required.';
+                break;
+            }
+
+            // Update only the username
+            $sql = "UPDATE users SET username = ? WHERE id = ?";
+            $result = query($mysqli, $sql, [$username, $user_id]);
+
+            if ($result['success']) {
+                $response = ['success' => true, 'message' => 'Username updated successfully!'];
+            } else {
+                $response['message'] = 'Failed to update username: ' . $result['error'];
+            }
+        }
+        break;
+
     default:
         $response['message'] = 'Invalid action specified.';
         break;

@@ -62,7 +62,8 @@ require_once '../components/layout/header.php';
                                 <!-- Avatar -->
                                 <div class="avatar-container flex-shrink-0">
                                     <div class="avatar rounded-circle d-flex align-items-center justify-content-center"
-                                        style="width: 80px; height: 80px; font-size: 32px; font-weight: bold; color: white; flex-shrink: 0;">
+                                        style="width: 80px; height: 80px; font-size: 32px; font-weight: bold; color: white; flex-shrink: 0;"
+                                        id="profileAvatar">
                                     </div>
                                 </div>
                                 <!-- Profile Summary -->
@@ -567,7 +568,7 @@ require_once '../components/layout/header.php';
     function initializeAvatar(user) {
         if (typeof generateAvatarData === 'function') {
             const avatarData = generateAvatarData(user);
-            const avatarEl = document.querySelector('.avatar-container .avatar');
+            const avatarEl = document.getElementById('profileAvatar');
 
             if (avatarEl && avatarData) {
                 avatarEl.textContent = avatarData.initials;
