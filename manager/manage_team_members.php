@@ -52,23 +52,8 @@ $members_result = query($mysqli, "
 
 $current_members = $members_result['success'] ? $members_result['data'] : [];
 
-// Get all employees not in this team
-$available_employees_result = query($mysqli, "
-    SELECT e.*, u.email, des.name as designation_name, d.name as department_name
-    FROM employees e
-    JOIN users u ON e.user_id = u.id
-    LEFT JOIN designations des ON e.designation_id = des.id
-    LEFT JOIN departments d ON e.department_id = d.id
-    WHERE e.status = 'active' 
-    AND e.id NOT IN (
-        SELECT tm.employee_id 
-        FROM team_members tm 
-        WHERE tm.team_id = ?
-    )
-    ORDER BY e.first_name ASC
-", [$team_id]);
-
-$available_employees = $available_employees_result['success'] ? $available_employees_result['data'] : [];
+// $available_employees logic moved to API (get_available_employees)
+$available_employees = []; // Initialize empty array to prevent PHP undefined variable error in initial render if referenced elsewhere before JS loads
 
 require_once '../components/layout/header.php';
 ?>
@@ -212,34 +197,24 @@ require_once '../components/layout/header.php';
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Select Members to Add</label>
-                        <div class="row">
-                            <?php foreach ($available_employees as $employee): ?>
-                                <div class="col-md-6 col-lg-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="employee_ids[]"
-                                            value="<?= $employee['id'] ?>" id="add_emp_<?= $employee['id'] ?>">
-                                        <label class="form-check-label" for="add_emp_<?= $employee['id'] ?>">
-                                            <div class="fw-bold">
-                                                <?= htmlspecialchars($employee['first_name'] . ' ' . $employee['last_name']) ?>
-                                            </div>
-                                            <small
-                                                class="text-muted"><?= htmlspecialchars($employee['designation_name'] ?? 'N/A') ?></small>
-                                        </label>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                        <?php if (empty($available_employees)): ?>
-                            <div class="text-center text-muted p-3">
-                                <i class="ti ti-info-circle me-2"></i>
-                                All available employees are already in this team.
+                        <div id="loadingEmployees" class="text-center py-4 d-none">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
                             </div>
-                        <?php endif; ?>
+                        </div>
+                        <div class="row" id="availableEmployeesContainer">
+                            <!-- Employees will be loaded here via JS -->
+                        </div>
+                        <div id="noEmployeesMessage" class="text-center text-muted p-3 d-none">
+                            <i class="ti ti-info-circle me-2"></i>
+                            All available employees are already in this team or no eligible employees found.
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary" <?= empty($available_employees) ? 'disabled' : '' ?>>Add Selected Members</button>
+                    <button type="submit" class="btn btn-primary" id="addMembersBtn" disabled>Add Selected
+                        Members</button>
                 </div>
             </form>
         </div>
@@ -312,50 +287,89 @@ require_once '../components/layout/header.php';
             return;
         }
 
+        const submitBtn = document.getElementById('addMembersBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Adding...';
+
         fetch('/hrms/api/api_manager.php', {
             method: 'POST',
             body: formData
         })
             .then(response => response.json())
             .then(data => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Add Selected Members';
+
                 if (data.success) {
                     showToast(data.message, 'success');
                     $('#addMembersModal').modal('hide');
-                    location.reload();
+                    refreshMembersTable();
                 } else {
                     showToast(data.message, 'error');
                 }
             })
             .catch(error => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Add Selected Members';
                 showToast('An error occurred. Please try again.', 'error');
             });
     }
 
-    function editTeamInfo() {
-        $('#editTeamModal').modal('show');
+    // Load available employees when modal is shown
+    const addMembersModal = document.getElementById('addMembersModal');
+    if (addMembersModal) {
+        addMembersModal.addEventListener('show.bs.modal', function () {
+            loadAvailableEmployees();
+        });
     }
 
-    function editTeam() {
-        const formData = new FormData(document.getElementById('editTeamForm'));
-        formData.append('action', 'update_team');
-        formData.append('team_id', <?= $team_id ?>);
+    function loadAvailableEmployees() {
+        const container = document.getElementById('availableEmployeesContainer');
+        const loader = document.getElementById('loadingEmployees');
+        const noDataMsg = document.getElementById('noEmployeesMessage');
+        const submitBtn = document.getElementById('addMembersBtn');
 
-        fetch('/hrms/api/api_manager.php', {
-            method: 'POST',
-            body: formData
-        })
+        container.innerHTML = '';
+        loader.classList.remove('d-none');
+        noDataMsg.classList.add('d-none');
+        submitBtn.disabled = true;
+
+        fetch(`/hrms/api/api_manager.php?action=get_available_employees&team_id=<?= $team_id ?>`)
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    showToast(data.message, 'success');
-                    $('#editTeamModal').modal('hide');
-                    location.reload();
+                loader.classList.add('d-none');
+                if (data.success && data.data.length > 0) {
+                    data.data.forEach(employee => {
+                        const col = document.createElement('div');
+                        col.className = 'col-md-6 col-lg-4';
+                        col.innerHTML = `
+                            <div class="form-check">
+                                <input class="form-check-input employee-checkbox" type="checkbox" name="employee_ids[]"
+                                    value="${employee.id}" id="add_emp_${employee.id}">
+                                <label class="form-check-label" for="add_emp_${employee.id}">
+                                    <div class="fw-bold">
+                                        ${employee.first_name} ${employee.last_name}
+                                    </div>
+                                    <small class="text-muted">${employee.designation_name || 'N/A'}</small>
+                                </label>
+                            </div>
+                        `;
+                        container.appendChild(col);
+                    });
+
+                    // Enable submit button when at least one checkbox is checked
+                    $('.employee-checkbox').on('change', function () {
+                        const checkedCount = $('.employee-checkbox:checked').length;
+                        submitBtn.disabled = checkedCount === 0;
+                    });
+
                 } else {
-                    showToast(data.message, 'error');
+                    noDataMsg.classList.remove('d-none');
                 }
             })
             .catch(error => {
-                showToast('An error occurred. Please try again.', 'error');
+                loader.classList.add('d-none');
+                showToast('Failed to load employees.', 'error');
             });
     }
 
@@ -374,7 +388,7 @@ require_once '../components/layout/header.php';
                 .then(data => {
                     if (data.success) {
                         showToast(data.message, 'success');
-                        location.reload();
+                        refreshMembersTable();
                     } else {
                         showToast(data.message, 'error');
                     }
@@ -383,6 +397,57 @@ require_once '../components/layout/header.php';
                     showToast('An error occurred. Please try again.', 'error');
                 });
         }
+    }
+
+    function refreshMembersTable() {
+        fetch(`/hrms/api/api_manager.php?action=get_team_details&team_id=<?= $team_id ?>`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data.members) {
+                    const members = data.data.members;
+                    const table = $('#membersTable').DataTable();
+                    table.clear();
+
+                    if (members.length > 0) {
+                        members.forEach(member => {
+                            const avatar = member.first_name.charAt(0).toUpperCase() + member.last_name.charAt(0).toUpperCase();
+                            const memberInfo = `
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-3">${avatar}</div>
+                                    <div>
+                                        <div class="fw-bold">${member.first_name} ${member.last_name}</div>
+                                        <small class="text-muted">${member.employee_code || 'N/A'}</small>
+                                    </div>
+                                </div>
+                            `;
+
+                            const actions = `
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-info" onclick="viewMember(${member.employee_id})" title="View Details">
+                                        <i class="ti ti-eye"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger" onclick="removeMember(${member.employee_id})" title="Remove from Team">
+                                        <i class="ti ti-user-minus"></i>
+                                    </button>
+                                </div>
+                            `;
+
+                            table.row.add([
+                                memberInfo,
+                                member.designation_name || 'N/A',
+                                member.department_name || 'N/A',
+                                member.contact || 'N/A',
+                                new Date(member.assigned_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                                actions
+                            ]);
+                        });
+                    }
+                    table.draw();
+                }
+            })
+            .catch(error => {
+                console.error('Error refreshing table:', error);
+            });
     }
 
     function viewMember(employeeId) {

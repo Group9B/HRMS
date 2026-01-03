@@ -588,22 +588,41 @@ switch ($action) {
         break;
 
     case 'create_team':
-        $team_name = $_POST['name'] ?? '';
-        $team_description = $_POST['description'] ?? '';
+        $team_name = trim($_POST['name'] ?? '');
+        $team_description = trim($_POST['description'] ?? '');
 
-        if (!empty($team_name)) {
-            $insert_result = query($mysqli, "
-                INSERT INTO teams (company_id, name, description, created_by)
-                VALUES (?, ?, ?, ?)
-            ", [$company_id, $team_name, $team_description, $user_id]);
-
-            if ($insert_result['success']) {
-                $response = ['success' => true, 'message' => 'Team created successfully!'];
-            } else {
-                $response['message'] = 'Failed to create team.';
-            }
+        // Validation
+        if (empty($team_name)) {
+            $response['message'] = 'Team name is required.';
+        } elseif (strlen($team_name) > 100) {
+            $response['message'] = 'Team name cannot exceed 100 characters.';
+        } elseif (strlen($team_description) > 500) {
+            $response['message'] = 'Description cannot exceed 500 characters.';
         } else {
-            $response['message'] = 'Please provide a team name.';
+            // Check for duplicate team name
+            $dup_check = query($mysqli, "
+                SELECT id FROM teams 
+                WHERE company_id = ? AND name = ?
+            ", [$company_id, $team_name]);
+
+            if ($dup_check['success'] && count($dup_check['data']) > 0) {
+                $response['message'] = 'A team with this name already exists.';
+            } else {
+                $insert_result = query($mysqli, "
+                    INSERT INTO teams (company_id, name, description, created_by)
+                    VALUES (?, ?, ?, ?)
+                ", [$company_id, $team_name, $team_description, $user_id]);
+
+                if ($insert_result['success']) {
+                    $response = [
+                        'success' => true,
+                        'message' => 'Team created successfully!',
+                        'team_id' => $mysqli->insert_id
+                    ];
+                } else {
+                    $response['message'] = 'Failed to create team.';
+                }
+            }
         }
         break;
 
@@ -677,9 +696,13 @@ switch ($action) {
 
                 // Get team members
                 $members_result = query($mysqli, "
-                    SELECT e.*, tm.role_in_team, tm.assigned_at
+                    SELECT e.id, e.first_name, e.last_name, e.employee_code, e.contact,
+                           tm.role_in_team, tm.assigned_at, tm.employee_id,
+                           des.name as designation_name, d.name as department_name
                     FROM team_members tm
                     JOIN employees e ON tm.employee_id = e.id
+                    LEFT JOIN designations des ON e.designation_id = des.id
+                    LEFT JOIN departments d ON e.department_id = d.id
                     WHERE tm.team_id = ?
                     ORDER BY tm.assigned_at DESC
                 ", [$team_id]);
@@ -788,6 +811,39 @@ switch ($action) {
             }
         } else {
             $response['message'] = 'Please provide a valid team ID and name.';
+        }
+        break;
+
+    case 'get_available_employees':
+        $team_id = isset($_GET['team_id']) ? (int) $_GET['team_id'] : 0;
+
+        // Base query to get all employees (Role ID 4 only)
+        $sql = "
+            SELECT e.id, e.first_name, e.last_name, e.employee_code, e.designation_id, 
+                   des.name as designation_name, d.name as department_name
+            FROM employees e
+            JOIN users u ON e.user_id = u.id
+            LEFT JOIN designations des ON e.designation_id = des.id
+            LEFT JOIN departments d ON e.department_id = d.id
+            WHERE e.status = 'active' AND u.role_id = 4
+        ";
+
+        $params = [];
+
+        // If team_id is provided, exclude employees already in that team
+        if ($team_id > 0) {
+            $sql .= " AND e.id NOT IN (SELECT employee_id FROM team_members WHERE team_id = ?)";
+            $params[] = $team_id;
+        }
+
+        $sql .= " ORDER BY e.first_name ASC";
+
+        $employees_result = query($mysqli, $sql, $params);
+
+        if ($employees_result['success']) {
+            $response = ['success' => true, 'data' => $employees_result['data']];
+        } else {
+            $response['message'] = 'Failed to fetch employees.';
         }
         break;
 

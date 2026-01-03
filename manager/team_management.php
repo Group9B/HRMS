@@ -23,14 +23,17 @@ $manager_department_id = $manager['department_id'];
 
 // Get team members (employees assigned by this manager in team_members)
 $team_members_result = query($mysqli, "
-    SELECT e.*, u.email, u.status as user_status, d.name as department_name, des.name as designation_name, s.name as shift_name
+    SELECT e.*, u.email, u.status as user_status, d.name as department_name, des.name as designation_name, s.name as shift_name,
+           GROUP_CONCAT(DISTINCT t.name SEPARATOR ', ') as team_names
     FROM employees e
     JOIN users u ON e.user_id = u.id
     LEFT JOIN departments d ON e.department_id = d.id
     LEFT JOIN designations des ON e.designation_id = des.id
     LEFT JOIN shifts s ON e.shift_id = s.id
     JOIN team_members tm ON e.id = tm.employee_id
+    JOIN teams t ON tm.team_id = t.id
     WHERE tm.assigned_by = ? AND e.status = 'active'
+    GROUP BY e.id
     ORDER BY e.first_name ASC
 ", [$user_id]);
 
@@ -133,6 +136,7 @@ require_once '../components/layout/header.php';
                                     <th>Designation</th>
                                     <th>Shift</th>
                                     <th>Status</th>
+                                    <th>Teams</th>
                                     <th>Join Date</th>
                                     <th>Actions</th>
                                 </tr>
@@ -161,6 +165,16 @@ require_once '../components/layout/header.php';
                                                 class="badge bg-<?= $member['user_status'] === 'active' ? 'success' : 'danger' ?>">
                                                 <?= ucfirst($member['user_status']) ?>
                                             </span>
+                                        </td>
+                                        <td>
+                                            <?php 
+                                            $teams = explode(', ', $member['team_names']);
+                                            foreach($teams as $team_name): 
+                                            ?>
+                                                <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 me-1">
+                                                    <?= htmlspecialchars($team_name) ?>
+                                                </span>
+                                            <?php endforeach; ?>
                                         </td>
                                         <td><?= $member['date_of_joining'] ? date('M j, Y', strtotime($member['date_of_joining'])) : 'N/A' ?>
                                         </td>
