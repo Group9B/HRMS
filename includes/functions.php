@@ -11,22 +11,22 @@ function isLoggedIn()
 }
 
 /**
- * Require current user to have one of the allowed role names
+ * Require current user to have one of the allowed role IDs
  * 
- * @param array $allowedRoleNames Array of allowed role names
+ * @param array $allowedRoleIds Array of allowed role IDs
  * @return void Dies with JSON error if unauthorized
  */
-function requireRole(array $allowedRoleNames)
+function requireRole(array $allowedRoleIds)
 {
     if (!isLoggedIn()) {
         http_response_code(401);
         die(json_encode(['success' => false, 'message' => 'Unauthorized']));
     }
-    // Fetch role name for current user
+    // Fetch role ID for current user
     global $mysqli;
     $user = getCurrentUser($mysqli);
-    $roleName = $user['role_name'] ?? null;
-    if (!$roleName || !in_array($roleName, $allowedRoleNames, true)) {
+    $roleId = $user['role_id'] ?? null;
+    if (!$roleId || !in_array($roleId, $allowedRoleIds, true)) {
         http_response_code(403);
         die(json_encode(['success' => false, 'message' => 'Forbidden']));
     }
@@ -324,14 +324,14 @@ function getCurrentUser($mysqli)
     if (!isLoggedIn()) {
         return null;
     }
-    
+
     // Use the query() function for proper resource management
     $result = query($mysqli, "SELECT u.*, r.name as role_name FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = ?", [$_SESSION['user_id']]);
-    
+
     if ($result['success'] && !empty($result['data'])) {
         return $result['data'][0];
     }
-    
+
     return null;
 }
 
@@ -378,12 +378,12 @@ function toastBgClass($type)
 }
 
 /**
- * Get user permissions based on role
+ * Get user permissions based on role ID
  */
-function getUserPermissions($role_name)
+function getUserPermissions($role_id)
 {
     $permissions = [
-        'Super Admin' => [
+        1 => [ // Admin
             'user_management' => true,
             'company_settings' => true,
             'system_settings' => true,
@@ -397,7 +397,7 @@ function getUserPermissions($role_name)
             'attendance_management' => true,
             'leave_management' => true
         ],
-        'Company Admin' => [
+        2 => [ // Company Owner
             'user_management' => true,
             'company_settings' => true,
             'system_settings' => false,
@@ -411,7 +411,7 @@ function getUserPermissions($role_name)
             'attendance_management' => true,
             'leave_management' => true
         ],
-        'HR Manager' => [
+        3 => [ // Human Resource
             'user_management' => false,
             'company_settings' => false,
             'system_settings' => false,
@@ -425,7 +425,7 @@ function getUserPermissions($role_name)
             'attendance_management' => true,
             'leave_management' => true
         ],
-        'Employee' => [
+        4 => [ // Employee
             'user_management' => false,
             'company_settings' => false,
             'system_settings' => false,
@@ -439,7 +439,21 @@ function getUserPermissions($role_name)
             'attendance_management' => false,
             'leave_management' => false
         ],
-        'Auditor' => [
+        6 => [ // Manager
+            'user_management' => false,
+            'company_settings' => false,
+            'system_settings' => false,
+            'audit_logs' => false,
+            'email_templates' => false,
+            'backup_restore' => false,
+            'reports' => true, // Managers perform reporting
+            'security' => false,
+            'employee_management' => true, // Managers manage their team
+            'payroll_management' => false,
+            'attendance_management' => true, // Managers approve attendance
+            'leave_management' => true // Managers approve leaves
+        ],
+        5 => [ // Auditor
             'user_management' => false,
             'company_settings' => false,
             'system_settings' => false,
@@ -455,7 +469,7 @@ function getUserPermissions($role_name)
         ]
     ];
 
-    return $permissions[$role_name] ?? [];
+    return $permissions[$role_id] ?? [];
 }
 
 /**

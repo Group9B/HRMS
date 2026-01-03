@@ -19,14 +19,14 @@ class SecurityFilter
     private $roleName;
     private $employeeId;
 
-    // Role constants matching database
-    const ROLE_SUPER_ADMIN = 'Super Admin';
-    const ROLE_COMPANY_ADMIN = 'Company Admin';
-    const ROLE_HR_MANAGER = 'HR Manager';
-    const ROLE_MANAGER = 'Manager';
-    const ROLE_EMPLOYEE = 'Employee';
-    const ROLE_AUDITOR = 'Auditor';
-    const ROLE_CANDIDATE = 'candidate';
+    // Role constants matching database (using IDs)
+    const ROLE_SUPER_ADMIN = 1;
+    const ROLE_COMPANY_ADMIN = 2;
+    const ROLE_HR_MANAGER = 3;
+    const ROLE_EMPLOYEE = 4;
+    const ROLE_AUDITOR = 5;
+    const ROLE_MANAGER = 6;
+    const ROLE_CANDIDATE = 7;
 
     // Protected fields that should never be exposed
     private $protectedFields = [
@@ -60,7 +60,7 @@ class SecurityFilter
      */
     public function canAccessOwnDataOnly(): bool
     {
-        return in_array($this->roleName, [
+        return in_array($this->roleId, [
             self::ROLE_EMPLOYEE,
             self::ROLE_CANDIDATE
         ]);
@@ -71,7 +71,7 @@ class SecurityFilter
      */
     public function canAccessTeamData(): bool
     {
-        return in_array($this->roleName, [
+        return in_array($this->roleId, [
             self::ROLE_MANAGER,
             self::ROLE_HR_MANAGER,
             self::ROLE_COMPANY_ADMIN,
@@ -84,7 +84,7 @@ class SecurityFilter
      */
     public function canAccessCompanyData(): bool
     {
-        return in_array($this->roleName, [
+        return in_array($this->roleId, [
             self::ROLE_HR_MANAGER,
             self::ROLE_COMPANY_ADMIN,
             self::ROLE_SUPER_ADMIN,
@@ -97,7 +97,7 @@ class SecurityFilter
      */
     public function isSuperAdmin(): bool
     {
-        return $this->roleName === self::ROLE_SUPER_ADMIN;
+        return $this->roleId === self::ROLE_SUPER_ADMIN;
     }
 
     /**
@@ -105,7 +105,7 @@ class SecurityFilter
      */
     public function canViewEmployeeDirectory(): bool
     {
-        return in_array($this->roleName, [
+        return in_array($this->roleId, [
             self::ROLE_MANAGER,
             self::ROLE_HR_MANAGER,
             self::ROLE_COMPANY_ADMIN,
@@ -180,7 +180,7 @@ class SecurityFilter
         }
 
         // For managers, check if target is in their team
-        if ($this->roleName === self::ROLE_MANAGER) {
+        if ($this->roleId === self::ROLE_MANAGER) {
             return $this->isInManagedTeam($targetEmployeeId);
         }
 
@@ -300,4 +300,5 @@ class SecurityFilter
         return "I cannot provide password or credential information for security reasons. If you need to reset a password, please use the password reset feature or contact your administrator.";
     }
 }
+
 ?>
