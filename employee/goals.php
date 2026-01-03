@@ -135,12 +135,17 @@ require_once '../components/layout/header.php';
                 { data: 'title', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong><br><small class="text-muted">${escapeHTML(r.description || '')}</small>` },
                 { data: 'due_date', render: (d, t, r) => d ? `<span class="badge text-bg-${new Date(d) < new Date() && r.status !== 'completed' ? 'danger' : 'secondary'}">${new Date(d).toLocaleDateString()}</span>` : `<span class="text-muted">N/A</span>` },
                 {
-                    data: 'status', render: (d, t, r) => `
-                    <select class="form-select form-select-sm" onchange="updateTaskStatus(${r.id}, this.value)" aria-label="Update task status">
-                        <option value="pending" ${d === 'pending' ? 'selected' : ''}>Pending</option>
-                        <option value="in_progress" ${d === 'in_progress' ? 'selected' : ''}>In Progress</option>
-                        <option value="completed" ${d === 'completed' ? 'selected' : ''}>Completed</option>
-                    </select>`
+                    data: 'status', render: (d, t, r) => {
+                        if (d === 'completed') {
+                            return `<span class="badge bg-success"><i class="ti ti-check me-1"></i>Completed</span>`;
+                        }
+                        return `
+                        <select class="form-select form-select-sm" onchange="updateTaskStatus(${r.id}, this.value)" aria-label="Update task status">
+                            <option value="pending" ${d === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="in_progress" ${d === 'in_progress' ? 'selected' : ''}>In Progress</option>
+                            <option value="completed" ${d === 'completed' ? 'selected' : ''}>Completed</option>
+                        </select>`;
+                    }
                 },
                 { data: 'assigned_by_name', defaultContent: 'System' }
             ],
