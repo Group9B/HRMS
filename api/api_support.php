@@ -56,6 +56,77 @@ switch ($action) {
         }
         break;
 
+    case 'create_ticket':
+        $subject = trim($_POST['subject'] ?? '');
+        $message = trim($_POST['message'] ?? '');
+        $priority = trim($_POST['priority'] ?? 'medium');
+
+        // Validation
+        if (empty($subject) || empty($message)) {
+            $response['message'] = 'Subject and message are required.';
+            break;
+        }
+
+        // Sanitize priority
+        $validPriorities = ['low', 'medium', 'high'];
+        if (!in_array($priority, $validPriorities)) {
+            $priority = 'medium';
+        }
+
+        // Insert ticket with correct columns
+        $insert = query(
+            $mysqli,
+            "INSERT INTO support_tickets (user_id, subject, message, priority, status) 
+             VALUES (?, ?, ?, ?, ?)",
+            [$user_id, $subject, $message, $priority, 'open']
+        );
+
+        if ($insert['success']) {
+            $response = [
+                'success' => true,
+                'message' => 'Support ticket submitted successfully.',
+                'data' => ['ticket_id' => $insert['insert_id']]
+            ];
+        } else {
+            $response['message'] = 'Unable to submit ticket. Please try again.';
+        }
+        break;
+
+    case 'get_ticket':
+        $ticket_id = (int) ($_GET['id'] ?? 0);
+
+        if ($ticket_id <= 0) {
+            $response['message'] = 'Invalid ticket ID.';
+            break;
+        }
+
+        // Verify ticket belongs to logged-in user or user is admin
+        if ($is_super_admin) {
+            $ticketRes = query(
+                $mysqli,
+                "SELECT * FROM support_tickets WHERE id = ?",
+                [$ticket_id]
+            );
+        } else {
+            $ticketRes = query(
+                $mysqli,
+                "SELECT * FROM support_tickets WHERE id = ? AND user_id = ?",
+                [$ticket_id, $user_id]
+            );
+        }
+
+        if (!$ticketRes['success'] || empty($ticketRes['data'])) {
+            http_response_code(403);
+            $response['message'] = 'Ticket not found or access denied.';
+            break;
+        }
+
+        $response = [
+            'success' => true,
+            'data' => $ticketRes['data'][0]
+        ];
+        break;
+
     case 'update_status':
         // Only Super Admins can update a ticket's status.
         if (!$is_super_admin) {

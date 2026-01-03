@@ -8,7 +8,7 @@ if (!isLoggedIn()) {
 }
 
 $role_id = $_SESSION['role_id'];
-$is_manager_or_hr = in_array($role_id, [1, 2, 3, 6]); // SuperAdmin, Company Admin, HR Manager, Manager
+$is_manager_or_hr = in_array($role_id, [1, 2, 3, 6]); // Admin, Company Owner, Human Resources, Manager
 
 $leave_types = query($mysqli, "SELECT leave_type FROM leave_policies WHERE company_id = ?", [$_SESSION['company_id']])['data'] ?? [];
 
@@ -21,7 +21,6 @@ require_once '../components/layout/header.php';
 
         <?php if ($role_id !== 2) : ?>
             <div class="row" id="leave-summary-row">
-                <!-- Summary cards will be dynamically inserted here -->
             </div>
         <?php endif; ?>
 

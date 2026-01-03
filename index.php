@@ -679,7 +679,8 @@
                                     <i class="ti ti-robot fs-2 text-primary"></i>
                                 </div>
                                 <p class="card-text text-body mb-0">
-                                    Friendly <span class="text-body fw-bold">HR chatbot Nexus</span> to help you with your
+                                    Friendly <span class="text-body fw-bold">HR chatbot Nexus</span> to help you with
+                                    your
                                     daily HR tasks.
                                 </p>
                             </div>
@@ -951,6 +952,14 @@
                 duration: 800,
                 once: true,
                 offset: 100
+            });
+
+            // Add "Coming Soon" alert to all footer links
+            document.querySelectorAll('footer a[href="#"]').forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    alert('This feature will be available soon!');
+                });
             });
 
             // Toggle Hamburger/Close Icon

@@ -2,7 +2,7 @@
 
 $current_page = $_SERVER['PHP_SELF'] ?? '';
 switch ($_SESSION['role_id']) {
-  case 1:// Super Admin
+  case 1:// Admin
     $navigation_menu = [
       'dashboard' => [
         'title' => 'Dashboard',
@@ -48,7 +48,7 @@ switch ($_SESSION['role_id']) {
       ],
     ];
     break;
-  case 2://Company Admin
+  case 2://Company Owner
     $navigation_menu = [
       'dashboard' => [
         'title' => 'Dashboard',
@@ -108,7 +108,7 @@ switch ($_SESSION['role_id']) {
       ],
     ];
     break;
-  case 3://HR Manager
+  case 3://Human Resource
     $navigation_menu = [
       'dashboard' => [
         'title' => 'Dashboard',
@@ -159,6 +159,13 @@ switch ($_SESSION['role_id']) {
         'permission' => null,
         'submenu' => []
       ],
+      'Support' => [
+        'title' => 'Support',
+        'icon' => 'ti ti-help',
+        'url' => '/hrms/pages/index.php',
+        'permission' => null,
+        'submenu' => []
+      ],
     ];
     break;
   case 4://Employee
@@ -167,7 +174,7 @@ switch ($_SESSION['role_id']) {
         'title' => 'Dashboard',
         'icon' => 'ti ti-dashboard',
         'url' => '/hrms/employee/index.php',
-        'permission' => null, // Available to all logged in users
+        'permission' => null,
         'submenu' => []
       ],
       'profile' => [
@@ -209,6 +216,13 @@ switch ($_SESSION['role_id']) {
         'title' => 'Feedback',
         'icon' => 'ti ti-message',
         'url' => '/hrms/employee/feedback.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'support' => [
+        'title' => 'Support',
+        'icon' => 'ti ti-help',
+        'url' => '/hrms/pages/index.php',
         'permission' => null,
         'submenu' => []
       ],
@@ -269,6 +283,13 @@ switch ($_SESSION['role_id']) {
         'title' => 'Payslips',
         'icon' => 'ti ti-receipt',
         'url' => '/hrms/manager/payslips.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'support' => [
+        'title' => 'Support',
+        'icon' => 'ti ti-help',
+        'url' => '/hrms/pages/index.php',
         'permission' => null,
         'submenu' => []
       ],

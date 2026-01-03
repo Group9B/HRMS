@@ -6,15 +6,19 @@ if (!isset($_SESSION['user_id'])) {
 }
 require_once '../components/layout/header.php';
 ?>
-<div class="container-md text-center my-5 pt-5">
+<div class="container-md text-center my-5 pt-5 d-flex flex-column align-items-center">
     <h1 class="text-center">401 - Unauthorized Access</h1>
     <img src="/hrms/assets/img/401_image.png" alt="404_image" class="img-fluid mx-auto d-block" style="width: 300px;"
         loading="lazy">
-    <p class="text-center">You do not have permission to view this page. Please contact the administrator if you believe
+    <p class="text-center fs-5 w-50">You do not have permission to view this page. Please contact the administrator if
+        you
+        believe
         this is a mistake.</p>
     <div class="text-center">
         <a href="/hrms/includes/redirect.php" class="btn btn-primary"><i class="ti ti-arrow-left pe-2"></i>Go to
             Dashboard</a>
+        <a href="/hrms/pages/index.php" class="btn btn-outline-primary ms-2"><i class="ti ti-help pe-2"></i>Contact
+            Support</a>
     </div>
 </div>
 <?php
