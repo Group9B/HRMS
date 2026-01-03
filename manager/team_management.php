@@ -21,7 +21,7 @@ if (!$manager) {
 $manager_id = $manager['id'];
 $manager_department_id = $manager['department_id'];
 
-// Get team members (employees in the same department)
+// Get team members (employees assigned by this manager in team_members)
 $team_members_result = query($mysqli, "
     SELECT e.*, u.email, u.status as user_status, d.name as department_name, des.name as designation_name, s.name as shift_name
     FROM employees e
@@ -29,9 +29,10 @@ $team_members_result = query($mysqli, "
     LEFT JOIN departments d ON e.department_id = d.id
     LEFT JOIN designations des ON e.designation_id = des.id
     LEFT JOIN shifts s ON e.shift_id = s.id
-    WHERE e.department_id = ? AND e.id != ? AND e.status = 'active'
+    JOIN team_members tm ON e.id = tm.employee_id
+    WHERE tm.assigned_by = ? AND e.status = 'active'
     ORDER BY e.first_name ASC
-", [$manager_department_id, $manager_id]);
+", [$user_id]);
 
 $team_members = $team_members_result['success'] ? $team_members_result['data'] : [];
 
@@ -85,7 +86,8 @@ require_once '../components/layout/header.php';
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Active Members</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
                                 <?= count(array_filter($team_members, function ($member) {
-                                    return $member['user_status'] === 'active'; })) ?>
+                                    return $member['user_status'] === 'active';
+                                })) ?>
                             </div>
                         </div>
                     </div>
@@ -211,7 +213,8 @@ require_once '../components/layout/header.php';
                             <option value="">Select Employee</option>
                             <?php foreach ($team_members as $member): ?>
                                 <option value="<?= $member['id'] ?>">
-                                    <?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?></option>
+                                    <?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?>
+                                </option>
                             <?php endforeach; ?>
                         </select>
                     </div>

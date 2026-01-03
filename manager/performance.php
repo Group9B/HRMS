@@ -13,7 +13,13 @@ $manager_info = query($mysqli, "SELECT department_id FROM employees WHERE user_i
 $manager_department_id = $manager_info['data'][0]['department_id'] ?? 0;
 
 // Get team members for the filter and modal dropdowns
-$team_members = query($mysqli, "SELECT id, first_name, last_name FROM employees WHERE department_id = ? AND status = 'active' ORDER BY first_name ASC", [$manager_department_id])['data'] ?? [];
+$team_members = query($mysqli, "
+    SELECT e.id, e.first_name, e.last_name 
+    FROM employees e
+    JOIN team_members tm ON e.id = tm.employee_id
+    WHERE tm.assigned_by = ? AND e.status = 'active' 
+    ORDER BY e.first_name ASC
+", [$user_id])['data'] ?? [];
 
 require_once '../components/layout/header.php';
 ?>

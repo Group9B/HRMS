@@ -46,8 +46,9 @@ switch ($action) {
             JOIN users u ON e.user_id = u.id
             LEFT JOIN tasks t ON e.id = t.employee_id
             LEFT JOIN attendance a ON e.id = a.employee_id AND a.date = CURDATE()
-            WHERE e.department_id = ? AND e.id != ?
-        ", [$manager_department_id, $manager_id]);
+            JOIN team_members tm ON e.id = tm.employee_id
+            WHERE tm.assigned_by = ?
+        ", [$user_id]);
 
         if ($stats_result['success']) {
             $response = ['success' => true, 'data' => $stats_result['data'][0]];
@@ -71,8 +72,9 @@ switch ($action) {
             FROM employees e
             JOIN users u ON e.user_id = u.id
             LEFT JOIN tasks t ON e.id = t.employee_id
-            WHERE e.department_id = ? AND e.id != ?
-        ", [$manager_department_id, $manager_id]);
+            JOIN team_members tm ON e.id = tm.employee_id
+            WHERE tm.assigned_by = ?
+        ", [$user_id]);
 
         if ($report_result['success']) {
             $response = ['success' => true, 'data' => $report_result['data'][0]];
@@ -89,8 +91,9 @@ switch ($action) {
             $verify_result = query($mysqli, "
                 SELECT l.id FROM leaves l
                 JOIN employees e ON l.employee_id = e.id
-                WHERE l.id = ? AND e.department_id = ? AND l.status = 'pending'
-            ", [$leave_id, $manager_department_id]);
+                JOIN team_members tm ON e.id = tm.employee_id
+                WHERE l.id = ? AND tm.assigned_by = ? AND l.status = 'pending'
+            ", [$leave_id, $user_id]);
 
             if ($verify_result['success'] && !empty($verify_result['data'])) {
                 $update_result = query($mysqli, "
@@ -121,8 +124,9 @@ switch ($action) {
             $verify_result = query($mysqli, "
                 SELECT l.id FROM leaves l
                 JOIN employees e ON l.employee_id = e.id
-                WHERE l.id = ? AND e.department_id = ? AND l.status = 'pending'
-            ", [$leave_id, $manager_department_id]);
+                JOIN team_members tm ON e.id = tm.employee_id
+                WHERE l.id = ? AND tm.assigned_by = ? AND l.status = 'pending'
+            ", [$leave_id, $user_id]);
 
             if ($verify_result['success'] && !empty($verify_result['data'])) {
                 $update_result = query($mysqli, "
@@ -148,9 +152,10 @@ switch ($action) {
         $update_result = query($mysqli, "
             UPDATE leaves l
             JOIN employees e ON l.employee_id = e.id
+            JOIN team_members tm ON e.id = tm.employee_id
             SET l.status = 'approved', l.approved_by = ?
-            WHERE e.department_id = ? AND l.status = 'pending'
-        ", [$user_id, $manager_department_id]);
+            WHERE tm.assigned_by = ? AND l.status = 'pending'
+        ", [$user_id, $user_id]);
 
         if ($update_result['success']) {
             $response = ['success' => true, 'message' => 'All pending leave requests approved successfully!'];
@@ -205,9 +210,10 @@ switch ($action) {
             $update_result = query($mysqli, "
                 UPDATE leaves l
                 JOIN employees e ON l.employee_id = e.id
+                JOIN team_members tm ON e.id = tm.employee_id
                 SET l.status = ?, l.approved_by = ?
-                WHERE l.id IN ($placeholders) AND e.department_id = ? AND l.status = 'pending'
-            ", array_merge([$status, $user_id], $params));
+                WHERE l.id IN ($placeholders) AND tm.assigned_by = ? AND l.status = 'pending'
+            ", array_merge([$status, $user_id], $params, [$user_id]));
 
             if ($update_result['success']) {
                 $status_text = $status === 'approved' ? 'approved' : 'rejected';
@@ -253,9 +259,10 @@ switch ($action) {
         if ($employee_id > 0 && !empty($title)) {
             // Verify the employee belongs to the manager's team
             $verify_result = query($mysqli, "
-                SELECT id FROM employees 
-                WHERE id = ? AND department_id = ? AND status = 'active'
-            ", [$employee_id, $manager_department_id]);
+                SELECT e.id FROM employees e
+                JOIN team_members tm ON e.id = tm.employee_id
+                WHERE e.id = ? AND tm.assigned_by = ? AND e.status = 'active'
+            ", [$employee_id, $user_id]);
 
             if ($verify_result['success'] && !empty($verify_result['data'])) {
                 $insert_result = query($mysqli, "
@@ -289,9 +296,10 @@ switch ($action) {
             foreach ($employee_ids as $employee_id) {
                 // Verify the employee belongs to the manager's team
                 $verify_result = query($mysqli, "
-                    SELECT id FROM employees 
-                    WHERE id = ? AND department_id = ? AND status = 'active'
-                ", [$employee_id, $manager_department_id]);
+                    SELECT e.id FROM employees e
+                    JOIN team_members tm ON e.id = tm.employee_id
+                    WHERE e.id = ? AND tm.assigned_by = ? AND e.status = 'active'
+                ", [$employee_id, $user_id]);
 
                 if ($verify_result['success'] && !empty($verify_result['data'])) {
                     $insert_result = query($mysqli, "
@@ -330,8 +338,9 @@ switch ($action) {
                 JOIN employees e ON t.employee_id = e.id
                 LEFT JOIN designations des ON e.designation_id = des.id
                 LEFT JOIN departments d ON e.department_id = d.id
-                WHERE t.id = ? AND e.department_id = ?
-            ", [$task_id, $manager_department_id]);
+                JOIN team_members tm ON e.id = tm.employee_id
+                WHERE t.id = ? AND tm.assigned_by = ?
+            ", [$task_id, $user_id]);
 
             if ($task_result['success'] && !empty($task_result['data'])) {
                 $response = ['success' => true, 'data' => $task_result['data'][0]];
@@ -354,8 +363,9 @@ switch ($action) {
             $verify_result = query($mysqli, "
                 SELECT t.id FROM tasks t
                 JOIN employees e ON t.employee_id = e.id
-                WHERE t.id = ? AND e.department_id = ?
-            ", [$task_id, $manager_department_id]);
+                JOIN team_members tm ON e.id = tm.employee_id
+                WHERE t.id = ? AND tm.assigned_by = ?
+            ", [$task_id, $user_id]);
 
             if ($verify_result['success'] && !empty($verify_result['data'])) {
                 $update_result = query($mysqli, "
@@ -385,8 +395,9 @@ switch ($action) {
             $verify_result = query($mysqli, "
                 SELECT t.id FROM tasks t
                 JOIN employees e ON t.employee_id = e.id
-                WHERE t.id = ? AND e.department_id = ?
-            ", [$task_id, $manager_department_id]);
+                JOIN team_members tm ON e.id = tm.employee_id
+                WHERE t.id = ? AND tm.assigned_by = ?
+            ", [$task_id, $user_id]);
 
             if ($verify_result['success'] && !empty($verify_result['data'])) {
                 $update_result = query($mysqli, "
@@ -419,9 +430,10 @@ switch ($action) {
         if ($employee_id > 0 && !empty($date)) {
             // Verify the employee belongs to the manager's team
             $verify_result = query($mysqli, "
-                SELECT id FROM employees 
-                WHERE id = ? AND department_id = ? AND status = 'active'
-            ", [$employee_id, $manager_department_id]);
+                SELECT e.id FROM employees e
+                JOIN team_members tm ON e.id = tm.employee_id
+                WHERE e.id = ? AND tm.assigned_by = ? AND e.status = 'active'
+            ", [$employee_id, $user_id]);
 
             if ($verify_result['success'] && !empty($verify_result['data'])) {
                 // Check if attendance record already exists
@@ -472,8 +484,9 @@ switch ($action) {
                 JOIN employees e ON a.employee_id = e.id
                 LEFT JOIN designations des ON e.designation_id = des.id
                 LEFT JOIN shifts s ON e.shift_id = s.id
-                WHERE a.id = ? AND e.department_id = ?
-            ", [$attendance_id, $manager_department_id]);
+                JOIN team_members tm ON e.id = tm.employee_id
+                WHERE a.id = ? AND tm.assigned_by = ?
+            ", [$attendance_id, $user_id]);
 
             if ($attendance_result['success'] && !empty($attendance_result['data'])) {
                 $response = ['success' => true, 'data' => $attendance_result['data'][0]];
@@ -494,9 +507,10 @@ switch ($action) {
         if ($employee_id > 0 && !empty($period) && $score >= 0 && $score <= 100) {
             // Verify the employee belongs to the manager's team
             $verify_result = query($mysqli, "
-                SELECT id FROM employees 
-                WHERE id = ? AND department_id = ? AND status = 'active'
-            ", [$employee_id, $manager_department_id]);
+                SELECT e.id FROM employees e
+                JOIN team_members tm ON e.id = tm.employee_id
+                WHERE e.id = ? AND tm.assigned_by = ? AND e.status = 'active'
+            ", [$employee_id, $user_id]);
 
             if ($verify_result['success'] && !empty($verify_result['data'])) {
                 $insert_result = query($mysqli, "
@@ -528,8 +542,9 @@ switch ($action) {
                 JOIN employees e ON p.employee_id = e.id
                 LEFT JOIN designations des ON e.designation_id = des.id
                 LEFT JOIN users u ON p.evaluator_id = u.id
-                WHERE p.id = ? AND e.department_id = ?
-            ", [$performance_id, $manager_department_id]);
+                JOIN team_members tm ON e.id = tm.employee_id
+                WHERE p.id = ? AND tm.assigned_by = ?
+            ", [$performance_id, $user_id]);
 
             if ($performance_result['success'] && !empty($performance_result['data'])) {
                 $response = ['success' => true, 'data' => $performance_result['data'][0]];
@@ -549,8 +564,9 @@ switch ($action) {
             $verify_result = query($mysqli, "
                 SELECT p.id FROM performance p
                 JOIN employees e ON p.employee_id = e.id
-                WHERE p.id = ? AND e.department_id = ?
-            ", [$performance_id, $manager_department_id]);
+                JOIN team_members tm ON e.id = tm.employee_id
+                WHERE p.id = ? AND tm.assigned_by = ?
+            ", [$performance_id, $user_id]);
 
             if ($verify_result['success'] && !empty($verify_result['data'])) {
                 $delete_result = query($mysqli, "

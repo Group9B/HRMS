@@ -20,8 +20,8 @@ switch ($action) {
         $employee_filter = $_GET['employee_id'] ?? '';
         $period_filter = $_GET['period'] ?? date('Y-m');
 
-        $where_msg = "e.department_id = ? AND p.period = ?";
-        $params = [$manager_department_id, $period_filter];
+        $where_msg = "tm.assigned_by = ? AND p.period = ?";
+        $params = [$user_id, $period_filter];
 
         if (!empty($employee_filter)) {
             $where_msg .= " AND p.employee_id = ?";
@@ -31,9 +31,10 @@ switch ($action) {
         $query = "
             SELECT p.*, e.first_name, e.last_name, 
                    CONCAT(m.first_name, ' ', m.last_name) as evaluator_name
-            FROM performance_reviews p
+            FROM performance p
             JOIN employees e ON p.employee_id = e.id
             LEFT JOIN employees m ON p.evaluator_id = m.id
+            JOIN team_members tm ON e.id = tm.employee_id
             WHERE $where_msg
             ORDER BY p.created_at DESC
         ";
@@ -68,11 +69,12 @@ switch ($action) {
         $result = query($mysqli, "
             SELECT p.*, e.first_name, e.last_name,
                    CONCAT(m.first_name, ' ', m.last_name) as evaluator_name
-            FROM performance_reviews p
+            FROM performance p
             JOIN employees e ON p.employee_id = e.id
             LEFT JOIN employees m ON p.evaluator_id = m.id
-            WHERE p.id = ? AND e.department_id = ?
-        ", [$id, $manager_department_id]);
+            JOIN team_members tm ON e.id = tm.employee_id
+            WHERE p.id = ? AND tm.assigned_by = ?
+        ", [$id, $user_id]);
 
         if ($result['success'] && !empty($result['data'])) {
             echo json_encode(['success' => true, 'data' => $result['data'][0]]);
@@ -89,28 +91,36 @@ switch ($action) {
         $score = $_POST['score'] ?? 0;
         $remarks = $_POST['remarks'] ?? '';
 
-        // Validate employee belongs to manager's department
-        $emp_check = query($mysqli, "SELECT id FROM employees WHERE id = ? AND department_id = ?", [$employee_id, $manager_department_id]);
+        if ($period > date('Y-m')) {
+            echo json_encode(['success' => false, 'message' => 'Cannot add review for future period']);
+            exit;
+        }
+
+        // Validate employee belongs to manager's team
+        $emp_check = query($mysqli, "
+            SELECT e.id FROM employees e
+            JOIN team_members tm ON e.id = tm.employee_id
+            WHERE e.id = ? AND tm.assigned_by = ?
+        ", [$employee_id, $user_id]);
         if (!$emp_check['success'] || empty($emp_check['data'])) {
             echo json_encode(['success' => false, 'message' => 'Invalid employee']);
             exit;
         }
 
-        // Get evaluator ID (manager's employee ID)
-        $evaluator_res = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$user_id]);
-        $evaluator_id = $evaluator_res['data'][0]['id'];
+        // Get evaluator ID (manager's User ID, as per FK constraint)
+        $evaluator_id = $user_id;
 
         if ($id > 0) {
             // Update
             $res = query($mysqli, "
-                UPDATE performance_reviews 
-                SET employee_id = ?, period = ?, score = ?, remarks = ?, updated_at = NOW()
+                UPDATE performance 
+                SET employee_id = ?, period = ?, score = ?, remarks = ?
                 WHERE id = ?
             ", [$employee_id, $period, $score, $remarks, $id]);
         } else {
             // Insert
             $res = query($mysqli, "
-                INSERT INTO performance_reviews (employee_id, evaluator_id, period, score, remarks, created_at)
+                INSERT INTO performance (employee_id, evaluator_id, period, score, remarks, created_at)
                 VALUES (?, ?, ?, ?, ?, NOW())
             ", [$employee_id, $evaluator_id, $period, $score, $remarks]);
         }
@@ -118,7 +128,7 @@ switch ($action) {
         if ($res['success']) {
             echo json_encode(['success' => true, 'message' => 'Performance review saved successfully']);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Database error']);
+            echo json_encode(['success' => false, 'message' => 'Database error: ' . $res['error']]);
         }
         break;
 
@@ -128,13 +138,14 @@ switch ($action) {
 
         // Validate ownership via department join
         $check = query($mysqli, "
-            SELECT p.id FROM performance_reviews p
+            SELECT p.id FROM performance p
             JOIN employees e ON p.employee_id = e.id
-            WHERE p.id = ? AND e.department_id = ?
-        ", [$id, $manager_department_id]);
+            JOIN team_members tm ON e.id = tm.employee_id
+            WHERE p.id = ? AND tm.assigned_by = ?
+        ", [$id, $user_id]);
 
         if ($check['success'] && !empty($check['data'])) {
-            $del = query($mysqli, "DELETE FROM performance_reviews WHERE id = ?", [$id]);
+            $del = query($mysqli, "DELETE FROM performance WHERE id = ?", [$id]);
             if ($del['success']) {
                 echo json_encode(['success' => true, 'message' => 'Review deleted successfully']);
             } else {
