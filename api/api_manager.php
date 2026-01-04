@@ -7,8 +7,8 @@ require_once '../includes/functions.php';
 
 $response = ['success' => false, 'message' => 'An unknown error occurred.'];
 
-// Security Check: Must be a logged-in Manager
-if (!isLoggedIn() || $_SESSION['role_id'] !== 6) {
+// Security Check: Must be a logged-in Manager or Employee
+if (!isLoggedIn() || !in_array($_SESSION['role_id'], [6, 4])) {
     $response['message'] = 'Unauthorized access.';
     echo json_encode($response);
     exit();
@@ -257,12 +257,31 @@ switch ($action) {
         $due_date = $_POST['due_date'] ?? null;
 
         if ($employee_id > 0 && !empty($title)) {
-            // Verify the employee belongs to the manager's team
-            $verify_result = query($mysqli, "
-                SELECT e.id FROM employees e
-                JOIN team_members tm ON e.id = tm.employee_id
-                WHERE e.id = ? AND tm.assigned_by = ? AND e.status = 'active'
-            ", [$employee_id, $user_id]);
+            // Verify the employee belongs to the manager's team OR team leader's team
+            if ($_SESSION['role_id'] == 6) {
+                // Manager validation
+                $verify_result = query($mysqli, "
+                    SELECT e.id FROM employees e
+                    JOIN team_members tm ON e.id = tm.employee_id
+                    WHERE e.id = ? AND tm.assigned_by = ? AND e.status = 'active'
+                ", [$employee_id, $user_id]);
+            } else {
+                // Employee (Team Leader) validation
+                $current_emp = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$user_id]);
+                $current_employee_id = $current_emp['success'] && !empty($current_emp['data']) ? $current_emp['data'][0]['id'] : 0;
+
+                // Check if current user is a team leader and target employee is in their team
+                $verify_result = query($mysqli, "
+                    SELECT e.id 
+                    FROM employees e
+                    JOIN team_members tm1 ON e.id = tm1.employee_id
+                    JOIN team_members tm2 ON tm1.team_id = tm2.team_id
+                    WHERE e.id = ? 
+                    AND tm2.employee_id = ?
+                    AND (tm2.role_in_team LIKE '%leader%' OR tm2.role_in_team LIKE '%lead%')
+                    AND e.status = 'active'
+                ", [$employee_id, $current_employee_id]);
+            }
 
             if ($verify_result['success'] && !empty($verify_result['data'])) {
                 $insert_result = query($mysqli, "
@@ -682,28 +701,50 @@ switch ($action) {
         $team_id = isset($_GET['team_id']) ? (int) $_GET['team_id'] : 0;
 
         if ($team_id > 0) {
-            // Get team details
-            $team_result = query($mysqli, "
-                SELECT t.*, COUNT(tm.id) as member_count
-                FROM teams t
-                LEFT JOIN team_members tm ON t.id = tm.team_id
-                WHERE t.id = ? AND t.company_id = ? AND t.created_by = ?
-                GROUP BY t.id
-            ", [$team_id, $company_id, $user_id]);
+            // Check authorization: Manager who created it OR Employee who is team leader
+            if ($_SESSION['role_id'] == 6) {
+                // Manager authorization
+                $auth_query = "SELECT t.*, COUNT(tm.id) as member_count
+                    FROM teams t
+                    LEFT JOIN team_members tm ON t.id = tm.team_id
+                    WHERE t.id = ? AND t.company_id = ? AND t.created_by = ?
+                    GROUP BY t.id";
+                $team_result = query($mysqli, $auth_query, [$team_id, $company_id, $user_id]);
+            } else {
+                // Employee (Team Leader) authorization
+                $emp_result = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$user_id]);
+                $employee_id = $emp_result['success'] && !empty($emp_result['data']) ? $emp_result['data'][0]['id'] : 0;
+
+                $auth_query = "SELECT t.*, COUNT(tm2.id) as member_count
+                    FROM teams t
+                    JOIN team_members tm ON t.id = tm.team_id
+                    LEFT JOIN team_members tm2 ON t.id = tm2.team_id
+                    WHERE t.id = ? 
+                    AND tm.employee_id = ?
+                    AND (tm.role_in_team LIKE '%leader%' OR tm.role_in_team LIKE '%lead%')
+                    GROUP BY t.id";
+                $team_result = query($mysqli, $auth_query, [$team_id, $employee_id]);
+            }
 
             if ($team_result['success'] && !empty($team_result['data'])) {
                 $team = $team_result['data'][0];
 
-                // Get team members
+                // Get team members with stats
                 $members_result = query($mysqli, "
                     SELECT e.id, e.first_name, e.last_name, e.employee_code, e.contact,
                            tm.role_in_team, tm.assigned_at, tm.employee_id,
-                           des.name as designation_name, d.name as department_name
+                           des.name as designation_name, d.name as department_name,
+                           COUNT(DISTINCT t.id) as total_tasks,
+                           COUNT(DISTINCT CASE WHEN t.status = 'completed' THEN t.id END) as completed_tasks,
+                           ROUND(AVG(p.score), 1) as avg_performance
                     FROM team_members tm
                     JOIN employees e ON tm.employee_id = e.id
                     LEFT JOIN designations des ON e.designation_id = des.id
                     LEFT JOIN departments d ON e.department_id = d.id
+                    LEFT JOIN tasks t ON e.id = t.employee_id
+                    LEFT JOIN performance p ON e.id = p.employee_id
                     WHERE tm.team_id = ?
+                    GROUP BY e.id
                     ORDER BY tm.assigned_at DESC
                 ", [$team_id]);
 
@@ -844,6 +885,258 @@ switch ($action) {
             $response = ['success' => true, 'data' => $employees_result['data']];
         } else {
             $response['message'] = 'Failed to fetch employees.';
+        }
+        break;
+
+    case 'get_team_members_stats':
+        $team_id = isset($_GET['team_id']) ? (int) $_GET['team_id'] : 0;
+
+        if ($team_id > 0) {
+            // Verify the team belongs to the manager
+            $verify_team = query($mysqli, "
+                SELECT id FROM teams 
+                WHERE id = ? AND company_id = ? AND created_by = ?
+            ", [$team_id, $company_id, $user_id]);
+
+            if ($verify_team['success'] && !empty($verify_team['data'])) {
+                // Get team members with their stats
+                $members_result = query($mysqli, "
+                    SELECT 
+                        e.id, e.first_name, e.last_name, e.employee_code,
+                        tm.role_in_team,
+                        des.name as designation_name,
+                        d.name as department_name,
+                        COUNT(DISTINCT t.id) as total_tasks,
+                        COUNT(DISTINCT CASE WHEN t.status = 'completed' THEN t.id END) as completed_tasks,
+                        COUNT(DISTINCT CASE WHEN t.status IN ('pending', 'in_progress') THEN t.id END) as pending_tasks,
+                        COALESCE(AVG(p.score), 0) as avg_performance,
+                        COUNT(DISTINCT CASE WHEN a.status = 'present' AND a.date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) THEN a.id END) as attendance_count
+                    FROM team_members tm
+                    JOIN employees e ON tm.employee_id = e.id
+                    LEFT JOIN designations des ON e.designation_id = des.id
+                    LEFT JOIN departments d ON e.department_id = d.id
+                    LEFT JOIN tasks t ON e.id = t.employee_id
+                    LEFT JOIN performance p ON e.id = p.employee_id
+                    LEFT JOIN attendance a ON e.id = a.employee_id
+                    WHERE tm.team_id = ?
+                    GROUP BY e.id, e.first_name, e.last_name, e.employee_code, tm.role_in_team, des.name, d.name
+                    ORDER BY tm.role_in_team DESC, e.first_name
+                ", [$team_id]);
+
+                if ($members_result['success']) {
+                    $response = ['success' => true, 'data' => $members_result['data']];
+                } else {
+                    $response['message'] = 'Failed to fetch team member stats.';
+                }
+            } else {
+                $response['message'] = 'Team not found or you do not have permission to view this team.';
+            }
+        } else {
+            $response['message'] = 'Invalid team ID.';
+        }
+        break;
+
+    case 'get_team_leaders':
+        $team_id = isset($_GET['team_id']) ? (int) $_GET['team_id'] : 0;
+
+        if ($team_id > 0) {
+            // Verify the team belongs to the manager
+            $verify_team = query($mysqli, "
+                SELECT id FROM teams 
+                WHERE id = ? AND company_id = ? AND created_by = ?
+            ", [$team_id, $company_id, $user_id]);
+
+            if ($verify_team['success'] && !empty($verify_team['data'])) {
+                // Get team leaders (role_in_team contains leader/lead)
+                $leaders_result = query($mysqli, "
+                    SELECT e.id, e.first_name, e.last_name, e.employee_code, tm.role_in_team
+                    FROM team_members tm
+                    JOIN employees e ON tm.employee_id = e.id
+                    WHERE tm.team_id = ?
+                    AND (
+                        LOWER(tm.role_in_team) LIKE '%leader%' 
+                        OR LOWER(tm.role_in_team) LIKE '%lead%'
+                    )
+                ", [$team_id]);
+
+                if ($leaders_result['success']) {
+                    $response = ['success' => true, 'data' => $leaders_result['data']];
+                } else {
+                    $response['message'] = 'Failed to fetch team leaders.';
+                }
+            } else {
+                $response['message'] = 'Team not found or you do not have permission to view this team.';
+            }
+        } else {
+            $response['message'] = 'Invalid team ID.';
+        }
+        break;
+
+    case 'assign_team_task':
+        $team_id = isset($_POST['team_id']) ? (int) $_POST['team_id'] : 0;
+        $title = $_POST['title'] ?? '';
+        $description = $_POST['description'] ?? '';
+        $due_date = $_POST['due_date'] ?? null;
+
+        if ($team_id > 0 && !empty($title)) {
+            // Verify the team belongs to the manager
+            $verify_team = query($mysqli, "
+                SELECT id FROM teams 
+                WHERE id = ? AND company_id = ? AND created_by = ?
+            ", [$team_id, $company_id, $user_id]);
+
+            if ($verify_team['success'] && !empty($verify_team['data'])) {
+                // Get team leaders first
+                $leaders_result = query($mysqli, "
+                    SELECT employee_id
+                    FROM team_members
+                    WHERE team_id = ?
+                    AND (
+                        LOWER(role_in_team) LIKE '%leader%' 
+                        OR LOWER(role_in_team) LIKE '%lead%'
+                    )
+                ", [$team_id]);
+
+                $target_employees = [];
+
+                if ($leaders_result['success'] && !empty($leaders_result['data'])) {
+                    // Assign to team leaders
+                    foreach ($leaders_result['data'] as $leader) {
+                        $target_employees[] = $leader['employee_id'];
+                    }
+                } else {
+                    // No leaders found, assign to all team members
+                    $all_members_result = query($mysqli, "
+                        SELECT employee_id
+                        FROM team_members
+                        WHERE team_id = ?
+                    ", [$team_id]);
+
+                    if ($all_members_result['success']) {
+                        foreach ($all_members_result['data'] as $member) {
+                            $target_employees[] = $member['employee_id'];
+                        }
+                    }
+                }
+
+                if (!empty($target_employees)) {
+                    $success_count = 0;
+                    foreach ($target_employees as $employee_id) {
+                        $insert_result = query($mysqli, "
+                            INSERT INTO tasks (employee_id, title, description, due_date, assigned_by, status)
+                            VALUES (?, ?, ?, ?, ?, 'pending')
+                        ", [$employee_id, $title, $description, $due_date, $user_id]);
+
+                        if ($insert_result['success']) {
+                            $success_count++;
+                        }
+                    }
+
+                    if ($success_count > 0) {
+                        $response = [
+                            'success' => true,
+                            'message' => "Task assigned to {$success_count} team member(s) successfully!",
+                            'assigned_count' => $success_count
+                        ];
+                    } else {
+                        $response['message'] = 'Failed to assign task to any team member.';
+                    }
+                } else {
+                    $response['message'] = 'No team members found to assign the task.';
+                }
+            } else {
+                $response['message'] = 'Team not found or you do not have permission to manage this team.';
+            }
+        } else {
+            $response['message'] = 'Please provide valid team ID and task title.';
+        }
+        break;
+
+    case 'update_team_member_role':
+        $team_id = isset($_POST['team_id']) ? (int) $_POST['team_id'] : 0;
+        $employee_id = isset($_POST['employee_id']) ? (int) $_POST['employee_id'] : 0;
+        $role_in_team = $_POST['role_in_team'] ?? '';
+
+        if ($team_id > 0 && $employee_id > 0) {
+            // Verify the team belongs to the manager
+            $verify_team = query($mysqli, "
+                SELECT id FROM teams 
+                WHERE id = ? AND company_id = ? AND created_by = ?
+            ", [$team_id, $company_id, $user_id]);
+
+            if ($verify_team['success'] && !empty($verify_team['data'])) {
+                $update_result = query($mysqli, "
+                    UPDATE team_members 
+                    SET role_in_team = ?
+                    WHERE team_id = ? AND employee_id = ?
+                ", [$role_in_team, $team_id, $employee_id]);
+
+                if ($update_result['success']) {
+                    $response = ['success' => true, 'message' => 'Team member role updated successfully!'];
+                } else {
+                    $response['message'] = 'Failed to update team member role.';
+                }
+            } else {
+                $response['message'] = 'Team not found or you do not have permission to manage this team.';
+            }
+        } else {
+            $response['message'] = 'Invalid team ID or employee ID.';
+        }
+        break;
+
+    case 'get_member_tasks':
+        $target_employee_id = isset($_GET['employee_id']) ? (int) $_GET['employee_id'] : 0;
+
+        if ($target_employee_id > 0) {
+            // Verify permission: Manager or Team Leader of the employee
+            $has_permission = false;
+            $current_role_id = $_SESSION['role_id'];
+
+            if ($current_role_id == 6) {
+                $has_permission = true;
+            } elseif ($current_role_id == 4) {
+                // Check if user is a leader of the team this employee belongs to
+                $check_permission = query($mysqli, "
+                    SELECT tm_leader.id 
+                    FROM team_members tm_target
+                    JOIN team_members tm_leader ON tm_target.team_id = tm_leader.team_id
+                    JOIN employees e_leader ON tm_leader.employee_id = e_leader.id
+                    WHERE tm_target.employee_id = ? 
+                    AND e_leader.user_id = ?
+                    AND (
+                        LOWER(tm_leader.role_in_team) LIKE '%leader%' 
+                        OR LOWER(tm_leader.role_in_team) LIKE '%lead%'
+                    )
+                ", [$target_employee_id, $user_id]);
+
+                if ($check_permission['success'] && count($check_permission['data']) > 0) {
+                    $has_permission = true;
+                }
+            }
+
+            if ($has_permission) {
+                $tasks_result = query($mysqli, "
+                    SELECT t.*, 
+                           CONCAT(e_by.first_name, ' ', e_by.last_name) as assigned_by_name
+                    FROM tasks t
+                    LEFT JOIN users u_by ON t.assigned_by = u_by.id
+                    LEFT JOIN employees e_by ON u_by.id = e_by.user_id
+                    WHERE t.employee_id = ?
+                    ORDER BY 
+                        CASE WHEN t.status = 'pending' THEN 1 WHEN t.status = 'in_progress' THEN 2 ELSE 3 END,
+                        t.due_date ASC
+                ", [$target_employee_id]);
+
+                if ($tasks_result['success']) {
+                    $response = ['success' => true, 'data' => $tasks_result['data']];
+                } else {
+                    $response['message'] = 'Failed to fetch tasks.';
+                }
+            } else {
+                $response['message'] = 'You do not have permission to view tasks for this employee.';
+            }
+        } else {
+            $response['message'] = 'Invalid employee ID.';
         }
         break;
 

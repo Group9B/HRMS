@@ -219,13 +219,37 @@ switch ($_SESSION['role_id']) {
         'permission' => null,
         'submenu' => []
       ],
-      'support' => [
-        'title' => 'Support',
-        'icon' => 'ti ti-help',
-        'url' => '/hrms/pages/index.php',
-        'permission' => null,
-        'submenu' => []
-      ],
+    ];
+
+    // Check if employee is a team leader
+    $emp_result = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$_SESSION['user_id']]);
+    if ($emp_result['success'] && !empty($emp_result['data'])) {
+      $employee_id = $emp_result['data'][0]['id'];
+      $leader_check = query($mysqli, "
+        SELECT COUNT(*) as is_leader 
+        FROM team_members 
+        WHERE employee_id = ? 
+        AND (role_in_team LIKE '%leader%' OR role_in_team LIKE '%lead%')
+      ", [$employee_id]);
+
+      if ($leader_check['success'] && $leader_check['data'][0]['is_leader'] > 0) {
+        // Add My Team menu item before support
+        $navigation_menu['my_team'] = [
+          'title' => 'My Team',
+          'icon' => 'ti ti-users-group',
+          'url' => '/hrms/employee/my_team.php',
+          'permission' => null,
+          'submenu' => []
+        ];
+      }
+    }
+
+    $navigation_menu['support'] = [
+      'title' => 'Support',
+      'icon' => 'ti ti-help',
+      'url' => '/hrms/pages/index.php',
+      'permission' => null,
+      'submenu' => []
     ];
     break;
   case 6://Manager

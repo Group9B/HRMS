@@ -100,7 +100,8 @@ require_once '../components/layout/header.php';
                     </div>
                     <div class="col-md-4 text-end">
                         <div class="btn-group">
-                            <button class="btn btn-outline-primary" onclick="editTeamInfo()">
+                            <button class="btn btn-outline-primary" data-bs-toggle="modal"
+                                data-bs-target="#editTeamModal">
                                 <i class="ti ti-edit me-1"></i>Edit Team
                             </button>
                             <button class="btn btn-outline-danger" onclick="deleteTeam()">
@@ -447,6 +448,31 @@ require_once '../components/layout/header.php';
             })
             .catch(error => {
                 console.error('Error refreshing table:', error);
+            });
+    }
+
+    function editTeam() {
+        const formData = new FormData(document.getElementById('editTeamForm'));
+        formData.append('action', 'update_team');
+        formData.append('team_id', <?= $team_id ?>);
+
+        fetch('/hrms/api/api_manager.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    $('#editTeamModal').modal('hide');
+                    // Reload page to reflect changes
+                    location.reload();
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred. Please try again.', 'error');
             });
     }
 

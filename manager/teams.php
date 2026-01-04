@@ -147,6 +147,10 @@ require_once '../components/layout/header.php';
                                                             onclick="manageMembers(<?= $team['id'] ?>)">
                                                             <i class="ti ti-user-plus me-2"></i>Manage Members
                                                         </a></li>
+                                                    <li><a class="dropdown-item" href="#"
+                                                            onclick="assignTeamLeader(<?= $team['id'] ?>)">
+                                                            <i class="ti ti-star me-2"></i>Assign Team Leader
+                                                        </a></li>
                                                     <li>
                                                         <hr class="dropdown-divider">
                                                     </li>
@@ -213,7 +217,7 @@ require_once '../components/layout/header.php';
 
 <!-- Create Team Modal -->
 <div class="modal fade" id="createTeamModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Create New Team</h5>
@@ -229,6 +233,30 @@ require_once '../components/layout/header.php';
                         <label for="team_description" class="form-label">Description</label>
                         <textarea class="form-control" id="team_description" name="description" rows="3"
                             placeholder="Describe the team's purpose and objectives..."></textarea>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <label class="form-label">Add Team Members (Optional)</label>
+                        <div id="createTeamEmployeesContainer">
+                            <div class="text-center p-3">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <span class="ms-2">Loading employees...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="teamLeaderSection" style="display: none;">
+                        <label for="create_team_leader" class="form-label">
+                            <i class="ti ti-star text-warning me-1"></i>Designate Team Leader (Optional)
+                        </label>
+                        <select class="form-select" id="create_team_leader" name="team_leader_id">
+                            <option value="">No leader (assign later)</option>
+                        </select>
+                        <small class="text-muted">Select from chosen team members above</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -331,6 +359,52 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
+<!-- Assign Team Leader Modal -->
+<div class="modal fade" id="assignLeaderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Assign Team Leader</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="assignLeaderForm">
+                <input type="hidden" id="leader_team_id" name="team_id">
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="ti ti-info-circle me-2"></i>
+                        Select a team member to designate as the team leader. Team leaders will receive tasks assigned
+                        to the entire team.
+                    </div>
+                    <div class="mb-3">
+                        <label for="leader_employee_id" class="form-label">Select Team Member *</label>
+                        <select class="form-select" id="leader_employee_id" name="employee_id" required>
+                            <option value="">Choose a member...</option>
+                            <!-- Options will be loaded dynamically -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="leader_role" class="form-label">Leader Role</label>
+                        <select class="form-select" id="leader_role" name="role_in_team">
+                            <option value="Team Leader">Team Leader</option>
+                            <option value="Team Lead">Team Lead</option>
+                            <option value="Project Lead">Project Lead</option>
+                            <option value="Technical Lead">Technical Lead</option>
+                        </select>
+                    </div>
+                    <div id="currentLeadersInfo" class="alert alert-warning d-none">
+                        <i class="ti ti-alert-circle me-2"></i>
+                        <span id="currentLeadersText"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Assign as Leader</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <?php require_once '../components/layout/footer.php'; ?>
 
 <style>
@@ -372,11 +446,29 @@ require_once '../components/layout/header.php';
 
         // Load team statistics
         loadTeamStats();
+
+        // Load employees when create team modal opens
+        $('#createTeamModal').on('show.bs.modal', function () {
+            loadEmployeesForCreateTeam();
+        });
+
+        // Handle employee selection to update leader dropdown
+        $(document).on('change', 'input[name="create_employee_ids[]"]', function () {
+            updateLeaderDropdown();
+        });
     });
 
     function createTeam() {
         const formData = new FormData(document.getElementById('createTeamForm'));
         formData.append('action', 'create_team');
+
+        // Get selected employee IDs
+        const selectedEmployees = [];
+        document.querySelectorAll('input[name="create_employee_ids[]"]:checked').forEach(checkbox => {
+            selectedEmployees.push(checkbox.value);
+        });
+
+        const teamLeaderId = $('#create_team_leader').val();
 
         fetch('/hrms/api/api_manager.php', {
             method: 'POST',
@@ -385,102 +477,153 @@ require_once '../components/layout/header.php';
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showToast(data.message, 'success');
+                    const teamId = data.team_id;
+
+                    // If members selected, assign them
+                    if (selectedEmployees.length > 0) {
+                        const memberFormData = new FormData();
+                        memberFormData.append('action', 'assign_team_members');
+                        memberFormData.append('team_id', teamId);
+                        selectedEmployees.forEach(empId => {
+                            memberFormData.append('employee_ids[]', empId);
+                        });
+
+                        return fetch('/hrms/api/api_manager.php', {
+                            method: 'POST',
+                            body: memberFormData
+                        }).then(resp => resp.json()).then(memberData => {
+                            // If team leader selected, assign leader role
+                            if (teamLeaderId) {
+                                const leaderFormData = new FormData();
+                                leaderFormData.append('action', 'update_team_member_role');
+                                leaderFormData.append('team_id', teamId);
+                                leaderFormData.append('employee_id', teamLeaderId);
+                                leaderFormData.append('role_in_team', 'Team Leader');
+
+                                return fetch('/hrms/api/api_manager.php', {
+                                    method: 'POST',
+                                    body: leaderFormData
+                                }).then(resp => resp.json()).then(() => {
+                                    return { teamId, success: true };
+                                });
+                            }
+                            return { teamId, success: true };
+                        });
+                    }
+                    return { teamId, success: true };
+                } else {
+                    showToast(data.message, 'error');
+                    throw new Error(data.message);
+                }
+            })
+            .then(result => {
+                if (result.success) {
+                    showToast('Team created successfully!', 'success');
                     $('#createTeamModal').modal('hide');
                     document.getElementById('createTeamForm').reset();
 
-                    // Fetch the new team details to display
-                    fetch(`/hrms/api/api_manager.php?action=get_team_details&team_id=${data.team_id}`)
+                    // Reload team stats
+                    loadTeamStats();
+
+                    // Dynamically fetch and append new team card
+                    fetch(`/hrms/api/api_manager.php?action=get_team_details&team_id=${result.teamId}`)
                         .then(resp => resp.json())
                         .then(details => {
                             if (details.success) {
                                 const team = details.data;
-                                const teamsList = document.querySelector('.card-body .row');
+                                const teamsContainer = document.querySelector('.card-body .row');
 
-                                // Remove empty state if it exists
+                                // Check if we need to remove the "No Teams" empty state
                                 const emptyState = document.querySelector('.text-center.text-muted.p-5');
                                 if (emptyState) {
-                                    emptyState.parentElement.innerHTML = '<div class="row"></div>';
+                                    // Replace empty state with row container
+                                    const cardBody = document.querySelector('.card .card-body');
+                                    cardBody.innerHTML = '<div class="row"></div>';
                                 }
+
+                                const finalContainer = document.querySelector('.card-body .row');
+                                const memberCount = team.member_count || 0;
+                                const memberNames = team.member_names || (team.members ? team.members.map(m => `${m.first_name} ${m.last_name}`).join(', ') : '');
 
                                 const newCardHtml = `
                                     <div class="col-lg-6 col-xl-4 mb-4" id="team-card-${team.id}">
                                         <div class="card border-left-primary shadow-sm h-100">
                                             <div class="card-body">
                                                 <div class="d-flex justify-content-between align-items-start mb-3">
-                                                    <h6 class="card-title mb-0" id="team-name-${team.id}">${team.name}</h6>
+                                                    <h6 class="card-title mb-0">${team.name}</h6>
                                                     <div class="dropdown">
-                                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                                            data-bs-toggle="dropdown">
                                                             <i class="ti ti-dots-vertical"></i>
                                                         </button>
                                                         <ul class="dropdown-menu">
-                                                            <li><a class="dropdown-item" href="#" onclick="viewTeam(${team.id})"><i class="ti ti-eye me-2"></i>View Details</a></li>
-                                                            <li><a class="dropdown-item" href="#" onclick="editTeam(${team.id})"><i class="ti ti-edit me-2"></i>Edit Team</a></li>
-                                                            <li><a class="dropdown-item" href="#" onclick="manageMembers(${team.id})"><i class="ti ti-user-plus me-2"></i>Manage Members</a></li>
+                                                            <li><a class="dropdown-item" href="#"
+                                                                    onclick="viewTeam(${team.id})">
+                                                                    <i class="ti ti-eye me-2"></i>View Details
+                                                                </a></li>
+                                                            <li><a class="dropdown-item" href="#"
+                                                                    onclick="editTeam(${team.id})">
+                                                                    <i class="ti ti-edit me-2"></i>Edit Team
+                                                                </a></li>
+                                                            <li><a class="dropdown-item" href="#"
+                                                                    onclick="manageMembers(${team.id})">
+                                                                    <i class="ti ti-user-plus me-2"></i>Manage Members
+                                                                </a></li>
+                                                            <li><a class="dropdown-item" href="#"
+                                                                    onclick="assignTeamLeader(${team.id})">
+                                                                    <i class="ti ti-star me-2"></i>Assign Team Leader
+                                                                </a></li>
                                                             <li><hr class="dropdown-divider"></li>
-                                                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteTeam(${team.id})"><i class="ti ti-trash me-2"></i>Delete Team</a></li>
+                                                            <li><a class="dropdown-item text-danger" href="#"
+                                                                    onclick="deleteTeam(${team.id})">
+                                                                    <i class="ti ti-trash me-2"></i>Delete Team
+                                                                </a></li>
                                                         </ul>
                                                     </div>
                                                 </div>
-                                                <p class="card-text text-muted small mb-3" id="team-desc-${team.id}">
+                                                <p class="card-text text-muted small mb-3">
                                                     ${team.description || 'No description provided'}
                                                 </p>
-                                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                                    <div class="d-flex align-items-center">
-                                                        <i class="ti ti-users me-2 text-muted"></i>
-                                                        <span class="text-muted small">0 member(s)</span>
-                                                    </div>
-                                                    <small class="text-muted">Created ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
+                                                <div class="d-flex align-items-center mb-3">
+                                                    <span class="text-muted small">
+                                                        <i class="ti ti-users me-1"></i>
+                                                        ${memberCount} member(s)
+                                                    </span>
                                                 </div>
+                                                ${memberCount > 0 ? `
+                                                    <div class="mb-3">
+                                                        <small class="text-muted d-block mb-1">Members:</small>
+                                                        <div class="text-truncate" title="${memberNames}">
+                                                            ${memberNames}
+                                                        </div>
+                                                    </div>
+                                                ` : ''}
                                                 <div class="d-flex gap-2">
-                                                    <button class="btn btn-sm btn-outline-primary" onclick="viewTeam(${team.id})"><i class="ti ti-eye me-1"></i>View</button>
-                                                    <button class="btn btn-sm btn-outline-success" onclick="manageMembers(${team.id})"><i class="ti ti-user-plus me-1"></i>Members</button>
+                                                    <button class="btn btn-sm btn-outline-primary"
+                                                        onclick="viewTeam(${team.id})">
+                                                        <i class="ti ti-eye me-1"></i>View
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-success"
+                                                        onclick="manageMembers(${team.id})">
+                                                        <i class="ti ti-user-plus me-1"></i>Members
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 `;
 
-                                // Append to the row
-                                const container = document.querySelector('.card-body .row');
-                                if (container) {
-                                    container.insertAdjacentHTML('afterbegin', newCardHtml);
-                                } else {
-                                    // If we replaced empty state, finding .row might be tricky if not careful, but we set innerHTML to <div class="row"></div>
-                                    document.querySelector('.card-body .row').insertAdjacentHTML('afterbegin', newCardHtml);
-                                }
-
-                                // Update counters
-                                const totalTeamsEl = document.getElementById('total-teams-count');
-                                const activeTeamsEl = document.getElementById('active-teams-count');
-
-                                if (totalTeamsEl) {
-                                    let count = parseInt(totalTeamsEl.innerText) || 0;
-                                    totalTeamsEl.innerText = count + 1;
-                                }
-
-                                if (activeTeamsEl) {
-                                    let count = parseInt(activeTeamsEl.innerText) || 0;
-                                    activeTeamsEl.innerText = count + 1;
-                                }
-
-                                // Update Assign Members Dropdown
-                                const teamSelect = document.getElementById('select_team');
-                                if (teamSelect) {
-                                    const option = document.createElement('option');
-                                    option.value = team.id;
-                                    option.textContent = team.name;
-                                    teamSelect.appendChild(option);
-                                }
+                                // Insert as first item
+                                finalContainer.insertAdjacentHTML('afterbegin', newCardHtml);
                             }
                         });
-
-                } else {
-                    showToast(data.message, 'error');
                 }
             })
             .catch(error => {
-                showToast('An error occurred. Please try again.', 'error');
+                console.error('Error:', error);
+                if (!error.message.includes('message')) {
+                    showToast('An error occurred. Please try again.', 'error');
+                }
             });
     }
 
@@ -509,7 +652,7 @@ require_once '../components/layout/header.php';
                     // Update UI Stats
                     loadTeamStats();
 
-                    // Update the specific team card member count
+                    // Update the specific team card member count and reload details dynamically
                     const teamId = formData.get('team_id');
                     fetch(`/hrms/api/api_manager.php?action=get_team_details&team_id=${teamId}`)
                         .then(resp => resp.json())
@@ -518,13 +661,7 @@ require_once '../components/layout/header.php';
                                 const team = details.data;
                                 const card = document.getElementById(`team-card-${teamId}`);
                                 if (card) {
-                                    // Update member count text
-                                    // Need to find the element containing "X member(s)"
-                                    // It's inside .d-flex .align-items-center .text-muted.small
-                                    // Let's rely on the structure: <span class="text-muted small"><?= $team['member_count'] ?> member(s)</span>
-                                    // It's the only span.text-muted.small that ends with "member(s)" potentially.
-                                    // Better to assume structure or find by content.
-
+                                    // Update member count
                                     const memberCountSpan = Array.from(card.querySelectorAll('span.text-muted.small'))
                                         .find(el => el.textContent.includes('member(s)'));
 
@@ -532,16 +669,14 @@ require_once '../components/layout/header.php';
                                         memberCountSpan.textContent = `${team.member_count} member(s)`;
                                     }
 
-                                    // Update member names list
-                                    let namesDiv = card.querySelector('.text-truncate');
+                                    // Update or add member names display
                                     const names = team.members ? team.members.map(m => `${m.first_name} ${m.last_name}`).join(', ') : '';
+                                    let namesDiv = card.querySelector('.text-truncate');
 
                                     if (namesDiv) {
                                         // Update existing
                                         namesDiv.textContent = names;
                                         namesDiv.title = names;
-                                        // If names became empty (unlikely in assign, but possible in remove logic if we had it here), remove the block? 
-                                        // But here we are assigning, so it grows.
                                     } else if (team.members && team.members.length > 0) {
                                         // Create new block if it doesn't exist
                                         const buttonsDiv = card.querySelector('.d-flex.gap-2');
@@ -557,6 +692,11 @@ require_once '../components/layout/header.php';
                                             buttonsDiv.insertAdjacentHTML('beforebegin', membersHtml);
                                         }
                                     }
+                                }
+
+                                // If team details modal is open, refresh it
+                                if ($('#teamDetailsModal').hasClass('show')) {
+                                    displayTeamDetails(team);
                                 }
                             }
                         });
@@ -681,9 +821,15 @@ require_once '../components/layout/header.php';
                         <div class="avatar-circle me-2" style="width: 30px; height: 30px; font-size: 12px;">
                             ${member.first_name.charAt(0)}${member.last_name.charAt(0)}
                         </div>
-                        <div>
-                            <div class="fw-bold">${member.first_name} ${member.last_name}</div>
-                            <small class="text-muted">${member.designation_name || 'N/A'}</small>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold">
+                                ${member.first_name} ${member.last_name}
+                                ${member.role_in_team && (member.role_in_team.toLowerCase().includes('leader') || member.role_in_team.toLowerCase().includes('lead')) ?
+                '<i class="ti ti-star text-warning ms-1" title="Team Leader"></i>' : ''}
+                            </div>
+                            <small class="text-muted">
+                                ${member.role_in_team ? member.role_in_team : 'Member'} - ${member.designation_name || 'N/A'}
+                            </small>
                         </div>
                     </div>
                 `).join('') : '<p class="text-muted">No members assigned yet.</p>'}
@@ -694,6 +840,85 @@ require_once '../components/layout/header.php';
         $('#teamDetailsContent').html(html);
     }
 
+    function assignTeamLeader(teamId) {
+        // Reset form
+        $('#assignLeaderForm')[0].reset();
+        $('#leader_team_id').val(teamId);
+
+        // Load team members and current leaders
+        fetch(`/hrms/api/api_manager.php?action=get_team_details&team_id=${teamId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data.members) {
+                    const members = data.data.members;
+                    const leaderSelect = $('#leader_employee_id');
+                    leaderSelect.empty();
+                    leaderSelect.append('<option value="">Choose a member...</option>');
+
+                    // Find current leaders
+                    const currentLeaders = members.filter(m =>
+                        m.role_in_team && (m.role_in_team.toLowerCase().includes('leader') || m.role_in_team.toLowerCase().includes('lead'))
+                    );
+
+                    // Populate dropdown with all members
+                    members.forEach(member => {
+                        const isLeader = currentLeaders.some(l => l.employee_id === member.employee_id);
+                        leaderSelect.append(
+                            `<option value="${member.employee_id}">
+                                ${member.first_name} ${member.last_name} ${isLeader ? '(Current Leader)' : ''} - ${member.designation_name || 'N/A'}
+                            </option>`
+                        );
+                    });
+
+                    // Show current leaders info if any
+                    if (currentLeaders.length > 0) {
+                        const leaderNames = currentLeaders.map(l => `${l.first_name} ${l.last_name}`).join(', ');
+                        $('#currentLeadersText').text(`Current Team Leader(s): ${leaderNames}`);
+                        $('#currentLeadersInfo').removeClass('d-none');
+                    } else {
+                        $('#currentLeadersInfo').addClass('d-none');
+                    }
+
+                    $('#assignLeaderModal').modal('show');
+                } else {
+                    showToast('Failed to load team members', 'error');
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred while loading team members', 'error');
+            });
+    }
+
+    // Handle assign leader form submission
+    $('#assignLeaderForm').on('submit', function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        formData.append('action', 'update_team_member_role');
+
+        fetch('/hrms/api/api_manager.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    $('#assignLeaderModal').modal('hide');
+
+                    // Reload the page to reflect changes
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred. Please try again.', 'error');
+            });
+    });
+
     function editTeam(teamId) {
         fetch(`/hrms/api/api_manager.php?action=get_team_details&team_id=${teamId}`)
             .then(response => response.json())
@@ -703,7 +928,7 @@ require_once '../components/layout/header.php';
                     $('#edit_team_name').val(team.name);
                     $('#edit_team_description').val(team.description);
 
-                    // Create dynamic form for updating
+                    // Remove any previous handlers and attach new one with the correct teamId
                     $('#editTeamForm').off('submit').on('submit', function (e) {
                         e.preventDefault();
                         updateTeam(teamId);
@@ -715,6 +940,7 @@ require_once '../components/layout/header.php';
                 }
             })
             .catch(error => {
+                console.error('Error loading team:', error);
                 showToast('An error occurred. Please try again.', 'error');
             });
     }
@@ -826,6 +1052,77 @@ require_once '../components/layout/header.php';
                 .catch(error => {
                     showToast('An error occurred. Please try again.', 'error');
                 });
+        }
+    }
+
+    function loadEmployeesForCreateTeam() {
+        const container = document.getElementById('createTeamEmployeesContainer');
+        const spinner = container.querySelector('.spinner-border');
+        const dropdown = document.getElementById('create_team_leader');
+
+        fetch('/hrms/api/api_manager.php?action=get_available_employees')
+            .then(response => response.json())
+            .then(data => {
+                // Clear container but keep spinner logic if needed, or just rebuild
+                container.innerHTML = '';
+
+                // Clear leader dropdown
+                dropdown.innerHTML = '<option value="">Select a team leader (Optional)</option>';
+
+                if (data.success && data.data.length > 0) {
+                    const rowDiv = document.createElement('div');
+                    rowDiv.className = 'row';
+                    container.appendChild(rowDiv);
+
+                    data.data.forEach(employee => {
+                        // Populate checkbox list
+                        const col = document.createElement('div');
+                        col.className = 'col-md-6 col-lg-4 mb-2';
+                        col.innerHTML = `
+                            <div class="form-check">
+                                <input class="form-check-input create-emp-checkbox" type="checkbox" name="create_employee_ids[]"
+                                    value="${employee.id}" id="create_emp_${employee.id}" data-name="${employee.first_name} ${employee.last_name}">
+                                <label class="form-check-label" for="create_emp_${employee.id}">
+                                    <div class="fw-bold text-truncate" style="max-width: 150px;">
+                                        ${employee.first_name} ${employee.last_name}
+                                    </div>
+                                    <small class="text-muted">${employee.designation_name || 'N/A'}</small>
+                                </label>
+                            </div>
+                        `;
+                        rowDiv.appendChild(col);
+                    });
+                } else {
+                    container.innerHTML = '<div class="text-center text-muted">No employees available to assign.</div>';
+                }
+            })
+            .catch(error => {
+                container.innerHTML = '<div class="text-danger text-center">Failed to load employees.</div>';
+            });
+    }
+
+    function updateLeaderDropdown() {
+        const dropdown = document.getElementById('create_team_leader');
+        const selectedCheckboxes = document.querySelectorAll('.create-emp-checkbox:checked');
+
+        // Save current selection if any
+        const currentSelection = dropdown.value;
+
+        // Reset dropdown
+        dropdown.innerHTML = '<option value="">Select a team leader (Optional)</option>';
+
+        selectedCheckboxes.forEach(cb => {
+            const empId = cb.value;
+            const empName = cb.getAttribute('data-name');
+            const option = document.createElement('option');
+            option.value = empId;
+            option.text = empName;
+            dropdown.appendChild(option);
+        });
+
+        // Restore selection if still valid
+        if (currentSelection && document.querySelector(`.create-emp-checkbox[value="${currentSelection}"]:checked`)) {
+            dropdown.value = currentSelection;
         }
     }
 

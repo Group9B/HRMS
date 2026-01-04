@@ -55,13 +55,17 @@ $tasks_result = query($mysqli, "
 
 $tasks = $tasks_result['success'] ? $tasks_result['data'] : [];
 
-// Get team members for filter dropdown
+
+// Get team members for task assignment
 $team_members_result = query($mysqli, "
-    SELECT e.id, e.first_name, e.last_name, e.employee_code
+    SELECT DISTINCT e.id, e.first_name, e.last_name, e.employee_code, 
+           des.name as designation_name
     FROM employees e
-    WHERE e.department_id = ? AND e.status = 'active'
+    JOIN team_members tm ON e.id = tm.employee_id
+    LEFT JOIN designations des ON e.designation_id = des.id
+    WHERE tm.assigned_by = ? AND e.status = 'active'
     ORDER BY e.first_name ASC
-", [$manager_department_id]);
+", [$user_id]);
 
 $team_members = $team_members_result['success'] ? $team_members_result['data'] : [];
 
@@ -314,15 +318,11 @@ require_once '../components/layout/header.php';
                         <label for="task_employee" class="form-label">Assign To *</label>
                         <select class="form-select" id="task_employee" name="employee_id" required>
                             <option value="">Select Employee</option>
-                            <?php foreach ($team_members as $member):
-                                echo (($member["id"] === $user_id));
-                                ?>
-
+                            <?php foreach ($team_members as $member): ?>
                                 <option value="<?= $member['id'] ?>">
                                     <?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?>
                                 </option>
-                                <?php
-                            endforeach; ?>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -415,7 +415,8 @@ require_once '../components/layout/header.php';
                     </div>
                     <div class="mb-3">
                         <label for="edit_task_description" class="form-label">Description</label>
-                        <textarea class="form-control" id="edit_task_description" name="description" rows="3"></textarea>
+                        <textarea class="form-control" id="edit_task_description" name="description"
+                            rows="3"></textarea>
                     </div>
                     <div class="mb-3">
                         <label for="edit_task_due_date" class="form-label">Due Date</label>
