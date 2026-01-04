@@ -9,24 +9,29 @@ if (!isLoggedIn()) {
 
 $roleId = $_SESSION['role_id'] ?? 0;
 $userId = $_SESSION['user_id'];
+$userCompanyId = $_SESSION['company_id'] ?? 0;
 $isEmployee = ($roleId === 4);
 $isManager = ($roleId === 6);
 $isHR = ($roleId === 3);
+$isOwner = ($roleId === 2);
 
-if (!$isEmployee && !$isManager && !$isHR) {
+if (!$isEmployee && !$isManager && !$isHR && !$isOwner) {
     redirect("/hrms/pages/unauthorized.php");
 }
 
 $viewEmployeeId = null;
-$isOwner = false;
+$isViewingOwnProfile = false;
 
-if (($isManager || $isHR) && isset($_GET['employee_id'])) {
-    $viewEmployeeId = (int) $_GET['employee_id'];
-} else {
+// All roles can view other employees via emp_id parameter
+if (isset($_GET['emp_id'])) {
+    $viewEmployeeId = (int) $_GET['emp_id'];
+}
+// All roles can view their own profile by default
+else {
     $emp_result = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$userId]);
     if ($emp_result['success'] && !empty($emp_result['data'])) {
         $viewEmployeeId = $emp_result['data'][0]['id'];
-        $isOwner = true;
+        $isViewingOwnProfile = true;
     }
 }
 
@@ -87,7 +92,7 @@ require_once '../components/layout/header.php';
                                         </small>
                                     </div>
                                 </div>
-                                <?php if ($isOwner): ?>
+                                <?php if ($isViewingOwnProfile): ?>
                                     <div class="flex-shrink-0">
                                         <button class="btn btn-primary" id="editProfileBtnHeader">
                                             <i class="ti ti-edit me-2"></i>Edit Profile

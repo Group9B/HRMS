@@ -44,6 +44,7 @@ function calculateActualLeaveDays($start_date, $end_date, $holidays = [], $satur
     while ($current <= $end_date) {
         $date_str = $current->format('Y-m-d');
         $day_of_week = (int) $current->format('w');
+        $day_of_month = (int) $current->format('d');
 
         // Check if it's a holiday
         if (isset($holiday_dates[$date_str])) {
@@ -63,7 +64,10 @@ function calculateActualLeaveDays($start_date, $end_date, $holidays = [], $satur
                 $current->modify('+1 day');
                 continue;
             } elseif ($saturday_policy === '1st_3rd' || $saturday_policy === '2nd_4th') {
-                $saturday_of_month = ceil($current->format('d') / 7);
+                // Calculate which Saturday of the month (1st, 2nd, 3rd, 4th, 5th)
+                // Note: ceil() returns float, so cast to int for strict comparison
+                $saturday_of_month = (int) ceil($day_of_month / 7);
+
                 if (
                     ($saturday_policy === '1st_3rd' && ($saturday_of_month === 1 || $saturday_of_month === 3)) ||
                     ($saturday_policy === '2nd_4th' && ($saturday_of_month === 2 || $saturday_of_month === 4))
@@ -233,7 +237,7 @@ function getPendingLeavesForApprover($mysqli, $user_id, $role_id, $company_id)
             JOIN employees e ON l.employee_id = e.id
             JOIN users u ON e.user_id = u.id
             WHERE u.company_id = ?
-              AND l.status = 'pending'
+              AND (l.status = 'pending' OR (l.status = 'approved' AND MONTH(l.start_date) = MONTH(CURDATE()) AND YEAR(l.start_date) = YEAR(CURDATE())))
               AND e.user_id != ?
               AND (
                 (e.department_id = ? AND u.role_id = 4)
@@ -252,7 +256,7 @@ function getPendingLeavesForApprover($mysqli, $user_id, $role_id, $company_id)
             JOIN employees e ON l.employee_id = e.id
             JOIN users u ON e.user_id = u.id
             WHERE u.company_id = ?
-              AND l.status = 'pending'
+              AND (l.status = 'pending' OR (l.status = 'approved' AND MONTH(l.start_date) = MONTH(CURDATE()) AND YEAR(l.start_date) = YEAR(CURDATE())))
               AND u.role_id IN (4, 6)
               AND e.user_id != ?
             ORDER BY l.applied_at DESC
@@ -268,7 +272,7 @@ function getPendingLeavesForApprover($mysqli, $user_id, $role_id, $company_id)
             JOIN employees e ON l.employee_id = e.id
             JOIN users u ON e.user_id = u.id
             WHERE u.company_id = ?
-              AND l.status = 'pending'
+              AND (l.status = 'pending' OR (l.status = 'approved' AND MONTH(l.start_date) = MONTH(CURDATE()) AND YEAR(l.start_date) = YEAR(CURDATE())))
               AND u.role_id IN (3, 4, 6)
             ORDER BY l.applied_at DESC
         ", [$company_id])['data'] ?? [];
@@ -341,8 +345,8 @@ switch ($action) {
         // Calculate used days per leave type
         $used_map = [];
         foreach ($approved_leaves as $leave) {
-            $start = new DateTime($leave['start_date']);
-            $end = new DateTime($leave['end_date']);
+            $start = new DateTime($leave['start_date'], new DateTimeZone('UTC'));
+            $end = new DateTime($leave['end_date'], new DateTimeZone('UTC'));
             $actual_days = calculateActualLeaveDays($start, $end, $holiday_dates, $saturday_policy);
 
             if (!isset($used_map[$leave['leave_type']])) {
@@ -358,7 +362,8 @@ switch ($action) {
             $balances[] = [
                 'type' => $policy['leave_type'],
                 'balance' => max(0, $policy['days_per_year'] - $used),
-                'total' => $policy['days_per_year']
+                'total' => $policy['days_per_year'],
+                'used' => $used
             ];
         }
 

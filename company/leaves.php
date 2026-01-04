@@ -60,7 +60,7 @@ require_once '../components/layout/header.php';
                             <h6 class="m-0">Employee Leave Requests</h6>
                             <a href="/hrms/company/leave_policy.php" class="btn btn-outline-secondary btn-sm"><i class="ti ti-settings me-1"></i> Manage Policies</a>
                         </div>
-                        <div class="card-body"><table class="table table-hover" id="approveRequestsTable" width="100%"><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead></table></div>
+                        <div class="card-body"><table class="table table-hover" id="approveRequestsTable" width="100%"><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead></table></div>
                     </div>
                 </div>
             <?php endif; ?>
@@ -95,7 +95,10 @@ require_once '../components/layout/header.php';
                 columns: [
                     { data: 'leave_type' },
                     { data: null, render: (d, t, r) => `${formatDate(r.start_date)} to ${formatDate(r.end_date)}` },
-                    { data: null, render: (d, t, r) => countDays(r.start_date, r.end_date) },
+                    { data: null, render: (d, t, r) => {
+                        const saturPolicy = document.querySelector('[data-saturday-policy]').dataset.saturdayPolicy;
+                        return getActualLeaveDays(r.start_date, r.end_date, saturPolicy);
+                    }},
                     { data: 'status', render: (d) => `<span class="badge bg-${getStatusClass(d)}-subtle text-${getStatusClass(d)}-emphasis">${capitalize(d)}</span>` },
                     { data: null, orderable: false, render: (d, t, r) => r.status === 'pending' ? `<button class="btn btn-sm btn-outline-danger cancel-leave-btn" data-leave-id="${escapeHTML(r.id)}" title="Cancel">Cancel</button>` : '---' }
                 ], order: [[1, 'desc']]
@@ -105,9 +108,13 @@ require_once '../components/layout/header.php';
             approveRequestsTable = $('#approveRequestsTable').DataTable({
                 responsive: true, ajax: { url: '/hrms/api/api_leaves.php?action=get_pending_requests', dataSrc: 'data' },
                 columns: [
-                    { data: null, render: (d, t, r) => `${escapeHTML(r.first_name)} ${escapeHTML(r.last_name)}` },
+                    { data: null, render: (d, t, r) => `<a href="/hrms/employee/profile.php?emp_id=${r.emp_id}" class="text-decoration-none text-body">${escapeHTML(r.first_name)} ${escapeHTML(r.last_name)}<i class="ti ti-arrow-up-right"></i></a>` },
                     { data: 'leave_type' },
                     { data: null, render: (d, t, r) => `${formatDate(r.start_date)} to ${formatDate(r.end_date)}` },
+                    { data: null, render: (d, t, r) => {
+                        const saturPolicy = document.querySelector('[data-saturday-policy]').dataset.saturdayPolicy;
+                        return getActualLeaveDays(r.start_date, r.end_date, saturPolicy);
+                    }},
                     { data: 'reason', render: d => `<small>${escapeHTML(d) || 'N/A'}</small>` },
                     { data: 'status', render: d => `<span class="badge bg-${getStatusClass(d)}-subtle bg-opacity-10 text-${getStatusClass(d)}-emphasis">${capitalize(d)}</span>` },
                     { data: null, orderable: false, render: (d, t, r) => r.status === 'pending' ? `<div class="btn-group btn-group-sm"><button class="btn btn-outline-success approve-leave-btn" data-leave-id="${escapeHTML(r.id)}" data-action="approved" title="Approve">Approve</button><button class="btn btn-outline-danger reject-leave-btn" data-leave-id="${escapeHTML(r.id)}" data-action="rejected" title="Reject">Reject</button></div>` : 'Actioned' }
@@ -137,48 +144,79 @@ require_once '../components/layout/header.php';
             if(result.success) {
                 const { balances, next_holiday, policy_document } = result.data;
                 
-                // Create a grid layout with leave balances on left, holiday and policy on right
-                let summaryHTML = '';
+                // Create single accordion containing all three cards
+                let summaryHTML = `<div class="col-12 mb-4">
+                    <div class="accordion shadow-sm" id="leaveSummaryAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#allSummaryCollapse" aria-expanded="true" aria-controls="allSummaryCollapse">
+                                    <i class="ti ti-layout-grid me-2"></i> Leave Summary
+                                </button>
+                            </h2>
+                            <div id="allSummaryCollapse" class="accordion-collapse collapse show" data-bs-parent="#leaveSummaryAccordion">
+                                <div class="accordion-body p-3">
+                                    <div class="row">`;
                 
-                // Left column - Leave balances
+                // Card 1 - Leave Balance
                 if (balances.length > 0) {
-                    summaryHTML += `<div class="col-lg-8 col-md-12 mb-4">
-                        <div class="card shadow-sm h-100">
-                            <div class="card-header"><h6 class="m-0">Leave Balance</h6></div>
-                            <div class="card-body">
-                                <div class="row" id="leave-balance-container">`;
-                    balances.forEach(b => {
-                        summaryHTML += `<div class="col-md-6 col-lg-4 mb-3">
-                            <div class="text-center p-3 border rounded-3">
-                                <p class="text-muted small mb-1">${escapeHTML(b.type)}</p>
-                                <p class="fs-4 fw-bold mb-0"><span class="text-primary">${b.balance}</span> / <small class="text-muted">${b.total}</small></p>
+                    summaryHTML += `<div class="col-lg-6 col-md-12 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="ti ti-wallet me-2"></i>Leave Balance</h6>
                             </div>
-                        </div>`;
-                    });
-                    summaryHTML += `</div></div></div></div>`;
-                }
-                
-                // Right column - Holiday and Policy
-                summaryHTML += `<div class="col-lg-4 col-md-12">
-                    <div class="row">
-                        <div class="col-12 mb-4">
-                            <div class="card shadow-sm h-100">
-                                <div class="card-header"><h6 class="m-0">Upcoming Holiday</h6></div>
-                                <div class="card-body text-center d-flex flex-column justify-content-center">
-                                    ${next_holiday ? `<p class="fs-5 fw-bold mb-1">${escapeHTML(next_holiday.holiday_name)}</p><p class="text-muted mb-0 small">${formatDate(next_holiday.holiday_date, true)}</p>` : '<p class="text-muted">No upcoming holidays</p>'}
+                            <div class="card-body p-0">
+                                <ul class="list-group list-group-flush">`;
+                    balances.forEach((b) => {
+                        const used = b.used !== undefined ? b.used : (b.total - b.balance);
+                        const percentage = (used / b.total * 100).toFixed(0);
+                        const progressColor = b.balance > b.total * 0.5 ? 'success' : (b.balance > b.total * 0.25 ? 'warning' : 'danger');
+                        summaryHTML += `<li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div class="flex-grow-1">
+                                <p class="mb-2 fw-medium small">${escapeHTML(b.type)}</p>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-${progressColor}" role="progressbar" style="width: ${percentage}%;" aria-valuenow="${used}" aria-valuemin="0" aria-valuemax="${b.total}"></div>
                                 </div>
+                                <small class="text-muted">${used} of ${b.total} days used</small>
+                            </div>
+                            <div class="text-end ms-3">
+                                <p class="fs-6 fw-bold mb-0"><span class="text-${progressColor}">${b.balance}</span></p>
+                            </div>
+                        </li>`;
+                    });
+                    summaryHTML += `</ul>
                             </div>
                         </div>
-                        <div class="col-12">
-                            <div class="card shadow-sm h-100">
-                                <div class="card-header"><h6 class="m-0">Company Policy</h6></div>
-                                <div class="card-body text-center d-flex flex-column justify-content-center align-items-center">
-                                    ${policy_document ? `<button class="btn btn-outline-primary btn-sm view-policy-btn" data-doc-id="${escapeHTML(policy_document.id)}"><i class="ti ti-file-pdf me-2"></i>View Policy</button>` : '<p class="text-muted small mb-0">No policy available</p>'}
-                                </div>
-                            </div>
+                    </div>`;
+                }
+                
+                // Card 2 - Upcoming Holiday
+                summaryHTML += `<div class="col-lg-3 col-md-12 mb-3">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="ti ti-calendar me-2"></i>Upcoming Holiday</h6>
+                        </div>
+                        <div class="card-body d-flex flex-column justify-content-center text-center">
+                            ${next_holiday ? `<p class="fs-6 fw-bold mb-2">${escapeHTML(next_holiday.holiday_name)}</p><p class="text-muted mb-0 small">${formatDate(next_holiday.holiday_date, true)}</p>` : '<p class="text-muted small">No upcoming holidays</p>'}
                         </div>
                     </div>
                 </div>`;
+                
+                // Card 3 - Company Policy
+                summaryHTML += `<div class="col-lg-3 col-md-12 mb-3">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="ti ti-file-text me-2"></i>Company Policy</h6>
+                        </div>
+                        <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                            ${policy_document ? `<button class="btn btn-outline-primary btn-sm view-policy-btn" data-doc-id="${escapeHTML(policy_document.id)}"><i class="ti ti-file-pdf me-2"></i>View Policy</button>` : '<p class="text-muted small mb-0">No policy available</p>'}
+                        </div>
+                    </div>
+                </div>
+                
+                    </div>
+                </div>
+            </div>
+        </div></div>`;
                 
                 $('#leave-summary-row').html(summaryHTML);
             }
@@ -224,6 +262,58 @@ require_once '../components/layout/header.php';
             'btn-danger'
         );
     });
+
+    // Approve leave function for dropdown action
+    function approveLeave(leaveId) {
+        if (!leaveId) {
+            showToast('Invalid leave request.', 'error');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('action', 'approve_or_reject');
+        formData.append('leave_id', leaveId);
+        formData.append('action_type', 'approve');
+        fetch('/hrms/api/api_leaves.php', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    showToast(d.message, 'success');
+                    if(approveRequestsTable) approveRequestsTable.ajax.reload();
+                    if(myRequestsTable) myRequestsTable.ajax.reload();
+                    loadLeaveSummary();
+                } else {
+                    showToast(d.message, 'error');
+                }
+            })
+            .catch(err => showToast('Error approving leave', 'error'));
+    }
+
+    // Reject leave function for dropdown action
+    function rejectLeave(leaveId) {
+        if (!leaveId) {
+            showToast('Invalid leave request.', 'error');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('action', 'approve_or_reject');
+        formData.append('leave_id', leaveId);
+        formData.append('action_type', 'reject');
+        fetch('/hrms/api/api_leaves.php', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    showToast(d.message, 'success');
+                    if(approveRequestsTable) approveRequestsTable.ajax.reload();
+                    if(myRequestsTable) myRequestsTable.ajax.reload();
+                    loadLeaveSummary();
+                } else {
+                    showToast(d.message, 'error');
+                }
+            })
+            .catch(err => showToast('Error rejecting leave', 'error'));
+    }
 
     // Event delegation for approve/reject buttons
     $(document).on('click', '.approve-leave-btn, .reject-leave-btn', function() {
@@ -350,15 +440,12 @@ require_once '../components/layout/header.php';
                         actualDays++;
                     }
                 } else {
-                    // 'none' policy - don't skip Saturdays
                     actualDays++;
                 }
             } else {
-                // Regular weekday (Monday-Friday)
                 actualDays++;
             }
             
-            // Move to next day
             currentDate.setUTCDate(currentDate.getUTCDate() + 1);
         }
         
@@ -377,9 +464,84 @@ require_once '../components/layout/header.php';
             $('#saturdaysText').hide();
         }
         
-        $('#holidaysText').hide(); // Holidays would need server-side data, shown on submission
+        $('#holidaysText').hide(); 
         $('#actualDaysText').text(actualDays);
         $('#leaveDaysCalculation').show();
+    }
+
+    function getActualLeaveDays(startDateStr, endDateStr, saturdayPolicy) {
+        const startDate = new Date(startDateStr + 'T00:00:00Z');
+        const endDate = new Date(endDateStr + 'T00:00:00Z');
+        
+        // Calculate total calendar days
+        const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+        
+        // Initialize counters
+        let sundaysSkipped = 0;
+        let saturdaysSkipped = 0;
+        let actualDays = 0;
+        
+        // Loop through each day
+        let currentDate = new Date(startDate);
+        while (currentDate <= endDate) {
+            const dayOfWeek = currentDate.getUTCDay(); // 0 = Sunday, 6 = Saturday
+            
+            // Check if it's a Sunday - always skip
+            if (dayOfWeek === 0) {
+                sundaysSkipped++;
+            }
+            // Check if it's a Saturday
+            else if (dayOfWeek === 6) {
+                // Skip based on company policy
+                if (saturdayPolicy === 'all') {
+                    saturdaysSkipped++;
+                } else if (saturdayPolicy === '1st_3rd' && isFirst3rdSaturday(currentDate)) {
+                    saturdaysSkipped++;
+                } else if (saturdayPolicy === '2nd_4th' && isSecond4thSaturday(currentDate)) {
+                    saturdaysSkipped++;
+                } else {
+                    actualDays++;
+                }
+            } else {
+                actualDays++;
+            }
+            
+            currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+        }
+        
+        return actualDays;
+    }
+
+    function isFirst3rdSaturday(date) {
+        const saturdays = [];
+        const month = date.getUTCMonth();
+        const year = date.getUTCFullYear();
+        
+        let current = new Date(Date.UTC(year, month, 1));
+        while (current.getUTCMonth() === month) {
+            if (current.getUTCDay() === 6) {
+                saturdays.push(new Date(current));
+            }
+            current.setUTCDate(current.getUTCDate() + 1);
+        }
+        
+        return saturdays.length >= 3 && (date.getTime() === saturdays[0].getTime() || date.getTime() === saturdays[2].getTime());
+    }
+
+    function isSecond4thSaturday(date) {
+        const saturdays = [];
+        const month = date.getUTCMonth();
+        const year = date.getUTCFullYear();
+        
+        let current = new Date(Date.UTC(year, month, 1));
+        while (current.getUTCMonth() === month) {
+            if (current.getUTCDay() === 6) {
+                saturdays.push(new Date(current));
+            }
+            current.setUTCDate(current.getUTCDate() + 1);
+        }
+        
+        return saturdays.length >= 4 && (date.getTime() === saturdays[1].getTime() || date.getTime() === saturdays[3].getTime());
     }
  </script>
 
