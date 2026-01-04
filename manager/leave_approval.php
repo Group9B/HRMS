@@ -101,52 +101,7 @@ require_once '../components/layout/header.php';
         </div>
 
         <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-warning"><i class="ti ti-clock"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['pending'] ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-success"><i class="ti ti-check"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Approved</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['approved'] ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-danger"><i class="ti ti-x"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Rejected</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['rejected'] ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-secondary"><i class="ti ti-ban"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Cancelled</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['cancelled'] ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div id="leaveStats" class="row mb-4"></div>
 
         <!-- Filters -->
         <div class="card shadow-sm mb-4">
@@ -346,39 +301,18 @@ require_once '../components/layout/header.php';
 
 <?php require_once '../components/layout/footer.php'; ?>
 
-<style>
-    .avatar-circle {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: linear-gradient(45deg, #4e73df, #36b9cc);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 14px;
-    }
 
-    .stat-card .card-body {
-        display: flex;
-        align-items: center;
-    }
-
-    .icon-circle {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 15px;
-        color: white;
-        font-size: 20px;
-    }
-</style>
 
 <script>
+    // Render Stats using global function
+    const leaveStats = [
+        { label: 'Pending', value: '<?= $stats['pending'] ?>', color: 'warning', icon: 'clock' },
+        { label: 'Approved', value: '<?= $stats['approved'] ?>', color: 'success', icon: 'check' },
+        { label: 'Rejected', value: '<?= $stats['rejected'] ?>', color: 'danger', icon: 'x' },
+        { label: 'Cancelled', value: '<?= $stats['cancelled'] ?>', color: 'secondary', icon: 'ban' }
+    ];
+    renderStatCards('leaveStats', leaveStats);
+
     $(document).ready(function () {
         // Initialize DataTable
         $('#leavesTable').DataTable({

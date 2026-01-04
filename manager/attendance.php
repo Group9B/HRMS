@@ -27,8 +27,24 @@ $employee_filter = $_GET['employee_id'] ?? '';
 $status_filter = $_GET['status'] ?? '';
 
 // Build query conditions
-$where_conditions = ["e.department_id = ?", "a.date = ?"];
-$params = [$manager_department_id, $date_filter];
+// Get all team members first (same logic as dashboard/tasks)
+$team_members_result = query($mysqli, "
+    SELECT DISTINCT e.id, e.first_name, e.last_name, e.employee_code
+    FROM employees e
+    LEFT JOIN team_members tm ON e.id = tm.employee_id
+    LEFT JOIN teams t ON tm.team_id = t.id
+    WHERE (e.department_id = ? OR t.created_by = ?) 
+    AND e.status = 'active'
+    ORDER BY e.first_name ASC
+", [$manager_department_id, $user_id]);
+
+$team_members = $team_members_result['success'] ? $team_members_result['data'] : [];
+$team_member_ids = array_column($team_members, 'id');
+$ids_placeholder = !empty($team_member_ids) ? implode(',', array_map('intval', $team_member_ids)) : '0';
+
+// Build query conditions
+$where_conditions = ["e.id IN ($ids_placeholder)", "a.date = ?"];
+$params = [$date_filter];
 
 if (!empty($employee_filter)) {
     $where_conditions[] = "a.employee_id = ?";
@@ -56,15 +72,7 @@ $attendance_result = query($mysqli, "
 
 $attendance_records = $attendance_result['success'] ? $attendance_result['data'] : [];
 
-// Get team members for filter dropdown
-$team_members_result = query($mysqli, "
-    SELECT e.id, e.first_name, e.last_name, e.employee_code
-    FROM employees e
-    WHERE e.department_id = ? AND e.status = 'active'
-    ORDER BY e.first_name ASC
-", [$manager_department_id]);
 
-$team_members = $team_members_result['success'] ? $team_members_result['data'] : [];
 
 // Get attendance statistics for the selected date
 $stats_result = query($mysqli, "
@@ -76,8 +84,8 @@ $stats_result = query($mysqli, "
         COUNT(CASE WHEN a.status = 'holiday' THEN 1 END) as holiday
     FROM attendance a
     JOIN employees e ON a.employee_id = e.id
-    WHERE e.department_id = ? AND a.date = ?
-", [$manager_department_id, $date_filter]);
+    WHERE e.id IN ($ids_placeholder) AND a.date = ?
+", [$date_filter]);
 
 $stats = $stats_result['success'] ? $stats_result['data'][0] : [
     'present' => 0,
@@ -91,8 +99,8 @@ $stats = $stats_result['success'] ? $stats_result['data'][0] : [
 $total_team_result = query($mysqli, "
     SELECT COUNT(*) as total
     FROM employees e
-    WHERE e.department_id = ? AND e.status = 'active'
-", [$manager_department_id]);
+    WHERE e.id IN ($ids_placeholder) AND e.status = 'active'
+", []);
 
 $total_team = $total_team_result['success'] ? $total_team_result['data'][0]['total'] : 0;
 
@@ -117,74 +125,7 @@ require_once '../components/layout/header.php';
         </div>
 
         <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-xl-2 col-md-4 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-success"><i class="ti ti-check"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Present</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['present'] ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-2 col-md-4 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-danger"><i class="ti ti-x"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Absent</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['absent'] ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-2 col-md-4 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-warning"><i class="ti ti-plane"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">On Leave</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['on_leave'] ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-2 col-md-4 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-info"><i class="ti ti-clock"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Half Day</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['half_day'] ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-2 col-md-4 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-secondary"><i class="ti ti-calendar"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Holiday</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['holiday'] ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-2 col-md-4 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-primary"><i class="ti ti-users"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $total_team ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div id="attendanceStats" class="row mb-4"></div>
 
         <!-- Filters -->
         <div class="card shadow-sm mb-4">
@@ -415,58 +356,20 @@ require_once '../components/layout/header.php';
 
 <?php require_once '../components/layout/footer.php'; ?>
 
-<style>
-.avatar-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(45deg, #4e73df, #36b9cc);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-}
 
-.stat-card {
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 14px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-}
-.stat-card .card-body {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding-top: 14px;
-    padding-bottom: 14px;
-}
-
-.icon-circle {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 6px;
-    color: white;
-    font-size: 20px;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-}
-
-.stat-card .text-xs {
-    letter-spacing: .03em;
-    opacity: .9;
-}
-
-.stat-card .h5 {
-    margin: 0;
-}
-</style>
 
 <script>
-$(document).ready(function() {
+    // Render Stats using global function
+    const attendanceStats = [
+        { label: 'Present', value: '<?= $stats['present'] ?>', color: 'success', icon: 'check' },
+        { label: 'Absent', value: '<?= $stats['absent'] ?>', color: 'danger', icon: 'x' },
+        { label: 'On Leave', value: '<?= $stats['on_leave'] ?>', color: 'warning', icon: 'plane' },
+        { label: 'Half Day', value: '<?= $stats['half_day'] ?>', color: 'info', icon: 'clock' },
+        { label: 'Holiday', value: '<?= $stats['holiday'] ?>', color: 'secondary', icon: 'calendar' },
+        { label: 'Total', value: '<?= $total_team ?>', color: 'primary', icon: 'users' }
+    ];
+    renderStatCards('attendanceStats', attendanceStats);
+
     // Initialize DataTable
     $('#attendanceTable').DataTable({
         responsive: true,

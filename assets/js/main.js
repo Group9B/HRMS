@@ -546,15 +546,17 @@ function createActionDropdown(config, options = {}) {
  */
 function createStatCard(label, value, color, icon) {
 	return `
-		<div class="col-xl-3 col-md-6 mb-3">
-			<div class="card shadow-sm">
+		<div class="col-xl-3 col-md-6 mb-4"> <!-- Increased margin bottom to match standard -->
+			<div class="card stat-card shadow-sm h-100">
 				<div class="card-body">
-					<div class="d-flex justify-content-between align-items-center">
-						<div>
-							<div class="text-xs font-weight-bold text-uppercase mb-1">${label}</div>
-							<div class="h5 mb-0 font-weight-bold" style="color: var(--bs-${color});">${value}</div>
+					<div class="d-flex align-items-center">
+						<div class="icon-circle bg-${color}">
+							<i class="ti ti-${icon}"></i>
 						</div>
-						<i class="ti ti-${icon} text-${color}" style="font-size: 2.5rem; opacity: 0.5;"></i>
+						<div>
+							<div class="text-xs font-weight-bold text-${color} text-uppercase mb-1">${label}</div>
+							<div class="h5 mb-0 font-weight-bold text-gray-800">${value}</div>
+						</div>
 					</div>
 				</div>
 			</div>

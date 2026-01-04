@@ -120,52 +120,7 @@ require_once '../components/layout/header.php';
         </div>
 
         <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-warning"><i class="ti ti-clock"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['pending'] ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-info"><i class="ti ti-play"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">In Progress</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['in_progress'] ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-success"><i class="ti ti-check"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Completed</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['completed'] ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-danger"><i class="ti ti-x"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Cancelled</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['cancelled'] ?></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div id="taskStats" class="row mb-4"></div>
 
         <!-- Filters -->
         <div class="card shadow-sm mb-4">
@@ -495,6 +450,15 @@ require_once '../components/layout/header.php';
 
 <?php require_once '../components/layout/footer.php'; ?>
 <script>
+    // Render Stats using global function
+    const taskStats = [
+        { label: 'Pending', value: '<?= $stats['pending'] ?>', color: 'warning', icon: 'clock' },
+        { label: 'In Progress', value: '<?= $stats['in_progress'] ?>', color: 'info', icon: 'play' },
+        { label: 'Completed', value: '<?= $stats['completed'] ?>', color: 'success', icon: 'check' },
+        { label: 'Cancelled', value: '<?= $stats['cancelled'] ?>', color: 'danger', icon: 'x' }
+    ];
+    renderStatCards('taskStats', taskStats);
+
     $(document).ready(function () {
         // Handle employee selection to fetch teams
         $('#task_employee').on('change', function () {

@@ -140,56 +140,7 @@ require_once '../components/layout/header.php';
         </h2>
 
         <!-- Stat Cards Row -->
-        <div class="row">
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-primary"><i class="ti ti-users"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Team Members</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $team_stats['total_team_members'] ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-warning"><i class="ti ti-clock"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Leaves</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $team_stats['pending_leaves'] ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-info"><i class="ti ti-checklist"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Pending Tasks</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $team_stats['pending_tasks'] ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card shadow-sm">
-                    <div class="card-body">
-                        <div class="icon-circle bg-success"><i class="ti ti-circle-check"></i></div>
-                        <div>
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Completed Tasks</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $team_stats['completed_tasks'] ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div id="dashboardStats" class="row"></div>
 
         <!-- Main Content Row -->
         <div class="row">
@@ -366,6 +317,15 @@ require_once '../components/layout/header.php';
 </style>
 
 <script>
+    // Render Stats using global function
+    const dashboardStats = [
+        { label: 'Team Members', value: '<?= $team_stats['total_team_members'] ?>', color: 'primary', icon: 'users' },
+        { label: 'Pending Leaves', value: '<?= $team_stats['pending_leaves'] ?>', color: 'warning', icon: 'clock' },
+        { label: 'Pending Tasks', value: '<?= $team_stats['pending_tasks'] ?>', color: 'info', icon: 'checklist' },
+        { label: 'Completed Tasks', value: '<?= $team_stats['completed_tasks'] ?>', color: 'success', icon: 'circle-check' }
+    ];
+    renderStatCards('dashboardStats', dashboardStats);
+
     function approveLeave(leaveId) {
         if (confirm('Are you sure you want to approve this leave request?')) {
             fetch('/hrms/api/api_manager.php', {
