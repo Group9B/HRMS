@@ -380,7 +380,7 @@ switch ($action) {
         $policy_doc = query(
             $mysqli,
             "SELECT id, doc_name FROM documents 
-             WHERE company_id = ? AND related_type = 'policy' 
+             WHERE related_id = ? AND related_type = 'policy' 
              ORDER BY uploaded_at DESC LIMIT 1",
             [$company_id]
         )['data'][0] ?? null;

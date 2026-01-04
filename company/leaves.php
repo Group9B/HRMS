@@ -144,81 +144,146 @@ require_once '../components/layout/header.php';
             if(result.success) {
                 const { balances, next_holiday, policy_document } = result.data;
                 
-                // Create single accordion containing all three cards
-                let summaryHTML = `<div class="col-12 mb-4">
-                    <div class="accordion shadow-sm" id="leaveSummaryAccordion">
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#allSummaryCollapse" aria-expanded="true" aria-controls="allSummaryCollapse">
-                                    <i class="ti ti-layout-grid me-2"></i> Leave Summary
-                                </button>
-                            </h2>
-                            <div id="allSummaryCollapse" class="accordion-collapse collapse show" data-bs-parent="#leaveSummaryAccordion">
-                                <div class="accordion-body p-3">
-                                    <div class="row">`;
+                // Calculate total remaining days
+                const totalRemaining = balances.reduce((sum, b) => sum + b.balance, 0);
+                const totalAllotted = balances.reduce((sum, b) => sum + b.total, 0);
                 
-                // Card 1 - Leave Balance
-                if (balances.length > 0) {
-                    summaryHTML += `<div class="col-lg-6 col-md-12 mb-3">
-                        <div class="card h-100">
-                            <div class="card-header">
-                                <h6 class="mb-0"><i class="ti ti-wallet me-2"></i>Leave Balance</h6>
-                            </div>
-                            <div class="card-body p-0">
-                                <ul class="list-group list-group-flush">`;
-                    balances.forEach((b) => {
-                        const used = b.used !== undefined ? b.used : (b.total - b.balance);
-                        const percentage = (used / b.total * 100).toFixed(0);
-                        const progressColor = b.balance > b.total * 0.5 ? 'success' : (b.balance > b.total * 0.25 ? 'warning' : 'danger');
-                        summaryHTML += `<li class="list-group-item d-flex justify-content-between align-items-center py-3">
-                            <div class="flex-grow-1">
-                                <p class="mb-2 fw-medium small">${escapeHTML(b.type)}</p>
-                                <div class="progress" style="height: 6px;">
-                                    <div class="progress-bar bg-${progressColor}" role="progressbar" style="width: ${percentage}%;" aria-valuenow="${used}" aria-valuemin="0" aria-valuemax="${b.total}"></div>
+                // Find Annual Leave for priority display
+                const annualLeave = balances.find(b => b.type.toLowerCase().includes('annual'));
+                
+                // Build redesigned summary
+                let summaryHTML = `
+                <div class="col-12 mb-4">
+                    <!-- Summary Header -->
+                    <div class="card shadow-sm border-0 mb-3">
+                        <div class="card-body py-3">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                                            <i class="ti ti-calendar-stats fs-3 text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="mb-0 fw-bold">You have <span class="text-primary">${totalRemaining}</span> leave days remaining</h4>
+                                            <small class="text-muted">Out of ${totalAllotted} total days allocated this year</small>
+                                        </div>
+                                    </div>
                                 </div>
-                                <small class="text-muted">${used} of ${b.total} days used</small>
-                            </div>
-                            <div class="text-end ms-3">
-                                <p class="fs-6 fw-bold mb-0"><span class="text-${progressColor}">${b.balance}</span></p>
-                            </div>
-                        </li>`;
-                    });
-                    summaryHTML += `</ul>
+                                <div class="col-md-6 mt-3 mt-md-0">
+                                    <div class="d-flex justify-content-md-end align-items-center gap-3 flex-wrap">
+                                        ${next_holiday ? `
+                                        <div class="d-flex align-items-center bg-body-secondary rounded-3 px-3 py-2">
+                                            <i class="ti ti-beach text-success me-2"></i>
+                                            <div>
+                                                <small class="text-muted d-block" style="font-size: 0.7rem;">NEXT HOLIDAY</small>
+                                                <span class="fw-semibold small">${escapeHTML(next_holiday.holiday_name)}</span>
+                                                <span class="text-muted small ms-1">(${formatDate(next_holiday.holiday_date)})</span>
+                                            </div>
+                                        </div>` : ''}
+                                        ${policy_document ? `
+                                        <button class="btn btn-outline-secondary btn-sm view-policy-btn" data-doc-id="${escapeHTML(policy_document.id)}">
+                                            <i class="ti ti-file-description me-1"></i> Policy
+                                        </button>` : ''}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>`;
-                }
+                    </div>
+                    
+                    <!-- Leave Balance Grid -->
+                    <div class="row g-3">`;
                 
-                // Card 2 - Upcoming Holiday
-                summaryHTML += `<div class="col-lg-3 col-md-12 mb-3">
-                    <div class="card h-100">
-                        <div class="card-header">
-                            <h6 class="mb-0"><i class="ti ti-calendar me-2"></i>Upcoming Holiday</h6>
-                        </div>
-                        <div class="card-body d-flex flex-column justify-content-center text-center">
-                            ${next_holiday ? `<p class="fs-6 fw-bold mb-2">${escapeHTML(next_holiday.holiday_name)}</p><p class="text-muted mb-0 small">${formatDate(next_holiday.holiday_date, true)}</p>` : '<p class="text-muted small">No upcoming holidays</p>'}
-                        </div>
+                // Sort balances: Annual leave first, then by remaining balance (lowest first for urgency)
+                const sortedBalances = [...balances].sort((a, b) => {
+                    const aIsAnnual = a.type.toLowerCase().includes('annual');
+                    const bIsAnnual = b.type.toLowerCase().includes('annual');
+                    if (aIsAnnual && !bIsAnnual) return -1;
+                    if (!aIsAnnual && bIsAnnual) return 1;
+                    return a.balance - b.balance; // Lower balance = higher priority
+                });
+                
+                sortedBalances.forEach((b, index) => {
+                    const used = b.used !== undefined ? b.used : (b.total - b.balance);
+                    const percentageUsed = Math.round((used / b.total) * 100);
+                    const percentageRemaining = 100 - percentageUsed;
+                    const isAnnual = b.type.toLowerCase().includes('annual');
+                    
+                    // Determine urgency level
+                    let urgencyClass, urgencyBg, urgencyText, urgencyIcon, microGuidance;
+                    if (b.balance === 0) {
+                        urgencyClass = 'danger';
+                        urgencyBg = 'bg-danger bg-opacity-10';
+                        urgencyText = 'text-danger';
+                        urgencyIcon = 'ti-alert-circle';
+                        microGuidance = '<span class="badge bg-danger-subtle text-danger-emphasis small"><i class="ti ti-alert-circle me-1"></i>Exhausted</span>';
+                    } else if (b.balance <= b.total * 0.25) {
+                        urgencyClass = 'warning';
+                        urgencyBg = 'bg-warning bg-opacity-10';
+                        urgencyText = 'text-warning';
+                        urgencyIcon = 'ti-alert-triangle';
+                        microGuidance = '<span class="badge bg-warning-subtle text-warning-emphasis small"><i class="ti ti-alert-triangle me-1"></i>Almost exhausted</span>';
+                    } else if (b.balance <= b.total * 0.5) {
+                        urgencyClass = 'info';
+                        urgencyBg = 'bg-info bg-opacity-10';
+                        urgencyText = 'text-info';
+                        urgencyIcon = 'ti-info-circle';
+                        microGuidance = '<span class="badge bg-info-subtle text-info-emphasis small"><i class="ti ti-info-circle me-1"></i>Running low</span>';
+                    } else {
+                        urgencyClass = 'success';
+                        urgencyBg = 'bg-success bg-opacity-10';
+                        urgencyText = 'text-success';
+                        urgencyIcon = 'ti-circle-check';
+                        microGuidance = '';
+                    }
+                    
+                    // Card size: Annual leave gets full width on mobile, half on desktop
+                    const colClass = isAnnual ? 'col-12 col-md-6' : 'col-6 col-md-3';
+                    const cardBorder = isAnnual ? `border-start border-4 border-${urgencyClass}` : '';
+                    
+                    summaryHTML += `
+                        <div class="${colClass}">
+                            <div class="card h-100 shadow-sm ${cardBorder}" style="transition: transform 0.2s;">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="d-flex align-items-center">
+                                            ${isAnnual ? `<span class="badge bg-primary-subtle text-primary-emphasis me-2 small">Primary</span>` : ''}
+                                            <h6 class="mb-0 ${isAnnual ? 'fw-bold' : 'fw-medium'} ${!isAnnual ? 'text-muted small' : ''}">${escapeHTML(b.type)}</h6>
+                                        </div>
+                                        ${microGuidance}
+                                    </div>
+                                    
+                                    <!-- Remaining Days - Primary Focus -->
+                                    <div class="d-flex align-items-baseline mb-2">
+                                        <span class="fs-${isAnnual ? '2' : '4'} fw-bold ${urgencyText}">${b.balance}</span>
+                                        <span class="text-muted ms-1 ${isAnnual ? '' : 'small'}">day${b.balance !== 1 ? 's' : ''} remaining</span>
+                                    </div>
+                                    
+                                    <!-- Progress Bar -->
+                                    <div class="progress mb-2" style="height: ${isAnnual ? '8px' : '6px'};">
+                                        <div class="progress-bar bg-${urgencyClass}" role="progressbar" style="width: ${percentageUsed}%;" aria-valuenow="${used}" aria-valuemin="0" aria-valuemax="${b.total}"></div>
+                                    </div>
+                                    
+                                    <!-- Secondary Info -->
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">${used} of ${b.total} used</small>
+                                        <small class="${urgencyText} fw-semibold">${percentageRemaining}% left</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                
+                summaryHTML += `
                     </div>
                 </div>`;
                 
-                // Card 3 - Company Policy
-                summaryHTML += `<div class="col-lg-3 col-md-12 mb-3">
-                    <div class="card h-100">
-                        <div class="card-header">
-                            <h6 class="mb-0"><i class="ti ti-file-text me-2"></i>Company Policy</h6>
-                        </div>
-                        <div class="card-body d-flex flex-column justify-content-center align-items-center">
-                            ${policy_document ? `<button class="btn btn-outline-primary btn-sm view-policy-btn" data-doc-id="${escapeHTML(policy_document.id)}"><i class="ti ti-file-pdf me-2"></i>View Policy</button>` : '<p class="text-muted small mb-0">No policy available</p>'}
-                        </div>
-                    </div>
-                </div>
-                
-                    </div>
-                </div>
-            </div>
-        </div></div>`;
-                
                 $('#leave-summary-row').html(summaryHTML);
+                
+                // Add hover effect via JS
+                $('#leave-summary-row .card').hover(
+                    function() { $(this).css('transform', 'translateY(-2px)'); },
+                    function() { $(this).css('transform', 'translateY(0)'); }
+                );
             }
         });
     }
@@ -228,7 +293,7 @@ require_once '../components/layout/header.php';
         e.preventDefault();
         const docId = $(this).data('doc-id');
         if (docId) {
-            window.open('/hrms/pages/view_document.php?id=' + encodeURIComponent(docId), '_blank');
+            window.open('/hrms/pages/pdf_viewer.php?id=' + encodeURIComponent(docId), '_blank');
         }
     });
 

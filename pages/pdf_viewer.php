@@ -18,7 +18,7 @@ if ($doc_id <= 0) {
 }
 
 // Fetch the document path from the database, ensuring it belongs to the user's company and is a policy document
-$result = query($mysqli, "SELECT file_path FROM documents WHERE id = ? AND company_id = ? AND related_type = 'policy'", [$doc_id, $company_id]);
+$result = query($mysqli, "SELECT file_path FROM documents WHERE id = ? AND related_id = ? AND related_type = 'policy'", [$doc_id, $company_id]);
 
 if (!$result['success'] || empty($result['data'])) {
     http_response_code(404);
