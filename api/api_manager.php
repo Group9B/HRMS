@@ -284,10 +284,21 @@ switch ($action) {
             }
 
             if ($verify_result['success'] && !empty($verify_result['data'])) {
+
+                $team_id = isset($_POST['team_id']) && !empty($_POST['team_id']) ? (int) $_POST['team_id'] : null;
+
+                // If team_id is provided, verify employee belongs to that team
+                if ($team_id) {
+                    $team_check = query($mysqli, "SELECT id FROM team_members WHERE employee_id = ? AND team_id = ?", [$employee_id, $team_id]);
+                    if (!$team_check['success'] || count($team_check['data']) === 0) {
+                        $team_id = null; // Invalid team, reset to null
+                    }
+                }
+
                 $insert_result = query($mysqli, "
-                    INSERT INTO tasks (employee_id, title, description, due_date, assigned_by, status)
-                    VALUES (?, ?, ?, ?, ?, 'pending')
-                ", [$employee_id, $title, $description, $due_date, $user_id]);
+                    INSERT INTO tasks (employee_id, title, description, due_date, assigned_by, status, team_id)
+                    VALUES (?, ?, ?, ?, ?, 'pending', ?)
+                ", [$employee_id, $title, $description, $due_date, $user_id, $team_id]);
 
                 if ($insert_result['success']) {
                     $response = ['success' => true, 'message' => 'Task assigned successfully!'];
@@ -302,29 +313,109 @@ switch ($action) {
         }
         break;
 
+    case 'get_employee_teams':
+        $target_employee_id = isset($_GET['employee_id']) ? (int) $_GET['employee_id'] : 0;
+        if ($target_employee_id > 0) {
+            $teams_result = query($mysqli, "
+                SELECT t.id, t.name 
+                FROM teams t
+                JOIN team_members tm ON t.id = tm.team_id
+                WHERE tm.employee_id = ?
+                ORDER BY t.name ASC
+            ", [$target_employee_id]);
+
+            if ($teams_result['success']) {
+                $response = ['success' => true, 'data' => $teams_result['data']];
+            } else {
+                $response = ['success' => false, 'message' => 'Failed to fetch teams.'];
+            }
+        } else {
+            $response['message'] = 'Invalid employee ID.';
+        }
+        break;
+
+    case 'get_team_members':
+        $team_id = isset($_GET['team_id']) ? (int) $_GET['team_id'] : 0;
+        if ($team_id) {
+            $members = query($mysqli, "SELECT employee_id FROM team_members WHERE team_id = ?", [$team_id]);
+            if ($members['success']) {
+                $response = ['success' => true, 'data' => array_column($members['data'], 'employee_id')];
+            } else {
+                $response = ['success' => false, 'message' => 'Failed to fetch members'];
+            }
+        }
+        break;
+
+    case 'get_common_teams':
+        $employee_ids = isset($_POST['employee_ids']) ? $_POST['employee_ids'] : [];
+
+        if (!empty($employee_ids)) {
+            // Validate: Get teams that HAVE ALL selected employees
+            // We can do this by finding teams where the count of selected members equals the count of input employees
+            $placeholders = implode(',', array_fill(0, count($employee_ids), '?'));
+            $sql = "
+                SELECT t.id, t.name
+                FROM teams t
+                JOIN team_members tm ON t.id = tm.team_id
+                WHERE tm.employee_id IN ($placeholders)
+                GROUP BY t.id
+                HAVING COUNT(DISTINCT tm.employee_id) = ?
+            ";
+
+            $params = array_merge($employee_ids, [count($employee_ids)]);
+            $common_teams_result = query($mysqli, $sql, $params);
+
+            if ($common_teams_result['success']) {
+                $response = ['success' => true, 'data' => $common_teams_result['data']];
+            } else {
+                $response = ['success' => false, 'message' => 'Error checking teams.'];
+            }
+        } else {
+            $response = ['success' => false, 'message' => 'No employees selected.', 'data' => []];
+        }
+        break;
+
     case 'bulk_assign_tasks':
         $employee_ids = isset($_POST['employee_ids']) ? $_POST['employee_ids'] : [];
         $title = $_POST['title'] ?? '';
         $description = $_POST['description'] ?? '';
         $due_date = $_POST['due_date'] ?? null;
+        $team_id = isset($_POST['team_id']) && !empty($_POST['team_id']) ? (int) $_POST['team_id'] : null;
 
         if (!empty($employee_ids) && !empty($title)) {
             $success_count = 0;
             $error_count = 0;
 
+            // Optional: Backend validation that all employees belong to the selected team
+            if ($team_id) {
+                foreach ($employee_ids as $eid) {
+                    $check = query($mysqli, "SELECT 1 FROM team_members WHERE team_id = ? AND employee_id = ?", [$team_id, $eid]);
+                    if (!$check['success'] || empty($check['data'])) {
+                        echo json_encode(['success' => false, 'message' => 'Security Error: One or more employees do not belong to the selected team.']);
+                        exit;
+                    }
+                }
+            }
+
             foreach ($employee_ids as $employee_id) {
-                // Verify the employee belongs to the manager's team
+                // Verify the employee belongs to the manager's team (or departments)
+                // Existing check:
                 $verify_result = query($mysqli, "
                     SELECT e.id FROM employees e
                     JOIN team_members tm ON e.id = tm.employee_id
                     WHERE e.id = ? AND tm.assigned_by = ? AND e.status = 'active'
                 ", [$employee_id, $user_id]);
 
+                // Also allow if in manager's department (legacy/hybrid support)
+                if (empty($verify_result['data'])) {
+                    $verify_result = query($mysqli, "SELECT id FROM employees WHERE id = ? AND department_id = ?", [$employee_id, $manager_department_id]);
+                }
+
                 if ($verify_result['success'] && !empty($verify_result['data'])) {
                     $insert_result = query($mysqli, "
-                        INSERT INTO tasks (employee_id, title, description, due_date, assigned_by, status)
-                        VALUES (?, ?, ?, ?, ?, 'pending')
-                    ", [$employee_id, $title, $description, $due_date, $user_id]);
+                        INSERT INTO tasks (employee_id, title, description, due_date, assigned_by, status, team_id)
+                        VALUES (?, ?, ?, ?, ?, 'pending', ?)
+                    ", [$employee_id, $title, $description, $due_date, $user_id, $team_id]);
 
                     if ($insert_result['success']) {
                         $success_count++;

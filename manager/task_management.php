@@ -26,8 +26,9 @@ $status_filter = $_GET['status'] ?? 'all';
 $employee_filter = $_GET['employee_id'] ?? '';
 
 // Build query conditions
-$where_conditions = ["e.department_id = ?"];
-$params = [$manager_department_id];
+// Build query conditions
+$where_conditions = ["(e.department_id = ? OR t.assigned_by = ?)"];
+$params = [$manager_department_id, $user_id];
 
 if ($status_filter !== 'all') {
     $where_conditions[] = "t.status = ?";
@@ -42,11 +43,14 @@ if (!empty($employee_filter)) {
 $where_clause = implode(' AND ', $where_conditions);
 
 // Get tasks
+// Get tasks
 $tasks_result = query($mysqli, "
     SELECT t.*, e.first_name, e.last_name, e.employee_code,
-           des.name as designation_name, d.name as department_name
+           des.name as designation_name, d.name as department_name,
+           teams.name as assigned_team_name, teams.id as assigned_team_id
     FROM tasks t
     JOIN employees e ON t.employee_id = e.id
+    LEFT JOIN teams ON t.team_id = teams.id
     LEFT JOIN designations des ON e.designation_id = des.id
     LEFT JOIN departments d ON e.department_id = d.id
     WHERE $where_clause
@@ -55,15 +59,21 @@ $tasks_result = query($mysqli, "
 
 $tasks = $tasks_result['success'] ? $tasks_result['data'] : [];
 
+// Get manager's teams for filter
+$manager_teams_result = query($mysqli, "SELECT id, name FROM teams WHERE created_by = ? ORDER BY name ASC", [$user_id]);
+$manager_teams = $manager_teams_result['success'] ? $manager_teams_result['data'] : [];
+
 
 // Get team members for task assignment
 $team_members_result = query($mysqli, "
-    SELECT DISTINCT e.id, e.first_name, e.last_name, e.employee_code, 
-           des.name as designation_name
+    SELECT e.id, e.first_name, e.last_name, e.employee_code, 
+           des.name as designation_name,
+           GROUP_CONCAT(tm.team_id) as team_ids
     FROM employees e
     JOIN team_members tm ON e.id = tm.employee_id
     LEFT JOIN designations des ON e.designation_id = des.id
     WHERE tm.assigned_by = ? AND e.status = 'active'
+    GROUP BY e.id
     ORDER BY e.first_name ASC
 ", [$user_id]);
 
@@ -78,8 +88,9 @@ $stats_result = query($mysqli, "
         COUNT(CASE WHEN t.status = 'cancelled' THEN 1 END) as cancelled
     FROM tasks t
     JOIN employees e ON t.employee_id = e.id
-    WHERE e.department_id = ?
-", [$manager_department_id]);
+    JOIN employees e ON t.employee_id = e.id
+    WHERE (e.department_id = ? OR t.assigned_by = ?)
+", [$manager_department_id, $user_id]);
 
 $stats = $stats_result['success'] ? $stats_result['data'][0] : [
     'pending' => 0,
@@ -207,6 +218,7 @@ require_once '../components/layout/header.php';
                                 <tr>
                                     <th>Task</th>
                                     <th>Assigned To</th>
+                                    <th>Team</th>
                                     <th>Status</th>
                                     <th>Due Date</th>
                                     <th>Created</th>
@@ -236,6 +248,17 @@ require_once '../components/layout/header.php';
                                                         class="text-muted"><?= htmlspecialchars($task['employee_code'] ?? 'N/A') ?></small>
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td>
+                                            <?php if (!empty($task['assigned_team_name'])): ?>
+                                                <a href="manage_team_members.php?id=<?= $task['assigned_team_id'] ?>"
+                                                    class="badge bg-light text-primary border border-primary text-decoration-none mb-1">
+                                                    <i
+                                                        class="ti ti-users me-1"></i><?= htmlspecialchars($task['assigned_team_name']) ?>
+                                                </a>
+                                            <?php else: ?>
+                                                <span class="text-muted small">N/A</span>
+                                            <?php endif; ?>
                                         </td>
                                         <td>
                                             <?php
@@ -325,6 +348,13 @@ require_once '../components/layout/header.php';
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <div class="mb-3" id="team_select_container" style="display: none;">
+                        <label for="task_team" class="form-label">Select Team</label>
+                        <select class="form-select" id="task_team" name="team_id">
+                            <option value="">Select Team (Optional)</option>
+                        </select>
+                        <small class="text-muted">Associate this task with a specific team.</small>
+                    </div>
                     <div class="mb-3">
                         <label for="task_title" class="form-label">Task Title *</label>
                         <input type="text" class="form-control" id="task_title" name="title" required>
@@ -359,9 +389,18 @@ require_once '../components/layout/header.php';
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Assign To *</label>
-                        <div class="row">
+                        <div class="mb-3">
+                            <label class="form-label">Filter by Team</label>
+                            <select class="form-select form-select-sm" id="bulk_team_filter">
+                                <option value="">All Teams (Show All Employees)</option>
+                                <?php foreach ($manager_teams as $team): ?>
+                                    <option value="<?= $team['id'] ?>"><?= htmlspecialchars($team['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="row" id="bulk_employee_list">
                             <?php foreach ($team_members as $member): ?>
-                                <div class="col-md-6">
+                                <div class="col-md-6 employee-item" data-team-ids="<?= $member['team_ids'] ?? '' ?>">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" name="employee_ids[]"
                                             value="<?= $member['id'] ?>" id="emp_<?= $member['id'] ?>">
@@ -373,6 +412,10 @@ require_once '../components/layout/header.php';
                             <?php endforeach; ?>
                         </div>
                     </div>
+                </div>
+                <div class="modal-body bg-dark border-top border-bottom" id="bulk_team_validation"
+                    style="display:none;">
+                    <!-- Content injected by JS -->
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
@@ -453,6 +496,37 @@ require_once '../components/layout/header.php';
 <?php require_once '../components/layout/footer.php'; ?>
 <script>
     $(document).ready(function () {
+        // Handle employee selection to fetch teams
+        $('#task_employee').on('change', function () {
+            const employeeId = $(this).val();
+            const teamContainer = $('#team_select_container');
+            const teamSelect = $('#task_team');
+
+            teamContainer.hide();
+            teamSelect.empty().append('<option value="">Select Team (Optional)</option>');
+
+            if (employeeId) {
+                fetch(`/hrms/api/api_manager.php?action=get_employee_teams&employee_id=${employeeId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.data.length > 0) {
+                            data.data.forEach(team => {
+                                teamSelect.append(`<option value="${team.id}">${team.name}</option>`);
+                            });
+
+                            // Auto-select if only one team
+                            if (data.data.length === 1) {
+                                teamSelect.val(data.data[0].id);
+                            }
+
+                            // If user is forced to select a team if exists, we might want to make it required or strictly visible
+                            teamContainer.show();
+                        }
+                    })
+                    .catch(error => console.error('Error fetching teams:', error));
+            }
+        });
+
         // Initialize DataTable
         $('#tasksTable').DataTable({
             responsive: true,
@@ -460,10 +534,99 @@ require_once '../components/layout/header.php';
             order: [[5, 'desc']] // Sort by created date
         });
 
-        // Handle task form submission
+        // Handle form submission
         $('#taskForm').on('submit', function (e) {
             e.preventDefault();
             assignTask();
+        });
+
+        // Bulk Assign Team Validation
+        $('input[name="employee_ids[]"]').on('change', function () {
+            validateBulkTeams();
+        });
+
+        function validateBulkTeams() {
+            const selectedEmployees = $('input[name="employee_ids[]"]:checked').map(function () {
+                return $(this).val();
+            }).get();
+
+            const validationContainer = $('#bulk_team_validation');
+            const submitBtn = $('#bulkTaskForm button[type="submit"]');
+
+            if (selectedEmployees.length === 0) {
+                validationContainer.hide().empty();
+                submitBtn.prop('disabled', false); // Allow submission check to fail naturally or valid empty state
+                return;
+            }
+
+            $.post('/hrms/api/api_manager.php', {
+                action: 'get_common_teams',
+                employee_ids: selectedEmployees
+            }, function (response) {
+                const data = typeof response === 'string' ? JSON.parse(response) : response;
+
+                validationContainer.show().empty();
+
+                if (data.success && data.data.length > 0) {
+                    if (data.data.length === 1) {
+                        // Single common team - Auto select
+                        const team = data.data[0];
+                        validationContainer.html(`
+                            <div class="alert alert-success m-0 py-2">
+                                <i class="ti ti-check me-2"></i>
+                                Assigning to Team: <strong>${team.name}</strong>
+                                <input type="hidden" name="team_id" value="${team.id}">
+                            </div>
+                        `);
+                        submitBtn.prop('disabled', false);
+                    } else {
+                        // Multiple common teams - User selection
+                        let options = data.data.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+                        validationContainer.html(`
+                            <div class="alert alert-info m-0 py-2">
+                                <i class="ti ti-info-circle me-2"></i>
+                                Employees share multiple teams. Please select one:
+                                <select class="form-select form-select-sm mt-2" name="team_id" required>
+                                    <option value="">Select Team...</option>
+                                    ${options}
+                                </select>
+                            </div>
+                        `);
+                        submitBtn.prop('disabled', false);
+                    }
+                } else {
+                    // No common teams
+                    validationContainer.html(`
+                        <div class="alert alert-danger m-0 py-2">
+                            <i class="ti ti-alert-triangle me-2"></i>
+                            <strong>Error:</strong> Selected employees do not belong to the same team.
+                            <div class="small mt-1">Bulk assignment requires all employees to share at least one common team.</div>
+                        </div>
+                    `);
+                    submitBtn.prop('disabled', true);
+                }
+            });
+        }
+
+        // Handle Team Filter Change (Client-side filtering)
+        $('#bulk_team_filter').on('change', function () {
+            const selectedTeamId = $(this).val();
+
+            // Filter employees
+            $('.employee-item').each(function () {
+                const memberTeams = $(this).data('team-ids').toString().split(',');
+                const checkbox = $(this).find('input[type="checkbox"]');
+
+                if (selectedTeamId === "" || memberTeams.includes(selectedTeamId)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                    checkbox.prop('checked', false); // Uncheck hidden employees
+                }
+            });
+
+            // Re-validate to update the validation UI
+            validateBulkTeams();
         });
 
         // Handle bulk task form submission

@@ -22,27 +22,36 @@ $manager_id = $manager['id'];
 $manager_department_id = $manager['department_id'];
 
 // Get team members (employees in the same department)
+// Get team members (employees in the same department OR in teams managed by this user)
 $team_members_result = query($mysqli, "
-    SELECT e.*, u.email, d.name as department_name, des.name as designation_name
+    SELECT DISTINCT e.*, u.email, d.name as department_name, des.name as designation_name
     FROM employees e
     JOIN users u ON e.user_id = u.id
     LEFT JOIN departments d ON e.department_id = d.id
     LEFT JOIN designations des ON e.designation_id = des.id
-    WHERE e.department_id = ? AND e.id != ? AND e.status = 'active'
+    LEFT JOIN team_members tm ON e.id = tm.employee_id
+    LEFT JOIN teams t ON tm.team_id = t.id
+    WHERE (e.department_id = ? OR t.created_by = ?) 
+    AND e.id != ? 
+    AND e.status = 'active'
     ORDER BY e.first_name ASC
-", [$manager_department_id, $manager_id]);
+", [$manager_department_id, $user_id, $manager_id]);
 
 $team_members = $team_members_result['success'] ? $team_members_result['data'] : [];
+
+// Get team member IDs for filtering
+$team_member_ids = array_column($team_members, 'id');
+$ids_placeholder = !empty($team_member_ids) ? implode(',', array_map('intval', $team_member_ids)) : '0';
 
 // Get pending leave requests from team members
 $pending_leaves_result = query($mysqli, "
     SELECT l.*, e.first_name, e.last_name, e.employee_code
     FROM leaves l
     JOIN employees e ON l.employee_id = e.id
-    WHERE e.department_id = ? AND l.status = 'pending'
+    WHERE e.id IN ($ids_placeholder) AND l.status = 'pending'
     ORDER BY l.applied_at DESC
     LIMIT 10
-", [$manager_department_id]);
+", []);
 
 $pending_leaves = $pending_leaves_result['success'] ? $pending_leaves_result['data'] : [];
 
@@ -61,8 +70,8 @@ $on_leave_today_result = query($mysqli, "
     SELECT COUNT(a.id) as count
     FROM attendance a
     JOIN employees e ON a.employee_id = e.id
-    WHERE e.department_id = ? AND a.date = ? AND a.status = 'leave'
-", [$manager_department_id, $today]);
+    WHERE e.id IN ($ids_placeholder) AND a.date = ? AND a.status = 'leave'
+", [$today]);
 
 $team_stats['on_leave_today'] = $on_leave_today_result['success'] ? $on_leave_today_result['data'][0]['count'] : 0;
 
@@ -73,8 +82,8 @@ $task_stats_result = query($mysqli, "
         COUNT(CASE WHEN t.status IN ('pending', 'in_progress') THEN 1 END) as pending
     FROM tasks t
     JOIN employees e ON t.employee_id = e.id
-    WHERE e.department_id = ?
-", [$manager_department_id]);
+    WHERE (e.id IN ($ids_placeholder) OR t.assigned_by = ?)
+", [$user_id]);
 
 if ($task_stats_result['success']) {
     $task_stats = $task_stats_result['data'][0];
@@ -83,30 +92,38 @@ if ($task_stats_result['success']) {
 }
 
 // Get recent team activities (last 7 days)
+
+
+// Get recent team activities (last 7 days)
+// Get recent team activities (last 7 days)
 $recent_activities_result = query($mysqli, "
     SELECT 
+        l.id as id,
         'leave' as type,
         CONCAT(e.first_name, ' ', e.last_name) as employee_name,
         CONCAT('Applied for ', l.leave_type, ' leave') as activity,
         l.applied_at as created_at
     FROM leaves l
     JOIN employees e ON l.employee_id = e.id
-    WHERE e.department_id = ? AND l.applied_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+    WHERE e.id IN ($ids_placeholder) AND l.applied_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
     
     UNION ALL
     
     SELECT 
+        t.id as id,
         'task' as type,
         CONCAT(e.first_name, ' ', e.last_name) as employee_name,
         CONCAT('Completed task: ', t.title) as activity,
         t.created_at
     FROM tasks t
     JOIN employees e ON t.employee_id = e.id
-    WHERE e.department_id = ? AND t.status = 'completed' AND t.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+    WHERE (e.id IN ($ids_placeholder) OR t.assigned_by = ?) 
+    AND t.status = 'completed' 
+    AND t.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
     
     ORDER BY created_at DESC
     LIMIT 10
-", [$manager_department_id, $manager_department_id]);
+", [$user_id]);
 
 $recent_activities = $recent_activities_result['success'] ? $recent_activities_result['data'] : [];
 
@@ -190,7 +207,8 @@ require_once '../components/layout/header.php';
                                     <div class="list-group-item d-flex justify-content-between align-items-center px-0">
                                         <div>
                                             <div class="fw-bold">
-                                                <?= htmlspecialchars($leave['first_name'] . ' ' . $leave['last_name']) ?></div>
+                                                <?= htmlspecialchars($leave['first_name'] . ' ' . $leave['last_name']) ?>
+                                            </div>
                                             <small class="text-muted">
                                                 <?= htmlspecialchars($leave['leave_type']) ?> -
                                                 <?= date('M j, Y', strtotime($leave['start_date'])) ?> to
@@ -278,15 +296,25 @@ require_once '../components/layout/header.php';
                         <?php if (!empty($recent_activities)): ?>
                             <div class="timeline">
                                 <?php foreach ($recent_activities as $activity): ?>
+                                    <?php
+                                    $link = '#';
+                                    if ($activity['type'] === 'leave') {
+                                        $link = 'leave_approval.php?id=' . $activity['id'];
+                                    } elseif ($activity['type'] === 'task') {
+                                        $link = 'task_management.php?id=' . $activity['id'];
+                                    }
+                                    ?>
                                     <div class="timeline-item">
                                         <div
                                             class="timeline-marker bg-<?= $activity['type'] === 'leave' ? 'warning' : 'success' ?>">
                                         </div>
                                         <div class="timeline-content bg-body">
-                                            <div class="fw-bold"><?= htmlspecialchars($activity['employee_name']) ?></div>
-                                            <div class="text-muted"><?= htmlspecialchars($activity['activity']) ?></div>
-                                            <small
-                                                class="text-muted"><?= date('M j, Y g:i A', strtotime($activity['created_at'])) ?></small>
+                                            <a href="<?= $link ?>" class="text-decoration-none text-reset d-block">
+                                                <div class="fw-bold"><?= htmlspecialchars($activity['employee_name']) ?></div>
+                                                <div class="text-muted"><?= htmlspecialchars($activity['activity']) ?></div>
+                                                <small
+                                                    class="text-muted"><?= date('M j, Y g:i A', strtotime($activity['created_at'])) ?></small>
+                                            </a>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
