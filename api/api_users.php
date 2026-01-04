@@ -4,6 +4,7 @@ header('Content-Type: application/json');
 
 require_once '../config/db.php';
 require_once '../includes/functions.php'; // Ensure your query() function is here
+require_once '../includes/preferences.php'; // For user preference initialization
 
 // Get the request method and action
 $method = $_SERVER['REQUEST_METHOD'];
@@ -49,6 +50,11 @@ switch ($action) {
 
             if ($result['success']) {
                 $new_user_id = $result['insert_id'] ?? $user_id;
+
+                // Initialize user preferences for new users
+                if ($action === 'add') {
+                    initializeUserPreferences($mysqli, $new_user_id);
+                }
 
                 // Fetch the complete user data (with joins) to send back to the frontend
                 $user_query = "SELECT u.*, c.name as company_name, r.name as role_name FROM users u LEFT JOIN companies c ON u.company_id = c.id LEFT JOIN roles r ON u.role_id = r.id WHERE u.id = ?";
