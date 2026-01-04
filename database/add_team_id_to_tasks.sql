@@ -1,0 +1,2 @@
+ALTER TABLE tasks ADD COLUMN team_id INT DEFAULT NULL AFTER employee_id;
+ALTER TABLE tasks ADD CONSTRAINT fk_tasks_team_id FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE SET NULL;
