@@ -247,7 +247,7 @@ switch ($_SESSION['role_id']) {
       'leaves' => [
         'title' => 'Approvals',
         'icon' => 'ti ti-calendar-check',
-        'url' => '/hrms/manager/leave_approval.php',
+        'url' => '/hrms/company/leaves.php',
         'permission' => null,
         'submenu' => []
       ],

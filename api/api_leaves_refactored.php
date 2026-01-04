@@ -33,7 +33,7 @@ $employee_info = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$
 $employee_id = $employee_info['success'] && !empty($employee_info['data']) ? $employee_info['data'][0]['id'] : 0;
 
 /**
- * Calculate actual leave days considering holidays and Saturday/Sunday policy
+ * Calculate actual leave days considering holidays and Saturday policy
  */
 function calculateActualLeaveDays($start_date, $end_date, $holidays = [], $saturday_policy = 'none')
 {
@@ -47,12 +47,6 @@ function calculateActualLeaveDays($start_date, $end_date, $holidays = [], $satur
 
         // Check if it's a holiday
         if (isset($holiday_dates[$date_str])) {
-            $current->modify('+1 day');
-            continue;
-        }
-
-        // Always skip Sundays (day 0)
-        if ($day_of_week === 0) {
             $current->modify('+1 day');
             continue;
         }
@@ -125,7 +119,7 @@ function canApproveLeave($mysqli, $user_id, $leave_id, $role_id, $company_id)
         return ['allowed' => true];
     }
 
-    // Manager (Role 6): Can approve Employee leaves in their department or team
+    // Manager (Role 6): Can approve ONLY Employee leaves in their department
     if ($role_id == 6) {
         if ($leave['employee_role_id'] != 4) {
             return ['allowed' => false, 'reason' => 'Managers can only approve employee leave requests'];
@@ -140,34 +134,16 @@ function canApproveLeave($mysqli, $user_id, $leave_id, $role_id, $company_id)
 
         $emp_info = query(
             $mysqli,
-            "SELECT id, department_id FROM employees WHERE id = ?",
+            "SELECT department_id FROM employees WHERE id = ?",
             [$leave['emp_id']]
         )['data'][0] ?? null;
 
         if (!$mgr_info || !$emp_info) {
-            return ['allowed' => false, 'reason' => 'Employee information not found'];
+            return ['allowed' => false, 'reason' => 'Department information not found'];
         }
 
-        // Check if employee is in same department
-        $in_department = $mgr_info['department_id'] == $emp_info['department_id'];
-
-        // Check if employee is in manager's team
-        $in_team = false;
-        if (!$in_department) {
-            $team_check = query(
-                $mysqli,
-                "SELECT id FROM team_members tm
-                 WHERE tm.employee_id = ? 
-                 AND tm.team_id IN (
-                    SELECT id FROM teams WHERE company_id = ? AND created_by = ?
-                 )",
-                [$emp_info['id'], $company_id, $user_id]
-            );
-            $in_team = $team_check['success'] && !empty($team_check['data']);
-        }
-
-        if (!$in_department && !$in_team) {
-            return ['allowed' => false, 'reason' => 'Employee is not in your department or team'];
+        if ($mgr_info['department_id'] != $emp_info['department_id']) {
+            return ['allowed' => false, 'reason' => 'Employee is not in your department'];
         }
 
         return ['allowed' => true];
@@ -182,9 +158,12 @@ function canApproveLeave($mysqli, $user_id, $leave_id, $role_id, $company_id)
         return ['allowed' => true];
     }
 
-    // Company Owner (Role 2): Can approve anyone's leaves (Employee, Manager, HR)
+    // Company Owner (Role 2): Can approve ONLY HR leaves
     if ($role_id == 2) {
-        // Company Owner can approve leaves from any role
+        if ($leave['employee_role_id'] != 3) {
+            return ['allowed' => false, 'reason' => 'Company Owner can only approve HR leave requests'];
+        }
+
         return ['allowed' => true];
     }
 
@@ -216,15 +195,6 @@ function getPendingLeavesForApprover($mysqli, $user_id, $role_id, $company_id)
         )['data'][0] ?? null;
         $dept_id = $dept_info['department_id'] ?? 0;
 
-        // Get manager's team IDs
-        $teams_result = query(
-            $mysqli,
-            "SELECT id FROM teams WHERE company_id = ? AND created_by = ?",
-            [$company_id, $user_id]
-        );
-        $team_ids = array_column($teams_result['data'] ?? [], 'id');
-        $team_ids_str = !empty($team_ids) ? implode(',', $team_ids) : '0';
-
         return query($mysqli, "
             SELECT l.*, 
                    e.first_name, e.last_name, e.id as emp_id,
@@ -234,13 +204,11 @@ function getPendingLeavesForApprover($mysqli, $user_id, $role_id, $company_id)
             JOIN users u ON e.user_id = u.id
             WHERE u.company_id = ?
               AND l.status = 'pending'
+              AND e.department_id = ?
               AND e.user_id != ?
-              AND (
-                (e.department_id = ? AND u.role_id = 4)
-                OR (e.id IN (SELECT employee_id FROM team_members WHERE team_id IN ($team_ids_str)))
-              )
+              AND u.role_id = 4
             ORDER BY l.applied_at DESC
-        ", [$company_id, $user_id, $dept_id])['data'] ?? [];
+        ", [$company_id, $dept_id, $user_id])['data'] ?? [];
     }
 
     if ($role_id == 3) { // HR
@@ -269,7 +237,7 @@ function getPendingLeavesForApprover($mysqli, $user_id, $role_id, $company_id)
             JOIN users u ON e.user_id = u.id
             WHERE u.company_id = ?
               AND l.status = 'pending'
-              AND u.role_id IN (3, 4, 6)
+              AND u.role_id = 3
             ORDER BY l.applied_at DESC
         ", [$company_id])['data'] ?? [];
     }
@@ -423,9 +391,8 @@ switch ($action) {
         $total_days = (int) $start->diff($end)->format('%a') + 1;
         $actual_days = calculateActualLeaveDays($start, $end, $holiday_dates, $saturday_policy);
 
-        // Count holidays, Sundays and Saturdays skipped
+        // Count holidays and Saturdays skipped
         $holidays_skipped = 0;
-        $sundays_skipped = 0;
         $saturdays_skipped = 0;
         $current = clone $start;
         $holiday_dates_flip = array_flip($holiday_dates);
@@ -436,11 +403,7 @@ switch ($action) {
 
             if (isset($holiday_dates_flip[$date_str])) {
                 $holidays_skipped++;
-            } elseif ($day_of_week === 0) {
-                // Sunday
-                $sundays_skipped++;
             } elseif ($day_of_week === 6) {
-                // Saturday
                 if ($saturday_policy === 'all') {
                     $saturdays_skipped++;
                 } elseif ($saturday_policy === '1st_3rd' || $saturday_policy === '2nd_4th') {
@@ -462,7 +425,6 @@ switch ($action) {
             'total_days' => $total_days,
             'actual_days' => $actual_days,
             'holidays_skipped' => $holidays_skipped,
-            'sundays_skipped' => $sundays_skipped,
             'saturdays_skipped' => $saturdays_skipped
         ];
         break;
@@ -684,83 +646,6 @@ switch ($action) {
         } else {
             $response['message'] = 'Could not cancel request.';
         }
-        break;
-
-    // ====================== BACKWARD COMPATIBILITY: UPDATE_STATUS ======================
-    case 'update_status':
-        // Legacy endpoint for backward compatibility
-        // Maps old 'status' parameter to new 'action_type' format
-        $leave_id = (int) ($_POST['leave_id'] ?? 0);
-        $status = $_POST['status'] ?? ''; // 'approved' or 'rejected'
-
-        if (!$leave_id || !$status) {
-            $response['message'] = 'Missing leave ID or status.';
-            break;
-        }
-
-        if (!in_array($status, ['approved', 'rejected'])) {
-            $response['message'] = 'Invalid status.';
-            break;
-        }
-
-        // Convert old status format to new action_type format
-        $action_type = $status === 'approved' ? 'approve' : 'reject';
-
-        // Check authorization
-        $auth_check = canApproveLeave($mysqli, $user_id, $leave_id, $role_id, $company_id);
-
-        if (!$auth_check['allowed']) {
-            $response['message'] = $auth_check['reason'] ?? 'You are not authorized to approve this leave.';
-            http_response_code(403);
-            break;
-        }
-
-        // Get leave details
-        $leave_result = query(
-            $mysqli,
-            "SELECT l.* FROM leaves l WHERE l.id = ?",
-            [$leave_id]
-        );
-
-        if (!$leave_result['success'] || empty($leave_result['data'])) {
-            $response['message'] = 'Leave not found.';
-            break;
-        }
-
-        $leave_data = $leave_result['data'][0];
-
-        // Verify status is pending
-        if ($leave_data['status'] !== 'pending') {
-            $response['message'] = "Cannot modify a leave with status: {$leave_data['status']}";
-            break;
-        }
-
-        // Update leave record
-        $new_status = $status; // Keep original status format for backward compatibility
-        $update_result = query(
-            $mysqli,
-            "UPDATE leaves 
-             SET status = ?, approved_by = ? 
-             WHERE id = ?",
-            [$new_status, $user_id, $leave_id]
-        );
-
-        if (!$update_result['success']) {
-            $response['message'] = 'Failed to update leave status.';
-            break;
-        }
-
-        // If approved, update attendance records
-        if ($action_type === 'approve') {
-            updateAttendanceForApprovedLeave($mysqli, $leave_data);
-        }
-
-        $response = [
-            'success' => true,
-            'message' => "Leave request has been {$new_status}!",
-            'status' => $new_status,
-            'approved_by_user_id' => $user_id
-        ];
         break;
 
     // ====================== INVALID ACTION ======================

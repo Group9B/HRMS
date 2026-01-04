@@ -12,10 +12,20 @@ $is_manager_or_hr = in_array($role_id, [1, 2, 3, 6]); // Admin, Company Owner, H
 
 $leave_types = query($mysqli, "SELECT leave_type FROM leave_policies WHERE company_id = ?", [$_SESSION['company_id']])['data'] ?? [];
 
+// Get Saturday policy for client-side calculations
+$saturday_policy_result = query(
+    $mysqli,
+    "SELECT saturday_policy FROM company_holiday_settings WHERE company_id = ?",
+    [$_SESSION['company_id']]
+);
+$saturday_policy = $saturday_policy_result['success'] && !empty($saturday_policy_result['data'])
+    ? $saturday_policy_result['data'][0]['saturday_policy']
+    : 'none';
+
 require_once '../components/layout/header.php';
 ?>
 
-<div class="d-flex">
+<div class="d-flex" data-saturday-policy="<?= htmlspecialchars($saturday_policy) ?>">
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
 
@@ -58,7 +68,7 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
-<div class="modal fade" id="applyLeaveModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><form id="applyLeaveForm"><div class="modal-header"><h5 class="modal-title">Apply for Leave</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" name="action" value="apply_leave"><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Start Date *</label><input type="date" class="form-control" name="start_date" id="startDate" required></div><div class="col-md-6 mb-3"><label class="form-label">End Date *</label><input type="date" class="form-control" name="end_date" id="endDate" required></div></div><div class="mb-3" id="dateErrorContainer" style="display: none;"><div class="alert alert-danger mb-0" id="dateError"></div></div><div class="mb-3" id="leaveDaysCalculation" style="display: none;"><div class="alert alert-info mb-0"><small><strong>Calculation:</strong> <span id="totalDaysText">0</span> calendar days</small><br><small id="holidaysText" style="display: none;"></small><small id="saturdaysText" style="display: none;"></small><br><small class="text-primary"><strong>Actual days to deduct:</strong> <span id="actualDaysText">0</span></small></div></div><div class="mb-3"><label class="form-label">Leave Type *</label><select class="form-select" name="leave_type" required><option value="">-- Select --</option><?php foreach ($leave_types as $type) : ?><option value="<?= htmlspecialchars($type['leave_type']) ?>"><?= htmlspecialchars($type['leave_type']) ?></option><?php endforeach; ?></select></div><div class="mb-3"><label class="form-label">Reason</label><textarea class="form-control" name="reason" rows="3"></textarea></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary" id="submitLeaveBtn">Submit Request</button></div></form></div></div></div>
+<div class="modal fade" id="applyLeaveModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><form id="applyLeaveForm"><div class="modal-header"><h5 class="modal-title">Apply for Leave</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" name="action" value="apply_leave"><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Start Date *</label><input type="date" class="form-control" name="start_date" id="startDate" required></div><div class="col-md-6 mb-3"><label class="form-label">End Date *</label><input type="date" class="form-control" name="end_date" id="endDate" required></div></div><div class="mb-3" id="dateErrorContainer" style="display: none;"><div class="alert alert-danger mb-0" id="dateError"></div></div><div class="mb-3" id="leaveDaysCalculation" style="display: none;"><div class="alert alert-info mb-0"><small><strong>Calculation:</strong> <span id="totalDaysText">0</span> calendar days</small><br><small id="holidaysText" style="display: none;"></small><small id="sundaysText" style="display: none;"></small><small id="saturdaysText" style="display: none;"></small><br><small class="text-primary"><strong>Actual days to deduct:</strong> <span id="actualDaysText">0</span></small></div></div><div class="mb-3"><label class="form-label">Leave Type *</label><select class="form-select" name="leave_type" required><option value="">-- Select --</option><?php foreach ($leave_types as $type) : ?><option value="<?= htmlspecialchars($type['leave_type']) ?>"><?= htmlspecialchars($type['leave_type']) ?></option><?php endforeach; ?></select></div><div class="mb-3"><label class="form-label">Reason</label><textarea class="form-control" name="reason" rows="3"></textarea></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary" id="submitLeaveBtn">Submit Request</button></div></form></div></div></div>
 
 <?php require_once '../components/layout/footer.php'; ?>
 <script>
@@ -218,23 +228,23 @@ require_once '../components/layout/header.php';
     // Event delegation for approve/reject buttons
     $(document).on('click', '.approve-leave-btn, .reject-leave-btn', function() {
         const leaveId = $(this).data('leave-id');
-        const status = $(this).data('action');
+        const isApprove = $(this).hasClass('approve-leave-btn');
         
-        if (!leaveId || !status) {
+        if (!leaveId) {
             showToast('Invalid leave request.', 'error');
             return;
         }
 
-        const action = status === 'approved' ? 'approve' : 'reject';
-        const btnClass = status === 'approved' ? 'btn-success' : 'btn-danger';
+        const action = isApprove ? 'approve' : 'reject';
+        const btnClass = isApprove ? 'btn-success' : 'btn-danger';
         
         showConfirmationModal(
             `Are you sure you want to ${action} this leave request?`,
             () => {
                 const formData = new FormData();
-                formData.append('action', 'update_status');
+                formData.append('action', 'approve_or_reject');
                 formData.append('leave_id', leaveId);
-                formData.append('status', status);
+                formData.append('action_type', action);
                 fetch('/hrms/api/api_leaves.php', { method: 'POST', body: formData })
                     .then(r => r.json())
                     .then(d => {
@@ -300,35 +310,76 @@ require_once '../components/layout/header.php';
     }
 
     function calculateLeaveDaysDisplay(startDateStr, endDateStr) {
-        // Fetch company holidays and Saturday policy via API
-        fetch('/hrms/api/api_leaves.php?action=get_leave_calculation&start_date=' + startDateStr + '&end_date=' + endDateStr)
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    const totalDays = data.total_days;
-                    const holidaysSkipped = data.holidays_skipped;
-                    const saturdaysSkipped = data.saturdays_skipped;
-                    const actualDays = data.actual_days;
-                    
-                    $('#totalDaysText').text(totalDays);
-                    
-                    if (holidaysSkipped > 0) {
-                        $('#holidaysText').text('- ' + holidaysSkipped + ' holiday(s)').show();
+        // Parse dates correctly using UTC to avoid timezone issues
+        const startDate = new Date(startDateStr + 'T00:00:00Z');
+        const endDate = new Date(endDateStr + 'T00:00:00Z');
+        
+        // Calculate total calendar days
+        const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+        
+        // Initialize counters
+        let sundaysSkipped = 0;
+        let saturdaysSkipped = 0;
+        let actualDays = 0;
+        
+        // Get Saturday policy from data attribute
+        const saturdayPolicy = document.querySelector('[data-saturday-policy]')?.dataset.saturdayPolicy || 'none';
+        
+        // Loop through each day
+        let currentDate = new Date(startDate);
+        while (currentDate <= endDate) {
+            const dayOfWeek = currentDate.getUTCDay(); // 0 = Sunday, 6 = Saturday
+            
+            // Check if it's a Sunday
+            if (dayOfWeek === 0) {
+                sundaysSkipped++;
+            }
+            // Check if it's a Saturday
+            else if (dayOfWeek === 6) {
+                if (saturdayPolicy === 'all') {
+                    saturdaysSkipped++;
+                } else if (saturdayPolicy === '1st_3rd' || saturdayPolicy === '2nd_4th') {
+                    const dayOfMonth = currentDate.getUTCDate();
+                    const saturdayOfMonth = Math.ceil(dayOfMonth / 7);
+                    if (
+                        (saturdayPolicy === '1st_3rd' && (saturdayOfMonth === 1 || saturdayOfMonth === 3)) ||
+                        (saturdayPolicy === '2nd_4th' && (saturdayOfMonth === 2 || saturdayOfMonth === 4))
+                    ) {
+                        saturdaysSkipped++;
                     } else {
-                        $('#holidaysText').hide();
+                        actualDays++;
                     }
-                    
-                    if (saturdaysSkipped > 0) {
-                        $('#saturdaysText').text('- ' + saturdaysSkipped + ' Saturday(s)').show();
-                    } else {
-                        $('#saturdaysText').hide();
-                    }
-                    
-                    $('#actualDaysText').text(actualDays);
-                    $('#leaveDaysCalculation').show();
+                } else {
+                    // 'none' policy - don't skip Saturdays
+                    actualDays++;
                 }
-            })
-            .catch(error => console.error('Error calculating leave days:', error));
+            } else {
+                // Regular weekday (Monday-Friday)
+                actualDays++;
+            }
+            
+            // Move to next day
+            currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+        }
+        
+        // Update UI
+        $('#totalDaysText').text(totalDays);
+        
+        if (sundaysSkipped > 0) {
+            $('#sundaysText').text('- ' + sundaysSkipped + ' Sunday(s)').show();
+        } else {
+            $('#sundaysText').hide();
+        }
+        
+        if (saturdaysSkipped > 0) {
+            $('#saturdaysText').text('- ' + saturdaysSkipped + ' Saturday(s)').show();
+        } else {
+            $('#saturdaysText').hide();
+        }
+        
+        $('#holidaysText').hide(); // Holidays would need server-side data, shown on submission
+        $('#actualDaysText').text(actualDays);
+        $('#leaveDaysCalculation').show();
     }
  </script>
 
