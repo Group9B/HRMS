@@ -180,7 +180,10 @@ class NexusBot {
             this.hideTyping();
 
             if (data.success) {
-                this.addMessage(data.message, 'bot', data.type);
+                if (data.client_action) {
+                    this.handleClientAction(data.client_action);
+                }
+                this.addMessage(data.message, 'bot', data.type, data.source);
             } else {
                 this.addMessage(data.message || 'An error occurred. Please try again.', 'bot', 'error');
             }
@@ -215,7 +218,7 @@ class NexusBot {
     /**
      * Add message to chat
      */
-    addMessage(content, sender, type = 'text') {
+    addMessage(content, sender, type = 'text', source = null) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `nexus-message ${sender} type-${type}`;
 
@@ -234,7 +237,17 @@ class NexusBot {
 
         const timeDiv = document.createElement('div');
         timeDiv.className = 'nexus-time';
-        timeDiv.textContent = this.formatTime(new Date());
+        
+        // AI Badge
+        if (source === 'gemini') {
+            const badge = `<span class="nexus-ai-badge" title="Powered by Gemini AI"><i class="ti ti-sparkles"></i> AI</span> `;
+            timeDiv.innerHTML = badge + this.formatTime(new Date());
+        } else if (source === 'native') {
+            const badge = `<span class="nexus-bot-badge" title="Rule-based Bot"><i class="ti ti-robot"></i> Bot</span> `;
+            timeDiv.innerHTML = badge + this.formatTime(new Date());
+        } else {
+            timeDiv.textContent = this.formatTime(new Date());
+        }
 
         messageDiv.appendChild(bubbleDiv);
         messageDiv.appendChild(timeDiv);
@@ -257,6 +270,11 @@ class NexusBot {
      */
     formatMessage(content) {
         if (!content) return '';
+
+        // Allow rich cards without escaping
+        if (content.trim().startsWith('<div class="nexus-card')) {
+            return content;
+        }
 
         // Escape HTML first
         let formatted = content
@@ -357,6 +375,52 @@ class NexusBot {
                 <p>I'm your HRMS assistant. Ask me about attendance, leaves, payslips, and more.</p>
             `;
             this.messagesContainer.appendChild(welcomeDiv);
+        }
+    }
+    /**
+     * Handle client-side actions (like theme switching)
+     */
+    handleClientAction(action) {
+        if (!action || !action.type) return;
+
+        switch (action.type) {
+            case 'change_theme':
+                if (action.theme === 'dark') {
+                    document.documentElement.setAttribute('data-bs-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                    // If there's a theme toggler button on page, update its icon/state if needed
+                    const themeIcon = document.querySelector('.theme-toggler i');
+                    if (themeIcon) {
+                        themeIcon.className = themeIcon.className.replace('ti-moon', 'ti-sun');
+                    }
+                } else {
+                    document.documentElement.setAttribute('data-bs-theme', 'light');
+                    localStorage.setItem('theme', 'light');
+                    // If there's a theme toggler button on page, update its icon/state if needed
+                    const themeIcon = document.querySelector('.theme-toggler i');
+                    if (themeIcon) {
+                        themeIcon.className = themeIcon.className.replace('ti-sun', 'ti-moon');
+                    }
+                }
+                break;
+
+            case 'toggle_theme':
+                const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                document.documentElement.setAttribute('data-bs-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                
+                // Update icon if exists
+                const toggleIcon = document.querySelector('.theme-toggler i');
+                if (toggleIcon) {
+                    if (newTheme === 'dark') {
+                        toggleIcon.className = toggleIcon.className.replace('ti-moon', 'ti-sun');
+                    } else {
+                        toggleIcon.className = toggleIcon.className.replace('ti-sun', 'ti-moon');
+                    }
+                }
+                break;
         }
     }
 }

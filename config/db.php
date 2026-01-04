@@ -31,6 +31,9 @@ $charset = 'utf8mb4';
 
 define('APP_ROOT', __DIR__ . '/');
 
+// Set default timezone to Asia/Kolkata (IST)
+date_default_timezone_set('Asia/Kolkata');
+
 // Error logging configuration
 $log_file = __DIR__ . '/../error.log';
 $detailed_log_file = __DIR__ . '/../error_detailed.log';
@@ -52,7 +55,7 @@ try {
     if ($enable_logging) {
         $error_id = uniqid('db_error_', true);
         $error_message = date('[Y-m-d H:i:s] ') . "Database Error ID: " . $error_id . PHP_EOL;
-        
+
         // Create log file if it doesn't exist and log the error
         if (is_writable(dirname($log_file))) {
             if (!file_exists($log_file)) {
@@ -63,7 +66,7 @@ try {
                 error_log($error_message, 3, $log_file);
             }
         }
-        
+
         // Log full error to separate file only accessible to admin
         if (is_writable(dirname($detailed_log_file))) {
             if (!file_exists($detailed_log_file)) {
@@ -75,7 +78,7 @@ try {
             }
         }
     }
-    
+
     http_response_code(500);
     echo "Database connection failed. Please contact the administrator.";
     exit;
