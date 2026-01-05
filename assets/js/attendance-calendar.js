@@ -12,6 +12,9 @@ class AttendanceCalendar {
 		this.initialDate = config.initialDate
 			? new Date(config.initialDate)
 			: new Date();
+		this.onDataLoaded = config.onDataLoaded || null;
+		this.onDayClick = config.onDayClick || null;
+		this.showModalOnClick = config.showModalOnClick !== false;
 		this.readOnly = config.readOnly !== false; // Default to true
 		this.showMonthNavigation = config.showMonthNavigation !== false;
 		this.maxMonthsBack = config.maxMonthsBack || 12; // How many months back to allow
@@ -41,6 +44,7 @@ class AttendanceCalendar {
 
 	render() {
 		this.container.innerHTML = "";
+		this.ensureDayModal();
 
 		// Create wrapper
 		const wrapper = document.createElement("div");
@@ -86,13 +90,13 @@ class AttendanceCalendar {
 		const header = document.createElement("div");
 		header.className = "attendance-calendar-header card shadow-sm mb-3 p-3";
 		header.innerHTML = `
-            <div class="d-flex align-items-center justify-content-center flex-wrap gap-2">
-                <div class="d-flex align-items-center">
-                    <button class="btn btn-sm btn-outline-secondary prev-month-btn" title="Previous month">
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center justify-content-between w-100">
+                    <button class="btn btn-sm border-0 prev-month-btn fs-4" title="Previous month">
                         <i class="ti ti-chevron-left"></i>
                     </button>
                     <h6 class="m-0 mx-3 current-month-display" style="min-width: 150px; text-align: center;"></h6>
-                    <button class="btn btn-sm btn-outline-secondary next-month-btn" title="Next month">
+                    <button class="btn btn-sm border-0 next-month-btn fs-4" title="Next month">
                         <i class="ti ti-chevron-right"></i>
                     </button>
                 </div>
@@ -211,6 +215,10 @@ class AttendanceCalendar {
 				this.updateMonthDisplay();
 				this.renderEmployeeCards();
 				this.renderStatistics();
+
+				if (typeof this.onDataLoaded === "function") {
+					this.onDataLoaded(result);
+				}
 			})
 			.catch((err) => {
 				console.error("Error loading attendance data:", err);
@@ -330,9 +338,12 @@ class AttendanceCalendar {
 			const date = String(dateObj.getDate()).padStart(2, "0");
 			const dateStr = `${year}-${month}-${date}`;
 
-			let status = emp.attendance[dateStr]?.status || "empty";
+			const attendance = emp.attendance[dateStr];
+			let status = attendance?.status || "empty";
 			let classes = "day-square";
 			let title = "";
+			const hasTimes =
+				attendance && attendance.check_in && attendance.check_out;
 
 			if (companyHolidays[dateStr]) {
 				status = "holiday";
@@ -376,7 +387,12 @@ class AttendanceCalendar {
 				else if (status === "half-day") hd++;
 			}
 
-			calendarHtml += `<div class="${classes.trim()}" title="${title}" data-date="${dateStr}">${day}</div>`;
+			const dataAttrs = hasTimes
+				? `data-date="${dateStr}" data-status="${status}" data-checkin="${attendance.check_in}" data-checkout="${attendance.check_out}" data-emp="${emp.name}"`
+				: `data-date="${dateStr}"`;
+			if (hasTimes) classes += " clickable";
+
+			calendarHtml += `<div class="${classes.trim()}" title="${title}" ${dataAttrs}>${day}</div>`;
 		}
 
 		card.innerHTML = `
@@ -411,7 +427,116 @@ class AttendanceCalendar {
             </div>
         `;
 
+		card.querySelectorAll(".day-square.clickable").forEach((el) => {
+			el.addEventListener("click", () => {
+				const payload = {
+					empName: el.getAttribute("data-emp") || emp.name,
+					date: el.getAttribute("data-date"),
+					status: el.getAttribute("data-status"),
+					checkIn: el.getAttribute("data-checkin"),
+					checkOut: el.getAttribute("data-checkout"),
+				};
+
+				if (typeof this.onDayClick === "function") {
+					this.onDayClick(payload);
+				}
+
+				if (this.showModalOnClick) {
+					this.showDayModal(payload);
+				}
+			});
+		});
+
 		return card;
+	}
+
+	ensureDayModal() {
+		if (document.getElementById("attendanceDayModal")) return;
+		const modal = document.createElement("div");
+		modal.id = "attendanceDayModal";
+		modal.className = "modal fade";
+		modal.tabIndex = -1;
+		modal.innerHTML = `
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="attendanceDayModalLabel">Attendance Details</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<div class="mb-2"><strong>Date:</strong> <span id="attendanceDayDate">-</span></div>
+						<div class="mb-2"><strong>Status:</strong> <span id="attendanceDayStatus">-</span></div>
+						<div class="mb-2"><strong>Check In:</strong> <span id="attendanceDayIn">-</span></div>
+						<div class="mb-2"><strong>Check Out:</strong> <span id="attendanceDayOut">-</span></div>
+						<div class="mb-2"><strong>Worked:</strong> <span id="attendanceDayHours">-</span></div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		`;
+		document.body.appendChild(modal);
+	}
+
+	showDayModal({ empName, date, status, checkIn, checkOut }) {
+		const modalEl = document.getElementById("attendanceDayModal");
+		if (!modalEl) return;
+
+		const dayLabel = this.formatDateWithDay(date);
+		const workedHours = this.calculateWorkedHours(checkIn, checkOut);
+
+		modalEl.querySelector("#attendanceDayModalLabel").textContent =
+			empName || "Attendance Details";
+		modalEl.querySelector("#attendanceDayDate").textContent = dayLabel;
+		modalEl.querySelector("#attendanceDayStatus").textContent = (
+			status || ""
+		).replace(/\b\w/g, (c) => c.toUpperCase());
+		modalEl.querySelector("#attendanceDayIn").textContent =
+			this.formatTimeString(checkIn);
+		modalEl.querySelector("#attendanceDayOut").textContent =
+			this.formatTimeString(checkOut);
+		modalEl.querySelector("#attendanceDayHours").textContent = workedHours;
+
+		const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+		modal.show();
+	}
+
+	formatTimeString(timeStr) {
+		if (!timeStr) return "-";
+		const [h, m] = timeStr.split(":");
+		const d = new Date();
+		d.setHours(parseInt(h, 10), parseInt(m, 10), 0, 0);
+		return d.toLocaleTimeString([], {
+			hour: "2-digit",
+			minute: "2-digit",
+			hour12: true,
+		});
+	}
+
+	formatDateWithDay(dateStr) {
+		if (!dateStr) return "-";
+		const d = new Date(dateStr + "T00:00:00");
+		return d.toLocaleDateString("en-US", {
+			weekday: "long",
+			year: "numeric",
+			month: "long",
+			day: "numeric",
+		});
+	}
+
+	calculateWorkedHours(checkIn, checkOut) {
+		if (!checkIn || !checkOut) return "-";
+		const [inH, inM] = checkIn.split(":").map(Number);
+		const [outH, outM] = checkOut.split(":").map(Number);
+		const inDate = new Date();
+		inDate.setHours(inH, inM, 0, 0);
+		const outDate = new Date();
+		outDate.setHours(outH, outM, 0, 0);
+		let diffMinutes = Math.max(0, (outDate - inDate) / (1000 * 60));
+		const hours = Math.floor(diffMinutes / 60);
+		const mins = Math.round(diffMinutes % 60);
+		return `${hours}:${mins.toString().padStart(2, "0")}`;
 	}
 
 	isSaturdayHoliday(day, policy) {

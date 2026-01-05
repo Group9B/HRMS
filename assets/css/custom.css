@@ -168,6 +168,38 @@
 	transition: transform 0.1s ease;
 }
 
+.day-square.day-header {
+	background-color: transparent;
+	font-weight: bold;
+	cursor: default;
+}
+
+.day-square.day-header:first-child {
+	border-right: none;
+	border-bottom-right-radius: 0;
+	border-top-right-radius: 0;
+}
+/* select elements 2-6 */
+.day-square.day-header:nth-child(n + 2):nth-child(-n + 6) {
+	border-right: none;
+	border-left: none;
+	border-bottom-right-radius: 0;
+	border-top-right-radius: 0;
+	border-bottom-left-radius: 0;
+	border-top-left-radius: 0;
+}
+
+.day-square.day-header:nth-child(7) {
+	border-left: none;
+	border-bottom-left-radius: 0;
+	border-top-left-radius: 0;
+}
+
+.day-square.day-header:hover {
+	transform: none;
+	cursor: default;
+}
+
 .day-square:hover {
 	transform: scale(1.1);
 	z-index: 10;

@@ -126,7 +126,7 @@ switch ($action) {
 
         $final_params = array_merge([$start_date, $end_date], $sql_params);
 
-        $sql = "SELECT e.id as employee_id, e.first_name, e.last_name, e.date_of_joining, e.department_id, d.name as department_name, des.name as designation, a.date, a.status
+        $sql = "SELECT e.id as employee_id, e.first_name, e.last_name, e.date_of_joining, e.department_id, d.name as department_name, des.name as designation, a.date, a.status, a.check_in, a.check_out
                 FROM employees e
                 JOIN users u ON e.user_id = u.id
                 LEFT JOIN departments d ON e.department_id = d.id
@@ -152,7 +152,11 @@ switch ($action) {
                     ];
                 }
                 if ($row['date']) {
-                    $employees[$row['employee_id']]['attendance'][$row['date']] = ['status' => $row['status']];
+                    $employees[$row['employee_id']]['attendance'][$row['date']] = [
+                        'status' => $row['status'],
+                        'check_in' => $row['check_in'],
+                        'check_out' => $row['check_out'],
+                    ];
                     $key = 'total_' . str_replace('-', '_', $row['status']);
                     if (array_key_exists($key, $summary)) {
                         $summary[$key]++;

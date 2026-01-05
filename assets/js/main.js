@@ -131,9 +131,51 @@ function showToast(message, type = "success") {
 			'<div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3"></div>'
 		);
 	}
+
 	const toastId = "toast-" + Date.now();
-	const bgClass = type === "success" ? "bg-success" : "bg-danger";
-	const toastHTML = `<div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true"><div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div></div>`;
+	const normalized = (type || "success").toLowerCase();
+	const styleMap = {
+		success: {
+			bg: "bg-success",
+			text: "text-white",
+			icon: "ti ti-circle-check",
+		},
+		error: {
+			bg: "bg-danger",
+			text: "text-white",
+			icon: "ti ti-alert-triangle",
+		},
+		danger: {
+			bg: "bg-danger",
+			text: "text-white",
+			icon: "ti ti-alert-triangle",
+		},
+		warning: {
+			bg: "bg-warning",
+			text: "text-white",
+			icon: "ti ti-alert-circle",
+		},
+		info: { bg: "bg-info", text: "text-white", icon: "ti ti-info-circle" },
+	};
+
+	const chosen = styleMap[normalized] || styleMap.success;
+	const textClass = chosen.text;
+
+	const toastHTML = `
+		<div id="${toastId}" class="toast align-items-center ${textClass} ${
+		chosen.bg
+	} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+			<div class="d-flex">
+				<div class="toast-body d-flex align-items-start gap-2">
+					<i class="${chosen.icon} mt-1"></i>
+					<span>${message}</span>
+				</div>
+				<button type="button" class="btn-close ${
+					textClass === "text-white" ? "btn-close-white" : ""
+				} me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+			</div>
+		</div>`;
+
 	$("#toast-container").append(toastHTML);
 	const toastElement = new bootstrap.Toast(document.getElementById(toastId));
 	document
