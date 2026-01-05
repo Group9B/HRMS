@@ -17,19 +17,23 @@ require_once __DIR__ . '/PromptGuard.php';
 require_once __DIR__ . '/ConversationContext.php';
 require_once __DIR__ . '/ActionHandler.php';
 
-require_once __DIR__ . '/GeminiHandler.php';
+require_once __DIR__ . '/GroqHandler.php';
+require_once __DIR__ . '/WidgetRenderer.php';
+require_once __DIR__ . '/DynamicQueryBuilder.php';
 
 class NexusBot
 {
     private $mysqli;
     private $recognizer;
-    private $gemini;
+    private $groq;
     private $security;
     private $queryHandler;
     private $knowledge;
     private $promptGuard;
     private $context;
     private $actionHandler;
+    private $widgetRenderer;
+    private $dynamicQueryBuilder;
     private $userContext;
 
     // Bot metadata
@@ -54,13 +58,15 @@ class NexusBot
 
         // Initialize all components
         $this->recognizer = new IntentRecognizer();
-        $this->gemini = new GeminiHandler('Gemini Api Key');
+        $this->groq = new GroqHandler('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', 'llama-3.1-8b-instant');
         $this->security = new SecurityFilter($mysqli, $userContext);
         $this->queryHandler = new QueryHandler($mysqli, $this->security);
         $this->knowledge = new KnowledgeBase();
         $this->promptGuard = new PromptGuard();
         $this->context = new ConversationContext($mysqli, $userContext['user_id'] ?? 0);
         $this->actionHandler = new ActionHandler($mysqli, $this->security, $userContext);
+        $this->widgetRenderer = new WidgetRenderer($mysqli, $userContext['employee_id'] ?? 0, $userContext['user_id'] ?? 0);
+        $this->dynamicQueryBuilder = new DynamicQueryBuilder($mysqli, $userContext);
     }
 
     /**
@@ -112,6 +118,7 @@ class NexusBot
 
         // Check for empty message
         if (empty(trim($sanitizedMessage))) {
+            file_put_contents('c:/xampp/htdocs/HRMS/debug_trace.log', "NexusBot: Empty Message\n", FILE_APPEND);
             return $this->successResponse(
                 $this->knowledge->getHelpMenu(),
                 self::TYPE_HELP
@@ -153,15 +160,22 @@ class NexusBot
         }
 
         // ============ INTENT RECOGNITION ============
-        // Optimistic Approach: Try Gemini first (timeout 4s), fallback to native
-        $intent = $this->gemini->analyze($sanitizedMessage);
-        $isGemini = true;
+        // Optimistic Approach: Try Groq/LLaMA first, fallback to native
+        $intent = $this->groq->analyze($sanitizedMessage);
+        $isAI = true;
 
-        // Fallback to native if Gemini returns unknown (or timed out/failed)
+        // Fallback to native if AI returns unknown (or timed out/failed)
         if (!$intent || $intent['intent'] === 'unknown') {
             $intent = $this->recognizer->recognize($sanitizedMessage);
-            $isGemini = false;
+            $isAI = false;
         }
+
+        // Gather safe user context for AI
+        $safeContext = [
+            'name' => $this->userContext['username'] ?? 'Employee',
+            'role' => $this->userContext['role'] ?? 'User',
+            'city' => 'Unknown' // Add city from DB if available later
+        ];
 
         // Add to conversation history
         $this->context->addMessage('user', $sanitizedMessage, ['intent' => $intent['intent']]);
@@ -174,15 +188,41 @@ class NexusBot
         $result = $this->handleIntent($intent);
 
         // Generate Response
-        // If Gemini was used and we have data/success, let Gemini phrase the response
-        if ($isGemini && $result['success'] && !isset($result['type'])) {
+        // If AI was used and we have data/success, let AI phrase the response
+        if ($isAI && $result['success']) {
             // Only generate detailed text for data responses, not simple conversational ones that return direct strings
             // However, handleIntent largely returns standard arrays.
 
             // Check if it's a data response or direct message
-            if (isset($result['data'])) {
-                $finalMessage = $this->gemini->generateResponse($sanitizedMessage, $result['data']);
-                $response = $this->successResponse($finalMessage, self::TYPE_DATA, $result['data']);
+            if ($intent['intent'] === 'general_query' || $intent['intent'] === 'greeting' || $intent['intent'] === 'thanks' || $intent['intent'] === 'goodbye' || $intent['intent'] === 'help') {
+                $finalMessage = $this->groq->generateResponse($sanitizedMessage, ['context' => 'conversation'], $safeContext);
+                $response = $this->successResponse($finalMessage, self::TYPE_TEXT);
+            } elseif (isset($result['data'])) {
+                $finalMessage = $this->groq->generateResponse($sanitizedMessage, $result['data'], $safeContext);
+
+
+                // Attach Dynamic Widgets
+                $widget = null;
+                switch ($intent['intent']) {
+                    case 'attendance':
+                        $widget = $this->widgetRenderer->attendanceWidget();
+                        break;
+                    case 'leave_balance':
+                    case 'leave':
+                        $widget = $this->widgetRenderer->leaveWidget();
+                        break;
+                    case 'task':
+                        $widget = $this->widgetRenderer->tasksWidget();
+                        break;
+                    case 'team':
+                        $widget = $this->widgetRenderer->teamWidget();
+                        break;
+                }
+
+                $response = $this->successResponse($finalMessage, self::TYPE_DATA, [
+                    'data' => $result['data'],
+                    'widget' => $widget
+                ]);
             } else {
                 // For info responses without complex data structure
                 $response = $this->successResponse($result['message'], $result['type'] ?? self::TYPE_TEXT);
@@ -207,7 +247,7 @@ class NexusBot
         $this->context->addMessage('bot', $response['message'], ['type' => $response['type']]);
 
         // Add source indicator
-        $response['source'] = $isGemini ? 'gemini' : 'native';
+        $response['source'] = $isAI ? 'groq' : 'native';
 
         return $response;
     }
@@ -343,8 +383,20 @@ class NexusBot
             return $this->handleConversationalIntent($intentType);
         }
 
+        // Handle general chat (Groq) - Return basics to let main process loop handle generation
+        if (in_array($intentType, ['general_query', 'greeting', 'thanks', 'goodbye', 'help'])) {
+            return [
+                'success' => true,
+                'data' => null
+            ];
+        }
+
         // Handle data-related intents
         switch ($intentType) {
+            case 'dynamic_query':
+                $result = $this->dynamicQueryBuilder->execute($intent['data']);
+                break;
+
             case IntentRecognizer::INTENT_ATTENDANCE:
                 $result = $this->queryHandler->getAttendance($context, $subIntent);
                 break;

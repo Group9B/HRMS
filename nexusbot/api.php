@@ -19,12 +19,17 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/NexusBot.php';
 
+
 // Configuration
 define('NEXUSBOT_DEBUG', false); // Set to true for development
 define('NEXUSBOT_LOG_FILE', __DIR__ . '/logs/nexusbot.log');
 define('NEXUSBOT_RATE_LIMIT', 30); // Max requests per minute
 define('NEXUSBOT_RATE_WINDOW', 60); // Window in seconds
 define('NEXUSBOT_MAX_MESSAGE_LENGTH', 500);
+
+// Disable error display for API JSON integrity
+error_reporting(0);
+ini_set('display_errors', 0);
 
 /**
  * Log request for analytics

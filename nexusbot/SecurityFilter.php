@@ -52,6 +52,7 @@ class SecurityFilter
      */
     public function isAuthenticated(): bool
     {
+        file_put_contents('c:/xampp/htdocs/HRMS/debug_trace.log', "Security: Checking Auth\n", FILE_APPEND);
         return $this->userId !== null;
     }
 

@@ -542,8 +542,17 @@
 }
 
 .nexus-card.success {
-    border-left-color: #2fb344;
-    background: rgba(47, 179, 68, 0.1);
+    border-left-color: #198754;
+    background: #d1e7dd;
+    /* Bootstrap success light bg */
+}
+
+.nexus-card.success .nexus-card-title {
+    color: #0f5132;
+}
+
+.nexus-card.success .nexus-card-header i {
+    color: #0f5132;
 }
 
 .nexus-card.warning {
@@ -564,19 +573,18 @@
     font-size: 18px;
 }
 
-.nexus-card.success .nexus-card-header i {
-    color: #2fb344;
-}
+
 
 .nexus-card.warning .nexus-card-header i {
     color: #f59f00;
 }
 
 .nexus-card-title {
-    font-weight: 600;
-    font-size: 14px;
+    font-weight: 700;
+    font-size: 15px;
     color: var(--nexus-text);
     margin: 0;
+    letter-spacing: -0.3px;
 }
 
 .nexus-card-row {
@@ -604,16 +612,38 @@
 }
 
 /* Dark Mode Specific Adjustments */
+/* Dark Mode Specific Adjustments */
 [data-bs-theme="dark"] .nexus-card {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    background: #2c3034;
+    /* Slightly lighter than main bg */
+    border-color: #373b3e;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 [data-bs-theme="dark"] .nexus-card.success {
-    background: rgba(47, 179, 68, 0.15);
+    background: rgba(25, 135, 84, 0.15);
+    border-left-color: #75b798;
+}
+
+[data-bs-theme="dark"] .nexus-card.success .nexus-card-title {
+    color: #75b798;
+}
+
+[data-bs-theme="dark"] .nexus-card.success .nexus-card-header i {
+    color: #75b798;
 }
 
 [data-bs-theme="dark"] .nexus-card.warning {
-    background: rgba(245, 159, 0, 0.15);
+    background: rgba(255, 193, 7, 0.15);
+    border-left-color: #ffda6a;
+}
+
+[data-bs-theme="dark"] .nexus-card.warning .nexus-card-title {
+    color: #ffda6a;
+}
+
+[data-bs-theme="dark"] .nexus-card.warning .nexus-card-header i {
+    color: #ffda6a;
 }
 
 /* ============ Transparency Badges ============ */
@@ -647,4 +677,128 @@
     background: #334155;
     color: #94a3b8;
     border-color: #475569;
+}
+
+/* ============ Dynamic Widgets ============ */
+.nexus-widget-card {
+    background: var(--nexus-bg);
+    border: 1px solid var(--nexus-border);
+    border-radius: 12px;
+    margin-top: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.nexus-widget-header {
+    background: var(--nexus-bg-secondary);
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--nexus-border);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--nexus-text);
+}
+
+.nexus-widget-body {
+    padding: 14px;
+}
+
+.nexus-widget-footer {
+    padding: 10px 14px;
+    background: var(--nexus-bg-secondary);
+    border-top: 1px solid var(--nexus-border);
+}
+
+.nexus-stat-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.nexus-stat-row>div {
+    flex: 1;
+    text-align: center;
+    background: var(--nexus-bg-secondary);
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.nexus-stat-row small {
+    display: block;
+    color: var(--nexus-text-secondary);
+    font-size: 11px;
+    margin-bottom: 2px;
+}
+
+.nexus-stat-row strong {
+    font-size: 16px;
+    color: var(--nexus-text);
+}
+
+.nexus-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #e9ecef;
+    color: #495057;
+    font-weight: 600;
+}
+
+.nexus-badge.text-success {
+    color: #198754;
+    background: #d1e7dd;
+}
+
+.nexus-badge.text-warning {
+    color: #fd7e14;
+    background: #ffecb5;
+}
+
+.nexus-badge.text-secondary {
+    color: #6c757d;
+    background: #e2e3e5;
+}
+
+.nexus-badge.text-danger {
+    color: #dc3545;
+    background: #f8d7da;
+}
+
+.nexus-task-item {
+    background: var(--nexus-bg);
+    border: 1px solid var(--nexus-border);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-left: 3px solid transparent;
+}
+
+.nexus-task-item:last-child {
+    margin-bottom: 0;
+}
+
+.nexus-task-item.high {
+    border-left-color: #dc3545;
+}
+
+.nexus-task-item.medium {
+    border-left-color: #fd7e14;
+}
+
+.nexus-task-item.low {
+    border-left-color: #0d6efd;
+}
+
+.nexus-team-member {
+    transition: background-color 0.2s;
+}
+
+.nexus-team-member:hover {
+    background-color: var(--nexus-bg-secondary);
+}
+
+.nexus-action-btn:active {
+    transform: scale(0.98);
 }

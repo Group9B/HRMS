@@ -68,11 +68,19 @@ class NexusBot {
             });
         }
 
+
         // Quick action buttons
         this.quickActions.forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', async () => {
                 const query = btn.dataset.query;
                 if (query) {
+                    // Hide Clock In/Out button immediately on click
+                    if (query.toLowerCase().includes('clock in') || query.toLowerCase().includes('clock out')) {
+                        btn.style.transition = 'all 0.3s ease';
+                        btn.style.opacity = '0';
+                        btn.style.transform = 'scale(0.8)';
+                        setTimeout(() => btn.remove(), 300);
+                    }
                     this.inputField.value = query;
                     this.sendMessage();
                 }
@@ -183,7 +191,7 @@ class NexusBot {
                 if (data.client_action) {
                     this.handleClientAction(data.client_action);
                 }
-                this.addMessage(data.message, 'bot', data.type, data.source);
+                this.addMessage(data.message, 'bot', data.type, data.source, data.widget);
             } else {
                 this.addMessage(data.message || 'An error occurred. Please try again.', 'bot', 'error');
             }
@@ -218,7 +226,7 @@ class NexusBot {
     /**
      * Add message to chat
      */
-    addMessage(content, sender, type = 'text', source = null) {
+    addMessage(content, sender, type = 'text', source = null, widget = null) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `nexus-message ${sender} type-${type}`;
 
@@ -234,13 +242,18 @@ class NexusBot {
 
         // Format content (convert markdown-like syntax to HTML)
         bubbleDiv.innerHTML = icon + this.formatMessage(content);
+        
+        // Append Widget if present
+        if (widget) {
+            bubbleDiv.innerHTML += this.renderWidget(widget);
+        }
 
         const timeDiv = document.createElement('div');
         timeDiv.className = 'nexus-time';
         
         // AI Badge
-        if (source === 'gemini') {
-            const badge = `<span class="nexus-ai-badge" title="Powered by Gemini AI"><i class="ti ti-sparkles"></i> AI</span> `;
+        if (source === 'groq' || source === 'gemini') {
+            const badge = `<span class="nexus-ai-badge" title="Powered by AI"><i class="ti ti-sparkles"></i> AI</span> `;
             timeDiv.innerHTML = badge + this.formatTime(new Date());
         } else if (source === 'native') {
             const badge = `<span class="nexus-bot-badge" title="Rule-based Bot"><i class="ti ti-robot"></i> Bot</span> `;
@@ -263,6 +276,25 @@ class NexusBot {
 
         // Save to history
         this.messageHistory.push({ content, sender, type, timestamp: new Date() });
+        
+        // Bind widget actions
+        if (widget && widget.actions) {
+            const btns = messageDiv.querySelectorAll('.nexus-action-btn');
+            btns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                   const action = btn.dataset.action;
+                   // Handle Quick Actions (like clock in/out) directly via chat
+                   if (action === 'clock_in') this.sendQuickQuery('Clock In');
+                   if (action === 'clock_out') this.sendQuickQuery('Clock Out');
+                   if (action === 'apply_leave') window.location.href = '/hrms/employee/leave.php'; 
+                });
+            });
+        }
+    }
+
+    sendQuickQuery(query) {
+        this.inputField.value = query;
+        this.sendMessage();
     }
 
     /**
@@ -422,6 +454,159 @@ class NexusBot {
                 }
                 break;
         }
+    }
+
+    /**
+     * Render dynamic widget
+     */
+    renderWidget(widget) {
+        if (!widget) return '';
+        
+        switch (widget.type) {
+            case 'attendance': return this.renderAttendanceWidget(widget);
+            case 'leave': return this.renderLeaveWidget(widget);
+            case 'tasks': return this.renderTasksWidget(widget);
+            case 'team': return this.renderTeamWidget(widget);
+            default: return '';
+        }
+    }
+
+    renderAttendanceWidget(data) {
+        const statusClass = data.today.status === 'active' ? 'text-success' : (data.today.status === 'completed' ? 'text-secondary' : 'text-warning');
+        const statusLabel = data.today.status === 'active' ? 'Clocked In' : (data.today.status === 'completed' ? 'Clocked Out' : 'Not Started');
+        
+        // Safety check for null times
+        const checkIn = data.today.check_in ? data.today.check_in.substring(0,5) : '--:--';
+        const checkOut = data.today.check_out ? data.today.check_out.substring(0,5) : '--:--';
+        
+        let html = `
+            <div class="nexus-widget-card">
+                <div class="nexus-widget-header">
+                    <span><i class="ti ti-calendar-check"></i> Attendance</span>
+                    <span class="nexus-badge ${statusClass}">${statusLabel}</span>
+                </div>
+                <div class="nexus-widget-body">
+                    <div class="nexus-stat-row">
+                        <div>
+                            <small>Check In</small>
+                            <strong>${checkIn}</strong>
+                        </div>
+                        <div>
+                            <small>Check Out</small>
+                            <strong>${checkOut}</strong>
+                        </div>
+                    </div>
+                    <div class="nexus-mini-chart mt-2">
+                        <div class="d-flex justify-content-between text-muted x-small">
+                            <span>Week Hours</span>
+                            <span>${data.week.total_hours}h</span>
+                        </div>
+                        <div class="progress" style="height: 4px;">
+                            <div class="progress-bar bg-primary" style="width: ${Math.min((data.week.total_hours/40)*100, 100)}%"></div>
+                        </div>
+                    </div>
+                </div>
+                ${this.renderActions(data.actions)}
+            </div>
+        `;
+        return html;
+    }
+
+    renderLeaveWidget(data) {
+        let balancesHtml = data.balances.map(b => `
+            <div class="mb-2">
+                <div class="d-flex justify-content-between small mb-1">
+                    <span>${b.type}</span>
+                    <span>${b.remaining}/${b.total}</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar bg-${b.percentage > 80 ? 'danger' : 'success'}" style="width: ${b.percentage}%"></div>
+                </div>
+            </div>
+        `).join('');
+
+        return `
+            <div class="nexus-widget-card">
+                <div class="nexus-widget-header">
+                    <span><i class="ti ti-beach"></i> Leave Balance</span>
+                </div>
+                <div class="nexus-widget-body">
+                    ${balancesHtml}
+                </div>
+                ${this.renderActions(data.actions)}
+            </div>
+        `;
+    }
+
+    renderTasksWidget(data) {
+        if (!data.tasks || data.tasks.length === 0) {
+            return `<div class="nexus-widget-card"><div class="nexus-widget-body text-center text-muted">No pending tasks! 🎉</div></div>`;
+        }
+
+        let tasksHtml = data.tasks.map(t => `
+            <div class="nexus-task-item ${t.priority}">
+                <div class="d-flex w-100 justify-content-between align-items-center">
+                    <div class="text-truncate" style="max-width: 180px;">${t.title}</div>
+                    <span class="badge bg-${t.status === 'completed' ? 'success' : 'secondary'} x-small">${t.status}</span>
+                </div>
+                <div class="d-flex justify-content-between mt-1 text-muted x-small">
+                    <span><i class="ti ti-calendar"></i> ${t.due_date}</span>
+                    ${t.priority === 'high' ? '<span class="text-danger">High Priority</span>' : ''}
+                </div>
+            </div>
+        `).join('');
+
+        return `
+            <div class="nexus-widget-card">
+                <div class="nexus-widget-header">
+                    <span><i class="ti ti-list-check"></i> Pending Tasks (${data.total_pending})</span>
+                </div>
+                <div class="nexus-widget-body p-0">
+                    ${tasksHtml}
+                </div>
+            </div>
+        `;
+    }
+
+    renderTeamWidget(data) {
+        let membersHtml = data.members.map(m => `
+            <div class="nexus-team-member d-flex justify-content-between align-items-center p-2 border-bottom">
+                <div class="d-flex align-items-center">
+                    <div class="avatar x-small me-2 bg-${m.status === 'present' ? 'success' : 'secondary'} text-white rounded-circle flex-shrink-0">
+                        ${m.name.charAt(0)}
+                    </div>
+                    <div>
+                        <div class="fw-bold small">${m.name}</div>
+                        <div class="text-muted x-small">${m.department}</div>
+                    </div>
+                </div>
+                <span class="badge bg-${m.status === 'present' ? 'success-lt' : 'secondary-lt'}">${m.status}</span>
+            </div>
+        `).join('');
+
+        return `
+            <div class="nexus-widget-card">
+                <div class="nexus-widget-header">
+                    <span><i class="ti ti-users"></i> My Team</span>
+                    <span class="badge bg-primary-lt">${data.summary.present}/${data.summary.total} Present</span>
+                </div>
+                <div class="nexus-widget-body p-0 scrollable" style="max-height: 200px; overflow-y: auto;">
+                    ${membersHtml}
+                </div>
+            </div>
+        `;
+    }
+
+    renderActions(actions) {
+        if (!actions || actions.length === 0) return '';
+        
+        const btns = actions.map(pid => `
+            <button class="btn btn-sm btn-${pid.style || 'primary'} w-100 mt-2 nexus-action-btn" data-action="${pid.action}">
+                ${pid.label}
+            </button>
+        `).join('');
+        
+        return `<div class="nexus-widget-footer">${btns}</div>`;
     }
 }
 

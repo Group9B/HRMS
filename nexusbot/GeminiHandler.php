@@ -1,13 +1,13 @@
 <?php
 /**
  * GeminiHandler.php
- * Handles integration with Google's Gemini API for advanced NLP
+ * Simplified Gemini integration - Plain text approach
  */
 
 class GeminiHandler
 {
     private $apiKey;
-    private $apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+    private $apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
     public function __construct(string $apiKey)
     {
@@ -15,41 +15,38 @@ class GeminiHandler
     }
 
     /**
-     * Analyze message to detect intent and entities
+     * Analyze message to detect intent - Simplified approach
      */
     public function analyze(string $message): array
     {
+        // Simple prompt asking for just the intent keyword
         $prompt = <<<EOT
-You are an HRMS assistant. Analyze the user's message and extract the intent and entities.
-Return a JSON object with the following structure:
-{
-    "intent": "string",
-    "sub_intent": "string", // self, team, other, all
-    "confidence": float,
-    "context": {
-        "time_context": "string or null", // today, yesterday, this_week, last_week, this_month, last_month, this_year, next_month
-        "entities": {
-            "employee_id": int,
-            "month": int or null,
-            "year": int or null,
-            "name": "string or null",
-            "leave_type": "string or null" 
-        }
-    }
-}
+Classify this HRMS query into ONE of these intents:
+attendance, leave, leave_balance, payslip, profile, task, team, holiday, shift, performance, department, policy, company, greeting, thanks, goodbye, help, change_theme, general_chat, unknown
 
-Available Intents:
-- attendance, leave, leave_balance, payslip, profile, task, team, holiday, shift, performance, department, policy, company
-- greeting, thanks, goodbye, help, unknown
-- change_theme (for requests to switch light/dark mode)
+Query: "$message"
 
-User Message: "$message"
+Reply with ONLY the intent word, nothing else.
 EOT;
 
-        $response = $this->callGemini($prompt, true);
+        $response = $this->callGemini($prompt);
 
-        if ($response && isset($response['intent'])) {
-            return $response;
+        if ($response) {
+            // Clean and extract intent
+            $intent = strtolower(trim($response));
+            $intent = preg_replace('/[^a-z_]/', '', $intent);
+
+            // Validate it's a known intent
+            $validIntents = ['attendance', 'leave', 'leave_balance', 'payslip', 'profile', 'task', 'team', 'holiday', 'shift', 'performance', 'department', 'policy', 'company', 'greeting', 'thanks', 'goodbye', 'help', 'change_theme', 'general_chat', 'unknown'];
+
+            if (in_array($intent, $validIntents)) {
+                return [
+                    'intent' => $intent,
+                    'sub_intent' => 'self',
+                    'confidence' => 0.9,
+                    'context' => []
+                ];
+            }
         }
 
         return [
@@ -67,29 +64,28 @@ EOT;
     {
         $dataJson = json_encode($data);
         $prompt = <<<EOT
-You are a helpful HR assistant.
-User Query: "$userQuery"
-System Data: $dataJson
+You are a helpful HR assistant. Answer this query based on the data provided.
 
-Generate a friendly, concise natural language response to the user based on the system data provided to answer their query.
-Do not invent facts. If the data indicates an error or empty result, explain it defined politely.
+Query: "$userQuery"
+Data: $dataJson
+
+Give a friendly, concise response. Do not invent facts.
 EOT;
 
-        $result = $this->callGemini($prompt, false);
-        return $result ? $result : "I processed your request but couldn't generate a text response.";
+        $result = $this->callGemini($prompt);
+        return $result ? $result : "I processed your request but couldn't generate a response.";
     }
 
-    private function callGemini(string $prompt, bool $jsonMode)
+    /**
+     * Simple API call - no JSON mode
+     */
+    private function callGemini(string $prompt): ?string
     {
         $payload = [
             'contents' => [
                 ['parts' => [['text' => $prompt]]]
             ]
         ];
-
-        if ($jsonMode) {
-            $payload['generationConfig'] = ['responseMimeType' => 'application/json'];
-        }
 
         $url = $this->apiUrl . '?key=' . $this->apiKey;
 
@@ -98,26 +94,30 @@ EOT;
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-
-        // Timeout for responsiveness (Optimistic Fallback: 4s)
-        curl_setopt($ch, CURLOPT_TIMEOUT, 4);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
 
         $response = curl_exec($ch);
+        $error = curl_error($ch);
+        curl_close($ch);
 
-        if (curl_errno($ch)) {
+        if ($error) {
+            error_log("Gemini cURL Error: " . $error);
             return null;
         }
 
-        curl_close($ch);
-
         $decoded = json_decode($response, true);
 
+        // Check for API errors
+        if (isset($decoded['error'])) {
+            error_log("Gemini API Error: " . json_encode($decoded['error']));
+            return null;
+        }
+
         if (isset($decoded['candidates'][0]['content']['parts'][0]['text'])) {
-            $text = $decoded['candidates'][0]['content']['parts'][0]['text'];
-            return $jsonMode ? json_decode($text, true) : $text;
+            return trim($decoded['candidates'][0]['content']['parts'][0]['text']);
         }
 
         return null;
     }
 }
-?>

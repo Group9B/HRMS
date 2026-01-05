@@ -23,7 +23,7 @@ if (file_exists($env_file)) {
     }
 }
 
-$host = getenv('DB_HOST') ?: 'localhost';
+$host = getenv('DB_HOST') ?: '127.0.0.1';
 $db = getenv('DB_NAME') ?: 'hrms_db';
 $user = getenv('DB_USER') ?: 'root';
 $pass = getenv('DB_PASS') ?: '';
