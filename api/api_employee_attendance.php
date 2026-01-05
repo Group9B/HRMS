@@ -3,6 +3,10 @@ header('Content-Type: application/json');
 require_once '../config/db.php';
 require_once '../includes/functions.php';
 
+// Use India Standard Time across all attendance operations
+date_default_timezone_set('Asia/Kolkata');
+$tz = new DateTimeZone('Asia/Kolkata');
+
 $response = ['success' => false, 'message' => 'An unknown error occurred.'];
 
 // Allow roles: 4 (Employee), 6 (Manager), 3 (HR Manager), 2 (Company Admin)
@@ -15,7 +19,89 @@ if (!isLoggedIn() || !in_array($_SESSION['role_id'], [2, 3, 4, 6])) {
 $user_id = $_SESSION['user_id'];
 $role_id = $_SESSION['role_id'];
 $company_id = $_SESSION['company_id'];
-$today = date('Y-m-d');
+$today = (new DateTime('now', $tz))->format('Y-m-d');
+
+// Determine if today is eligible for attendance based on holidays, weekends, leave, and Saturday policy
+function getAttendanceDayContext($mysqli, $company_id, $employee_id, DateTime $todayDate)
+{
+    $todayStr = $todayDate->format('Y-m-d');
+
+    // Company holiday check
+    $holiday = query(
+        $mysqli,
+        "SELECT holiday_name FROM holidays WHERE company_id = ? AND holiday_date = ?",
+        [$company_id, $todayStr]
+    );
+    if ($holiday['success'] && !empty($holiday['data'])) {
+        $name = $holiday['data'][0]['holiday_name'] ?? 'Company Holiday';
+        return [
+            'status' => 'holiday',
+            'block' => true,
+            'message' => "Today is a company holiday ({$name}). Attendance is locked.",
+        ];
+    }
+
+    $weekday = (int) $todayDate->format('w'); // 0=Sun, 6=Sat
+
+    if ($weekday === 0) {
+        return [
+            'status' => 'holiday',
+            'block' => true,
+            'message' => 'Today is Sunday. Attendance is not allowed.',
+        ];
+    }
+
+    if ($weekday === 6) {
+        $policyResult = query(
+            $mysqli,
+            "SELECT saturday_policy FROM company_holiday_settings WHERE company_id = ?",
+            [$company_id]
+        );
+        $policy = ($policyResult['success'] && !empty($policyResult['data']))
+            ? $policyResult['data'][0]['saturday_policy']
+            : 'none';
+
+        $dayOfMonth = (int) $todayDate->format('j');
+        $weekNumber = (int) ceil($dayOfMonth / 7); // 1-based week within month
+        $isOffSaturday = false;
+
+        if ($policy === 'all') {
+            $isOffSaturday = true;
+        } elseif ($policy === '1st_3rd' && in_array($weekNumber, [1, 3], true)) {
+            $isOffSaturday = true;
+        } elseif ($policy === '2nd_4th' && in_array($weekNumber, [2, 4], true)) {
+            $isOffSaturday = true;
+        }
+
+        if ($isOffSaturday) {
+            return [
+                'status' => 'holiday',
+                'block' => true,
+                'message' => 'Today is an off Saturday per company policy. Attendance is locked.',
+            ];
+        }
+    }
+
+    // Approved leave check
+    $leave = query(
+        $mysqli,
+        "SELECT id FROM leaves WHERE employee_id = ? AND status = 'approved' AND start_date <= ? AND end_date >= ?",
+        [$employee_id, $todayStr, $todayStr]
+    );
+    if ($leave['success'] && !empty($leave['data'])) {
+        return [
+            'status' => 'onleave',
+            'block' => true,
+            'message' => 'You are on approved leave today. Attendance is locked.',
+        ];
+    }
+
+    return [
+        'status' => 'working',
+        'block' => false,
+        'message' => '',
+    ];
+}
 
 // Get employee_id for the current user or from request
 $employee_id = null;
@@ -48,6 +134,9 @@ $action = $_REQUEST['action'] ?? '';
 
 switch ($action) {
     case 'get_today_status':
+        $todayDate = new DateTime('now', $tz);
+        $dayContext = getAttendanceDayContext($mysqli, $company_id, $employee_id, $todayDate);
+
         $sql = "
             SELECT 
                 a.check_in, a.check_out, a.status,
@@ -61,37 +150,46 @@ switch ($action) {
         $result = query($mysqli, $sql, [$today, $employee_id]);
 
         if ($result['success']) {
-            $data = $result['data'][0] ?? null;
-            if ($data) {
-                // Add status flags based on shift timings
-                $data['check_in_status'] = '';
-                $data['check_out_status'] = '';
-                $data['duration_status'] = '';
-                $data['work_hours_decimal'] = 0;
+            $data = $result['data'][0] ?? [];
 
-                if ($data['start_time'] && $data['check_in'] && $data['check_in'] > $data['start_time']) {
-                    $data['check_in_status'] = 'Late';
+            $data['check_in_status'] = '';
+            $data['check_out_status'] = '';
+            $data['duration_status'] = '';
+            $data['work_hours_decimal'] = 0;
+
+            if (!empty($data['check_in']) && !empty($data['start_time']) && $data['check_in'] > $data['start_time']) {
+                $data['check_in_status'] = 'Late';
+            }
+
+            if (!empty($data['check_in']) && !empty($data['check_out'])) {
+                $checkInTime = new DateTime($data['check_in'], $tz);
+                $checkOutTime = new DateTime($data['check_out'], $tz);
+                $interval = $checkInTime->diff($checkOutTime);
+                $hours_worked = $interval->h + ($interval->i / 60) + ($interval->s / 3600);
+                $data['work_hours_decimal'] = $hours_worked;
+
+                if (!empty($data['end_time']) && $data['check_out'] < $data['end_time']) {
+                    $data['check_out_status'] = 'Early Out';
                 }
 
-                if ($data['check_in'] && $data['check_out']) {
-                    // Calculate work hours
-                    $checkInTime = new DateTime($data['check_in']);
-                    $checkOutTime = new DateTime($data['check_out']);
-                    $interval = $checkInTime->diff($checkOutTime);
-                    $hours_worked = $interval->h + ($interval->i / 60);
-                    $data['work_hours_decimal'] = $hours_worked;
-
-                    if ($data['end_time'] && $data['check_out'] < $data['end_time']) {
-                        $data['check_out_status'] = 'Early Out';
-                    }
-
-                    // Check if it qualifies as half-day
-                    // Assuming shift is 8 hours (28800 seconds) - mark half-day if < 4 hours worked
-                    if ($hours_worked < 4) {
-                        $data['duration_status'] = 'Half Day Worked';
-                    }
+                if ($hours_worked < 4) {
+                    $data['duration_status'] = 'Half Day Worked';
                 }
             }
+
+            // Backend is the single source of truth for status
+            if ($dayContext['status'] !== 'working') {
+                $data['day_status'] = $dayContext['status'];
+            } elseif (!empty($data['status'])) {
+                $data['day_status'] = $data['status'];
+            } else {
+                $data['day_status'] = '';
+            }
+
+            $data['day_message'] = $dayContext['message'];
+            $data['can_check_in'] = !$dayContext['block'] && empty($data['check_in']);
+            $data['can_check_out'] = !$dayContext['block'] && !empty($data['check_in']) && empty($data['check_out']);
+
             $response = ['success' => true, 'data' => $data];
         } else {
             $response['message'] = 'Could not retrieve attendance status.';
@@ -100,53 +198,16 @@ switch ($action) {
 
     case 'check_in':
     case 'check_out':
-        // FINAL PROPER APPROACH:
-        // Server records the CLIENT'S LOCAL TIME (with timezone validation)
-        // 1. Client sends: UTC timestamp + timezone offset
-        // 2. Convert UTC to client's local time
-        // 3. Validate: local time must match client's device time (within reason)
-        // 4. Record the local HH:MM:SS that user actually submitted
+        $todayDate = new DateTime('now', $tz);
+        $dayContext = getAttendanceDayContext($mysqli, $company_id, $employee_id, $todayDate);
 
-        $clientTimestamp = isset($_GET['client_timestamp']) ? intval($_GET['client_timestamp']) : null;
-        $clientTimezoneOffset = isset($_GET['tz_offset']) ? intval($_GET['tz_offset']) : null;
-
-        $now = date('H:i:s'); // Fallback to server time
-
-        // CRITICAL: Validate and convert client timestamp
-        if ($clientTimestamp !== null && $clientTimezoneOffset !== null) {
-            try {
-                // Validation: Client timestamp must be within ±5 minutes of server's UTC time
-                // This catches obvious device clock manipulation
-                $serverTimestamp = time();
-                $timeDiff = $serverTimestamp - $clientTimestamp;
-
-                if ($timeDiff > 300) {
-                    // Device time is 5+ minutes in the past - REJECT
-                    $response['message'] = 'Your device time is too far in the past. Please sync your system clock.';
-                    break;
-                }
-
-                if ($timeDiff < -30) {
-                    // Device time is 30+ seconds in future - REJECT
-                    $response['message'] = 'Your device time is in the future. Please sync your system clock.';
-                    break;
-                }
-
-                // Validation passed!
-                // Convert UTC timestamp to client's local timezone
-                // getTimezoneOffset() returns: minutes BEHIND UTC (positive for west, negative for east)
-                // UTC+5:30 = -330 (330 minutes ahead = -330 from UTC)
-                // So to convert FROM UTC TO local: timestamp - (offset * 60)
-
-                $localTimestamp = $clientTimestamp - ($clientTimezoneOffset * 60);
-                $localDateTime = new DateTime("@$localTimestamp");
-                $now = $localDateTime->format('H:i:s');
-
-            } catch (Exception $e) {
-                error_log("Error in time conversion: " . $e->getMessage());
-                // Use server's local time as fallback
-            }
+        if ($dayContext['block']) {
+            $response['message'] = $dayContext['message'];
+            break;
         }
+
+        // Server records IST time; client time is not trusted
+        $now = $todayDate->format('H:i:s');
 
         $field = ($action === 'check_in') ? 'check_in' : 'check_out';
 
@@ -176,10 +237,10 @@ switch ($action) {
                 }
 
                 // Calculate work hours to determine if it's half-day
-                $checkInTime = new DateTime($existing_checkin);
-                $checkOutTime = new DateTime($now);
+                $checkInTime = new DateTime($existing_checkin, $tz);
+                $checkOutTime = new DateTime($now, $tz);
                 $interval = $checkInTime->diff($checkOutTime);
-                $hours_worked = $interval->h + ($interval->i / 60);
+                $hours_worked = $interval->h + ($interval->i / 60) + ($interval->s / 3600);
 
                 // Get shift info
                 $shift_query = query(
@@ -197,8 +258,8 @@ switch ($action) {
                 }
 
                 // Calculate expected shift duration in hours
-                $shiftStartTime = DateTime::createFromFormat('H:i:s', $shift_start);
-                $shiftEndTime = DateTime::createFromFormat('H:i:s', $shift_end);
+                $shiftStartTime = DateTime::createFromFormat('H:i:s', $shift_start, $tz);
+                $shiftEndTime = DateTime::createFromFormat('H:i:s', $shift_end, $tz);
                 $shiftInterval = $shiftStartTime->diff($shiftEndTime);
                 $expected_hours = $shiftInterval->h + ($shiftInterval->i / 60);
 

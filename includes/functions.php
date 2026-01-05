@@ -601,7 +601,7 @@ function render_quick_actions(array $actions, string $card_title = 'Quick Action
         $onclick = isset($action['onclick']) ? 'onclick="' . htmlspecialchars($action['onclick']) . '"' : '';
 
         $links_html .= <<<HTML
-        <a href="{$url}" class="btn btn-secondary" {$onclick}><i class="{$icon}"></i> {$title}</a>
+        <a href="{$url}" class="btn btn-secondary btn-sm" {$onclick}><i class="{$icon}"></i> {$title}</a>
 HTML;
     }
 

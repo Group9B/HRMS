@@ -16,7 +16,6 @@
 	border-radius: 50%;
 	color: white;
 	font-size: 12px;
-
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -46,69 +45,6 @@
 	display: flex;
 	width: 200px;
 	min-height: 100vh;
-}
-
-/* Theme Toggle Styling */
-.theme-toggle {
-	position: relative;
-	width: 60px;
-	height: 30px;
-	border-radius: 15px;
-	background-color: #3d3d3d;
-	cursor: pointer;
-	transition: 0.3s;
-	overflow: hidden;
-	box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-}
-
-.theme-toggle::before {
-	position: absolute;
-	left: 5px;
-	top: 50%;
-	transform: translateY(-50%);
-	font-size: 16px;
-}
-
-.theme-toggle::after {
-	position: absolute;
-	right: 5px;
-	top: 50%;
-	transform: translateY(-50%);
-	font-size: 16px;
-}
-
-.toggle-circle {
-	position: absolute;
-	top: 2px;
-	left: 2px;
-	width: 26px;
-	height: 26px;
-	border-radius: 50%;
-	background: #fff;
-	transition: 0.3s;
-	box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-}
-
-[data-bs-theme="dark"] .toggle-circle {
-	left: calc(100% - 28px);
-	background: #2b2b2b;
-}
-
-[data-bs-theme="dark"] .theme-toggle {
-	background-color: #ececec;
-}
-
-.theme-toggle-wrapper {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	padding: 10px;
-	border-radius: 8px;
-	transition: 0.3s;
-}
-
-.theme-toggle-wrapper:hover {
-	background: rgba(255, 255, 255, 0.1);
 }
 
 /* Dashboard */
@@ -390,7 +326,6 @@
 	}
 }
 
-/* Attendance Card Icon Box Styling */
 .icon-box {
 	width: 42px;
 	height: 42px;
@@ -403,4 +338,8 @@
 
 .remove-b {
 	border-left: 5px solid var(--bs-info);
+}
+
+.toast-container {
+	top: 50px !important;
 }

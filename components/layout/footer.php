@@ -18,7 +18,7 @@ if (isset($additionalScripts) && is_array($additionalScripts)) {
 if (isLoggedIn()):
     ?>
     <script>
-        createAvatar({ id: <?= $_SESSION['user_id'] ?? 0 ?>, username: "<?= $_SESSION['username'] ?? 'User' ?>" });
+        createAvatar({ id: <?= json_encode($_SESSION['user_id'] ?? 0) ?>, username: <?= json_encode($_SESSION['username'] ?? 'User') ?> });
     </script>
     <?php
     include __DIR__ . '/../../nexusbot/chat_widget.php';

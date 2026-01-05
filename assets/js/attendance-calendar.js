@@ -301,6 +301,10 @@ class AttendanceCalendar {
 			h = 0,
 			hd = 0;
 		let calendarHtml = "";
+		const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+		weekdayLabels.forEach((label) => {
+			calendarHtml += `<div class="day-square day-header fw-semibold text-muted">${label}</div>`;
+		});
 
 		const firstDayOfMonth = new Date(
 			monthDetails.year,

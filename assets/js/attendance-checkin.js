@@ -72,6 +72,7 @@ class AttendanceCheckIn {
 
 	render() {
 		this.container.innerHTML = `
+				<div id="${this.containerId}-day-message" class="alert alert-info py-2 px-3 mb-3" style="display: none;"></div>
 			<!-- Work Hours Summary -->
 			<div id="${this.containerId}-summary" class="p-3 mb-4 bg-info-subtle rounded-end remove-b" style="display: none;">
 				<div class="d-flex justify-content-between align-items-start mb-3">
@@ -193,12 +194,16 @@ class AttendanceCheckIn {
 		const notCheckedDiv = document.getElementById(
 			`${this.containerId}-notchecked`
 		);
+		const defaultNotCheckedMsg = "You have not clocked in today yet.";
 		const summaryDiv = document.getElementById(
 			`${this.containerId}-summary`
 		);
 		const badgeDiv = document.getElementById(`${this.containerId}-badge`);
 		const actionsDiv = document.getElementById(
 			`${this.containerId}-actions`
+		);
+		const dayMessageDiv = document.getElementById(
+			`${this.containerId}-day-message`
 		);
 
 		if (!result.success) {
@@ -207,8 +212,19 @@ class AttendanceCheckIn {
 		}
 
 		const data = result.data;
-		let canCheckIn = this.allowCheckIn;
-		let canCheckOut = this.allowCheckOut;
+		let canCheckIn = data?.can_check_in ?? this.allowCheckIn;
+		let canCheckOut = data?.can_check_out ?? this.allowCheckOut;
+		const dayStatus = data?.day_status || data?.status || "";
+		const dayMessage = data?.day_message || "";
+
+		if (dayMessageDiv) {
+			if (dayMessage) {
+				dayMessageDiv.textContent = dayMessage;
+				dayMessageDiv.style.display = "block";
+			} else {
+				dayMessageDiv.style.display = "none";
+			}
+		}
 
 		if (data && data.check_in) {
 			if (timelineDiv) timelineDiv.style.display = "flex";
@@ -265,7 +281,9 @@ class AttendanceCheckIn {
 					`${this.containerId}-hours`
 				);
 				if (hoursDisplay) {
-					hoursDisplay.textContent = `${workHours.toFixed(2)} hrs`;
+					hoursDisplay.textContent = `${this.formatHoursMinutes(
+						workHours
+					)} hrs`;
 				}
 
 				// Show attendance status
@@ -304,7 +322,7 @@ class AttendanceCheckIn {
 					}
 				}
 
-				// Calculate hours worked
+				// Calculate hours worked on frontend just for live display
 				const today = new Date();
 				const [hours, minutes, seconds] = data.check_in.split(":");
 				const checkInDate = new Date(
@@ -319,13 +337,14 @@ class AttendanceCheckIn {
 				const hoursWorked =
 					(currentTime - checkInDate) / (1000 * 60 * 60);
 
-				// Show summary with partial hours
 				if (summaryDiv) summaryDiv.style.display = "block";
 				const hoursDisplay = document.getElementById(
 					`${this.containerId}-hours`
 				);
 				if (hoursDisplay) {
-					hoursDisplay.textContent = `${hoursWorked.toFixed(2)} hrs`;
+					hoursDisplay.textContent = `${this.formatHoursMinutes(
+						hoursWorked
+					)} hrs`;
 				}
 				if (badgeDiv) {
 					badgeDiv.textContent = "In Progress";
@@ -343,9 +362,28 @@ class AttendanceCheckIn {
 			if (notCheckedDiv) notCheckedDiv.style.display = "block";
 			if (summaryDiv) summaryDiv.style.display = "none";
 			if (badgeDiv) badgeDiv.style.display = "none";
+			if (notCheckedDiv) {
+				const msgEl = notCheckedDiv.querySelector("p");
+				if (msgEl) msgEl.textContent = defaultNotCheckedMsg;
+			}
 
-			canCheckIn = this.allowCheckIn;
+			canCheckIn = data?.can_check_in ?? this.allowCheckIn;
 			canCheckOut = false;
+		}
+
+		// Block actions for holidays/on-leave days decided by backend
+		if (dayStatus === "holiday" || dayStatus === "onleave") {
+			canCheckIn = false;
+			canCheckOut = false;
+			if (dayMessageDiv) {
+				dayMessageDiv.style.display = "none"; // hide alert; show icon+message instead
+			}
+			if (notCheckedDiv) {
+				notCheckedDiv.style.display = "block";
+				const msgEl = notCheckedDiv.querySelector("p");
+				if (msgEl)
+					msgEl.textContent = dayMessage || defaultNotCheckedMsg;
+			}
 		}
 
 		// Update button states
@@ -425,12 +463,6 @@ class AttendanceCheckIn {
 			apiUrl += `&employee_id=${this.employeeId}`;
 		}
 
-		// Send Unix timestamp and timezone offset
-		const now = new Date();
-		const timestamp = Math.floor(now.getTime() / 1000); // Unix timestamp in seconds
-		const tzOffset = now.getTimezoneOffset(); // In minutes
-		apiUrl += `&client_timestamp=${timestamp}&tz_offset=${tzOffset}`;
-
 		fetch(apiUrl, { method: "POST" })
 			.then((res) => res.json())
 			.then((result) => {
@@ -442,8 +474,6 @@ class AttendanceCheckIn {
 					this.loadAttendanceStatus();
 				} else {
 					showToast(result.message || "Failed to clock in", "error");
-					btn.disabled = false;
-					btn.innerHTML = originalHTML;
 				}
 			})
 			.catch((err) => {
@@ -452,6 +482,8 @@ class AttendanceCheckIn {
 					"A network error occurred. Please try again.",
 					"error"
 				);
+			})
+			.finally(() => {
 				btn.disabled = false;
 				btn.innerHTML = originalHTML;
 			});
@@ -463,10 +495,27 @@ class AttendanceCheckIn {
 		const confirmMessage =
 			"You are about to clock out. This will finalize your attendance for today.";
 
+		// Prefer global confirmation modal when available
+		const proceed = () => this.executeCheckOut(btn, originalHTML);
+		if (typeof showConfirmationModal === "function") {
+			showConfirmationModal(
+				confirmMessage,
+				proceed,
+				"Confirm Clock Out",
+				"Clock Out",
+				"btn-danger"
+			);
+			return;
+		}
+
 		if (!confirm(confirmMessage)) {
 			return;
 		}
 
+		this.executeCheckOut(btn, originalHTML);
+	}
+
+	executeCheckOut(btn, originalHTML) {
 		btn.disabled = true;
 		btn.innerHTML =
 			'<span class="spinner-border spinner-border-sm me-2"></span>Clocking out...';
@@ -475,12 +524,6 @@ class AttendanceCheckIn {
 		if (this.employeeId) {
 			apiUrl += `&employee_id=${this.employeeId}`;
 		}
-
-		// Send Unix timestamp and timezone offset (timezone-safe approach)
-		const now = new Date();
-		const timestamp = Math.floor(now.getTime() / 1000); // Unix timestamp in seconds
-		const tzOffset = now.getTimezoneOffset(); // In minutes
-		apiUrl += `&client_timestamp=${timestamp}&tz_offset=${tzOffset}`;
 
 		fetch(apiUrl, { method: "POST" })
 			.then((res) => res.json())
@@ -493,8 +536,6 @@ class AttendanceCheckIn {
 					this.loadAttendanceStatus();
 				} else {
 					showToast(result.message || "Failed to clock out", "error");
-					btn.disabled = false;
-					btn.innerHTML = originalHTML;
 				}
 			})
 			.catch((err) => {
@@ -503,6 +544,8 @@ class AttendanceCheckIn {
 					"A network error occurred. Please try again.",
 					"error"
 				);
+			})
+			.finally(() => {
 				btn.disabled = false;
 				btn.innerHTML = originalHTML;
 			});
@@ -518,6 +561,14 @@ class AttendanceCheckIn {
 			minute: "2-digit",
 			hour12: true,
 		});
+	}
+
+	formatHoursMinutes(decimalHours) {
+		if (Number.isNaN(decimalHours)) return "0:00";
+		const totalMinutes = Math.max(0, Math.round(decimalHours * 60));
+		const hours = Math.floor(totalMinutes / 60);
+		const minutes = totalMinutes % 60;
+		return `${hours}:${minutes.toString().padStart(2, "0")}`;
 	}
 
 	/**
