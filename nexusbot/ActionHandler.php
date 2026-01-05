@@ -27,6 +27,7 @@ class ActionHandler
     const ACTION_SUBMIT_FEEDBACK = 'submit_feedback';
     const ACTION_CLOCK_IN = 'clock_in';
     const ACTION_CLOCK_OUT = 'clock_out';
+    const ACTION_CHANGE_THEME = 'change_theme';
 
     // Action states for multi-step actions
     private $pendingActions = [];
@@ -76,6 +77,16 @@ class ActionHandler
                 '/give\s+feedback/i',
                 '/provide\s+feedback/i',
             ],
+            self::ACTION_CHANGE_THEME => [
+                '/switch\s+to\s+(dark|light)\s+mode/i',
+                '/change\s+theme\s+to\s+(dark|light)/i',
+                '/enable\s+(dark|light)\s+mode/i',
+                '/turn\s+(on|off)\s+(dark|light)\s+mode/i',
+                '/toggle\s+theme/i',
+                '/change\s+theme/i',
+                '/dark\s+mode/i',
+                '/light\s+mode/i',
+            ],
         ];
 
         foreach ($actionPatterns as $action => $patterns) {
@@ -119,6 +130,9 @@ class ActionHandler
             case self::ACTION_SUBMIT_FEEDBACK:
                 return $this->handleFeedback($context, $pendingData);
 
+            case self::ACTION_CHANGE_THEME:
+                return $this->handleThemeChange($context);
+
             default:
                 return [
                     'success' => false,
@@ -144,6 +158,7 @@ class ActionHandler
             self::ACTION_CLOCK_IN,
             self::ACTION_CLOCK_OUT,
             self::ACTION_SUBMIT_FEEDBACK,
+            self::ACTION_CHANGE_THEME,
         ];
 
         return in_array($action, $allowedActions);
@@ -476,10 +491,23 @@ class ActionHandler
             return [
                 'success' => true,
                 'type' => 'action_completed',
-                'message' => "✅ **Clocked In Successfully!**\n\n" .
-                    "• **Date:** {$today}\n" .
-                    "• **Time:** {$now}\n\n" .
-                    "Have a productive day! 💪",
+                'message' => '<div class="nexus-card success">
+                                <div class="nexus-card-header">
+                                    <i class="ti ti-check"></i>
+                                    <h5 class="nexus-card-title">Clocked In Successfully!</h5>
+                                </div>
+                                <div class="nexus-card-content">
+                                    <div class="nexus-card-row">
+                                        <span class="nexus-card-label">Date:</span>
+                                        <span class="nexus-card-value">' . $today . '</span>
+                                    </div>
+                                    <div class="nexus-card-row">
+                                        <span class="nexus-card-label">Time:</span>
+                                        <span class="nexus-card-value">' . $now . '</span>
+                                    </div>
+                                    <div class="nexus-card-footer">Have a productive day! 💪</div>
+                                </div>
+                              </div>',
                 'pending_action' => null
             ];
         }
@@ -540,12 +568,31 @@ class ActionHandler
             return [
                 'success' => true,
                 'type' => 'action_completed',
-                'message' => "✅ **Clocked Out Successfully!**\n\n" .
-                    "• **Date:** {$today}\n" .
-                    "• **Check In:** {$existing['check_in']}\n" .
-                    "• **Check Out:** {$now}\n" .
-                    "• **Hours Worked:** " . round($hoursWorked, 1) . " hours\n\n" .
-                    "Great work today! See you tomorrow! 👋",
+                'message' => '<div class="nexus-card success">
+                                <div class="nexus-card-header">
+                                    <i class="ti ti-clock-stop"></i>
+                                    <h5 class="nexus-card-title">Clocked Out Successfully!</h5>
+                                </div>
+                                <div class="nexus-card-content">
+                                    <div class="nexus-card-row">
+                                        <span class="nexus-card-label">Date:</span>
+                                        <span class="nexus-card-value">' . $today . '</span>
+                                    </div>
+                                    <div class="nexus-card-row">
+                                        <span class="nexus-card-label">Check In:</span>
+                                        <span class="nexus-card-value">' . $existing['check_in'] . '</span>
+                                    </div>
+                                    <div class="nexus-card-row">
+                                        <span class="nexus-card-label">Check Out:</span>
+                                        <span class="nexus-card-value">' . $now . '</span>
+                                    </div>
+                                    <div class="nexus-card-row">
+                                        <span class="nexus-card-label">Duration:</span>
+                                        <span class="nexus-card-value">' . round($hoursWorked, 1) . ' hrs</span>
+                                    </div>
+                                    <div class="nexus-card-footer">Great work today! See you tomorrow! 👋</div>
+                                </div>
+                              </div>',
                 'pending_action' => null
             ];
         }
@@ -605,6 +652,47 @@ class ActionHandler
                 "Thank you for your feedback. It has been sent to HR.\n\n" .
                 "_Note: Feedback is handled confidentially._",
             'pending_action' => null
+        ];
+    }
+
+    /**
+     * Handle theme change
+     */
+    private function handleThemeChange(array $context): array
+    {
+        $message = strtolower($context['original_message'] ?? '');
+        $targetTheme = null;
+
+        if (stripos($message, 'dark') !== false) {
+            $targetTheme = 'dark';
+        } elseif (stripos($message, 'light') !== false) {
+            $targetTheme = 'light';
+        }
+
+        // If specific theme requested
+        if ($targetTheme) {
+            $emoji = $targetTheme === 'dark' ? '🌙' : '☀️';
+            return [
+                'success' => true,
+                'type' => 'action_completed',
+                'message' => "{$emoji} Switching to **" . ucfirst($targetTheme) . "** mode...",
+                'pending_action' => null,
+                'client_action' => [
+                    'type' => 'change_theme',
+                    'theme' => $targetTheme
+                ]
+            ];
+        }
+
+        // Otherwise treat as toggle
+        return [
+            'success' => true,
+            'type' => 'action_completed',
+            'message' => "🌗 Toggling theme...",
+            'pending_action' => null,
+            'client_action' => [
+                'type' => 'toggle_theme'
+            ]
         ];
     }
 }

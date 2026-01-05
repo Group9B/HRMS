@@ -17,10 +17,13 @@ require_once __DIR__ . '/PromptGuard.php';
 require_once __DIR__ . '/ConversationContext.php';
 require_once __DIR__ . '/ActionHandler.php';
 
+require_once __DIR__ . '/GeminiHandler.php';
+
 class NexusBot
 {
     private $mysqli;
     private $recognizer;
+    private $gemini;
     private $security;
     private $queryHandler;
     private $knowledge;
@@ -51,6 +54,7 @@ class NexusBot
 
         // Initialize all components
         $this->recognizer = new IntentRecognizer();
+        $this->gemini = new GeminiHandler('Gemini Api Key');
         $this->security = new SecurityFilter($mysqli, $userContext);
         $this->queryHandler = new QueryHandler($mysqli, $this->security);
         $this->knowledge = new KnowledgeBase();
@@ -149,7 +153,15 @@ class NexusBot
         }
 
         // ============ INTENT RECOGNITION ============
-        $intent = $this->recognizer->recognize($sanitizedMessage);
+        // Optimistic Approach: Try Gemini first (timeout 4s), fallback to native
+        $intent = $this->gemini->analyze($sanitizedMessage);
+        $isGemini = true;
+
+        // Fallback to native if Gemini returns unknown (or timed out/failed)
+        if (!$intent || $intent['intent'] === 'unknown') {
+            $intent = $this->recognizer->recognize($sanitizedMessage);
+            $isGemini = false;
+        }
 
         // Add to conversation history
         $this->context->addMessage('user', $sanitizedMessage, ['intent' => $intent['intent']]);
@@ -159,12 +171,63 @@ class NexusBot
         $this->context->set(ConversationContext::CTX_CURRENT_TOPIC, $intent['intent']);
 
         // Route to appropriate handler
-        $response = $this->handleIntent($intent);
+        $result = $this->handleIntent($intent);
+
+        // Generate Response
+        // If Gemini was used and we have data/success, let Gemini phrase the response
+        if ($isGemini && $result['success'] && !isset($result['type'])) {
+            // Only generate detailed text for data responses, not simple conversational ones that return direct strings
+            // However, handleIntent largely returns standard arrays.
+
+            // Check if it's a data response or direct message
+            if (isset($result['data'])) {
+                $finalMessage = $this->gemini->generateResponse($sanitizedMessage, $result['data']);
+                $response = $this->successResponse($finalMessage, self::TYPE_DATA, $result['data']);
+            } else {
+                // For info responses without complex data structure
+                $response = $this->successResponse($result['message'], $result['type'] ?? self::TYPE_TEXT);
+            }
+        } else {
+            // Use standard Response
+            if ($result['success']) {
+                $response = $this->successResponse(
+                    $result['message'],
+                    isset($result['data']) && !empty($result['data']) ? self::TYPE_DATA : ($result['type'] ?? 'info'),
+                    $result['data'] ?? null
+                );
+            } else {
+                $response = $this->successResponse(
+                    $result['message'],
+                    self::TYPE_ERROR
+                );
+            }
+        }
 
         // Add bot response to history
         $this->context->addMessage('bot', $response['message'], ['type' => $response['type']]);
 
+        // Add source indicator
+        $response['source'] = $isGemini ? 'gemini' : 'native';
+
         return $response;
+    }
+
+    /**
+     * Check for internet connectivity
+     */
+    private function checkInternetConnection(): bool
+    {
+        $ch = curl_init("https://www.google.com");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_NOBODY, true); // Head request only
+        curl_setopt($ch, CURLOPT_TIMEOUT, 3); // 3 seconds timeout
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Handle potential local SSL issues
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        return ($httpCode >= 200 && $httpCode < 400);
     }
 
     /**
@@ -189,7 +252,13 @@ class NexusBot
         $this->context->addMessage('user', $message, ['action' => $actionType]);
         $this->context->addMessage('bot', $result['message'], ['type' => $result['type'] ?? 'action']);
 
-        return $this->successResponse($result['message'], self::TYPE_ACTION);
+        $response = $this->successResponse($result['message'], self::TYPE_ACTION);
+
+        if (isset($result['client_action'])) {
+            $response['client_action'] = $result['client_action'];
+        }
+
+        return $response;
     }
 
     /**

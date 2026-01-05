@@ -295,6 +295,12 @@ switch ($action) {
                     }
                 }
 
+                // Validate Due Date
+                if ($due_date && $due_date < date('Y-m-d')) {
+                    echo json_encode(['success' => false, 'message' => 'Due date cannot be in the past.']);
+                    exit;
+                }
+
                 $insert_result = query($mysqli, "
                     INSERT INTO tasks (employee_id, title, description, due_date, assigned_by, status, team_id)
                     VALUES (?, ?, ?, ?, ?, 'pending', ?)
@@ -397,6 +403,12 @@ switch ($action) {
                 }
             }
 
+            // Validate Due Date
+            if ($due_date && $due_date < date('Y-m-d')) {
+                echo json_encode(['success' => false, 'message' => 'Due date cannot be in the past.']);
+                exit;
+            }
+
             foreach ($employee_ids as $employee_id) {
                 // Verify the employee belongs to the manager's team (or departments)
                 // Existing check:
@@ -478,6 +490,12 @@ switch ($action) {
             ", [$task_id, $user_id]);
 
             if ($verify_result['success'] && !empty($verify_result['data'])) {
+                // Validate Due Date
+                if ($due_date && $due_date < date('Y-m-d')) {
+                    echo json_encode(['success' => false, 'message' => 'Due date cannot be in the past.']);
+                    exit;
+                }
+
                 $update_result = query($mysqli, "
                     UPDATE tasks 
                     SET title = ?, description = ?, due_date = ?, updated_at = NOW()

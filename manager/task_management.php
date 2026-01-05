@@ -320,7 +320,8 @@ require_once '../components/layout/header.php';
                     </div>
                     <div class="mb-3">
                         <label for="task_due_date" class="form-label">Due Date</label>
-                        <input type="date" class="form-control" id="task_due_date" name="due_date">
+                        <input type="date" class="form-control" id="task_due_date" name="due_date"
+                            min="<?= date('Y-m-d') ?>">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -384,7 +385,8 @@ require_once '../components/layout/header.php';
                     </div>
                     <div class="mb-3">
                         <label for="bulk_task_due_date" class="form-label">Due Date</label>
-                        <input type="date" class="form-control" id="bulk_task_due_date" name="due_date">
+                        <input type="date" class="form-control" id="bulk_task_due_date" name="due_date"
+                            min="<?= date('Y-m-d') ?>">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -418,7 +420,8 @@ require_once '../components/layout/header.php';
                     </div>
                     <div class="mb-3">
                         <label for="edit_task_due_date" class="form-label">Due Date</label>
-                        <input type="date" class="form-control" id="edit_task_due_date" name="due_date">
+                        <input type="date" class="form-control" id="edit_task_due_date" name="due_date"
+                            min="<?= date('Y-m-d') ?>">
                     </div>
                 </div>
                 <div class="modal-footer">
