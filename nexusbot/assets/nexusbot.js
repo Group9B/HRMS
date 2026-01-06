@@ -252,7 +252,7 @@ class NexusBot {
         timeDiv.className = 'nexus-time';
         
         // AI Badge
-        if (source === 'groq' || source === 'gemini') {
+        if (source === 'groq') {
             const badge = `<span class="nexus-ai-badge" title="Powered by AI"><i class="ti ti-sparkles"></i> AI</span> `;
             timeDiv.innerHTML = badge + this.formatTime(new Date());
         } else if (source === 'native') {

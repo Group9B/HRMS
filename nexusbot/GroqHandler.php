@@ -10,10 +10,21 @@ class GroqHandler
     private $apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
     private $model;
 
-    public function __construct(string $apiKey, string $model = 'llama-3.1-8b-instant')
+    public function __construct(string $apiKey = null, string $model = null)
     {
-        $this->apiKey = $apiKey;
-        $this->model = $model;
+        // Read from environment variables with fallback to parameters
+        $this->apiKey = $apiKey ?? getenv('GROQ_API_KEY') ?? '';
+        $this->model = $model ?? getenv('GROQ_MODEL') ?? 'llama-3.1-8b-instant';
+
+        // Debug logging
+        $keyLength = strlen($this->apiKey);
+        $keyPreview = $keyLength > 0 ? substr($this->apiKey, 0, 8) . '...' : '(empty)';
+        error_log("GroqHandler: API Key loaded - Length: $keyLength, Preview: $keyPreview");
+
+        // Validate API key is present
+        if (empty($this->apiKey)) {
+            error_log('GroqHandler: ERROR - API key not configured. Please set GROQ_API_KEY in .env file.');
+        }
     }
 
     /**
@@ -21,9 +32,16 @@ class GroqHandler
      */
     /**
      * Analyze message to detect intent and semantic structure
+     * Returns array with intent data or null if analysis fails (triggers native bot fallback)
      */
-    public function analyze(string $message): array
+    public function analyze(string $message, array $history = []): ?array
     {
+        // Check if API key is configured
+        if (empty($this->apiKey)) {
+            error_log('GroqHandler->analyze: Skipping - No API key configured');
+            return null; // Return null to trigger native fallback
+        }
+
         // Advanced Semantic Parsing Prompt
         $systemPrompt = "You are NexusBot, the intelligent query engine for an HRMS. 
         Your goal is to parse user queries into structured JSON for database execution.
@@ -47,8 +65,13 @@ class GroqHandler
             \"action\": \"count\" | \"list\" | \"null\",
             \"entity\": \"employees\" | \"teams\" | \"tasks\" | ... | \"null\",
             \"filters\": { \"column_name\": \"value\" },
-            \"standard_intent\": \"greeting\" | \"help\" | \"unknown\" (if not a database query)
+            \"standard_intent\": \"greeting\" | \"help\" | \"general_query\" | \"unknown\"
         }
+        
+        IMPORTANT:
+        - If the user asks a general question, advice, or creative request (e.g. \"Write a leave letter\", \"How to be productive\", \"Tell me a joke\"), return \"standard_intent\": \"general_query\".
+        - ONLY return \"unknown\" if the input is gibberish or completely unintelligible.
+        - Prioritize \"dynamic_query\" ONLY if it requires fetching data from the database.
 
         EXAMPLES:
         User: \"How many active employees are in IT?\"
@@ -63,11 +86,18 @@ class GroqHandler
         User: \"Apply for leave\"
         JSON: { \"intent\": \"standard_intent\", \"standard_intent\": \"leave\" }
 
-        REPLY WITH VALID JSON ONLY. NO MARKDOWN.";
+        REPLY WITH VALID JSON ONLY. NO MARKDOWN.
+        
+        CONTEXT AWARENESS:
+        - If the user provided a selection (e.g. \"1\", \"option A\", \"both\"), LOOK AT THE PREVIOUS ASSISTANT RESPONSE.
+        - If the previous response was a list, map the selection to the corresponding item in that list.
+        - Treat this mapped item as the new query entitiy/filter.";
 
-        $response = $this->callGroq($systemPrompt, $message);
+        error_log('GroqHandler->analyze: Calling Groq API...');
+        $response = $this->callGroq($systemPrompt, $message, $history);
 
         if ($response) {
+            error_log('GroqHandler->analyze: Got response from Groq');
             // Sanitize response to ensure valid JSON (sometimes LLMs add backticks)
             $cleanResponse = str_replace(array('```json', '```'), '', $response);
             $parsed = json_decode(trim($cleanResponse), true);
@@ -76,6 +106,7 @@ class GroqHandler
 
                 if ($parsed['intent'] === 'dynamic_query') {
                     // Normalize filter keys if needed (simple normalization for now)
+                    error_log('GroqHandler->analyze: Returning dynamic_query intent');
                     return [
                         'intent' => 'dynamic_query',
                         'data' => $parsed,
@@ -85,6 +116,7 @@ class GroqHandler
                 }
 
                 if ($parsed['intent'] === 'standard_intent') {
+                    error_log('GroqHandler->analyze: Returning standard_intent: ' . ($parsed['standard_intent'] ?? 'unknown'));
                     return [
                         'intent' => $parsed['standard_intent'] ?? 'unknown',
                         'sub_intent' => 'self',
@@ -92,22 +124,25 @@ class GroqHandler
                         'context' => []
                     ];
                 }
+            } else {
+                error_log('GroqHandler->analyze: JSON parse error or invalid response format');
             }
+        } else {
+            error_log('GroqHandler->analyze: No response from Groq (API call failed)');
         }
 
-        // Fallback for parsing failure
-        return [
-            'intent' => 'unknown',
-            'sub_intent' => 'self',
-            'confidence' => 0,
-            'context' => []
-        ];
+        // Return null to trigger native bot fallback
+        error_log('GroqHandler->analyze: Returning null - will use native bot');
+        return null;
     }
 
     /**
      * Generate a natural language response
      */
-    public function generateResponse(string $userQuery, $data, array $userContext = []): string
+    /**
+     * Generate a natural language response
+     */
+    public function generateResponse(string $userQuery, $data, array $userContext = [], array $history = []): string
     {
         // Construct User Context String
         $contextStr = "";
@@ -135,23 +170,44 @@ class GroqHandler
 
         $userMessage = "Query: " . $userQuery . "\nData: " . json_encode($data);
 
-        $result = $this->callGroq($systemPrompt, $userMessage);
+        $result = $this->callGroq($systemPrompt, $userMessage, $history);
         return $result ? $result : "I processed your request but couldn't generate a response.";
     }
 
     /**
      * Call Groq API
      */
-    private function callGroq(string $systemPrompt, string $userMessage): ?string
+    /**
+     * Call Groq API with context
+     */
+    private function callGroq(string $systemPrompt, string $userMessage, array $history = []): ?string
     {
-        // file_put_contents('c:/xampp/htdocs/HRMS/debug_log.txt', date('Y-m-d H:i:s') . " - callGroq Started\n", FILE_APPEND);
+        // helper to map internal role to API role
+        $mapRole = function ($role) {
+            return ($role === 'bot') ? 'assistant' : 'user';
+        };
+
+        // Build messages array
+        $messages = [];
+        $messages[] = ['role' => 'system', 'content' => $systemPrompt];
+
+        // Add history (context)
+        foreach ($history as $msg) {
+            // Only add text content, skip complex metadata for now specific to API formatting
+            if (isset($msg['content']) && is_string($msg['content'])) {
+                $messages[] = [
+                    'role' => $mapRole($msg['role'] ?? 'user'),
+                    'content' => strip_tags($msg['content']) // Strip HTML tags for clean context
+                ];
+            }
+        }
+
+        // Add current user message
+        $messages[] = ['role' => 'user', 'content' => $userMessage];
 
         $payload = [
             'model' => $this->model,
-            'messages' => [
-                ['role' => 'system', 'content' => $systemPrompt],
-                ['role' => 'user', 'content' => $userMessage]
-            ],
+            'messages' => $messages,
             'temperature' => 0.3,
             'max_tokens' => 500
         ];
@@ -201,7 +257,9 @@ class GroqHandler
 
         // Check for API errors
         if (isset($decoded['error'])) {
-            error_log("Groq API Error: " . json_encode($decoded['error']));
+            $errorMsg = "Groq API Error: " . json_encode($decoded['error']);
+            error_log($errorMsg);
+            file_put_contents(__DIR__ . '/../groq_error.log', date('Y-m-d H:i:s') . " - " . $errorMsg . "\n", FILE_APPEND);
             return null;
         }
 

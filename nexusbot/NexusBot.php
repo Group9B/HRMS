@@ -58,7 +58,7 @@ class NexusBot
 
         // Initialize all components
         $this->recognizer = new IntentRecognizer();
-        $this->groq = new GroqHandler('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', 'llama-3.1-8b-instant');
+        $this->groq = new GroqHandler(); // Reads from .env automatically
         $this->security = new SecurityFilter($mysqli, $userContext);
         $this->queryHandler = new QueryHandler($mysqli, $this->security);
         $this->knowledge = new KnowledgeBase();
@@ -160,14 +160,21 @@ class NexusBot
         }
 
         // ============ INTENT RECOGNITION ============
-        // Optimistic Approach: Try Groq/LLaMA first, fallback to native
-        $intent = $this->groq->analyze($sanitizedMessage);
+        // Try Groq/LLaMA first, with graceful fallback to native bot
+        error_log('NexusBot: Attempting Groq AI analysis...');
+
+        // Get recent history for context (last 5 messages)
+        $history = $this->context->getHistory(5);
+        $intent = $this->groq->analyze($sanitizedMessage, $history);
         $isAI = true;
 
-        // Fallback to native if AI returns unknown (or timed out/failed)
-        if (!$intent || $intent['intent'] === 'unknown') {
+        // Fallback to native if Groq fails (returns null) or returns unknown
+        if ($intent === null || !isset($intent['intent']) || $intent['intent'] === 'unknown') {
+            error_log('NexusBot: Groq failed or returned unknown, falling back to native bot');
             $intent = $this->recognizer->recognize($sanitizedMessage);
             $isAI = false;
+        } else {
+            error_log('NexusBot: Groq successfully analyzed intent: ' . $intent['intent']);
         }
 
         // Gather safe user context for AI
@@ -194,11 +201,14 @@ class NexusBot
             // However, handleIntent largely returns standard arrays.
 
             // Check if it's a data response or direct message
+            // Get history again to ensure latest context
+            $history = $this->context->getHistory(5);
+
             if ($intent['intent'] === 'general_query' || $intent['intent'] === 'greeting' || $intent['intent'] === 'thanks' || $intent['intent'] === 'goodbye' || $intent['intent'] === 'help') {
-                $finalMessage = $this->groq->generateResponse($sanitizedMessage, ['context' => 'conversation'], $safeContext);
+                $finalMessage = $this->groq->generateResponse($sanitizedMessage, ['context' => 'conversation'], $safeContext, $history);
                 $response = $this->successResponse($finalMessage, self::TYPE_TEXT);
             } elseif (isset($result['data'])) {
-                $finalMessage = $this->groq->generateResponse($sanitizedMessage, $result['data'], $safeContext);
+                $finalMessage = $this->groq->generateResponse($sanitizedMessage, $result['data'], $safeContext, $history);
 
 
                 // Attach Dynamic Widgets
