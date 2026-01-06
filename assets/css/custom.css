@@ -200,6 +200,14 @@
 	cursor: default;
 }
 
+.cursor-not-allowed {
+	cursor: not-allowed !important;
+}
+
+.cursor-zoom-in {
+	cursor: zoom-in;
+}
+
 .day-square:hover {
 	transform: scale(1.1);
 	z-index: 10;

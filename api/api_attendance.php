@@ -57,71 +57,114 @@ switch ($action) {
 
         $current_user_only = isset($_GET['current_user_only']) && $_GET['current_user_only'] == 1;
 
-        // Role-based filtering
-        // Role 2: Company Admin - can see all employees
-        // Role 3: HR Manager - can see all employees except themselves (unless current_user_only=1)
-        // Role 4: Employee - can only see themselves
-        // Role 6: Manager - can see their team members (or only themselves if current_user_only=1)
+        // Get logged-in user's employee ID for reference
+        $logged_in_employee_id = 0;
+        $user_emp_query = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$logged_in_user_id]);
+        if ($user_emp_query['success'] && !empty($user_emp_query['data'])) {
+            $logged_in_employee_id = (int) $user_emp_query['data'][0]['id'];
+        }
 
-        if ($logged_in_role_id == 3 && !$current_user_only) {
-            // HR Manager sees others
-            $sql_where_conditions .= " AND e.user_id != ?";
-            $sql_params[] = $logged_in_user_id;
+        // Role-based filtering
+        // Role 2: Company Owner - can see all employees EXCEPT themselves
+        // Role 3: HR Manager - can see all employees INCLUDING themselves
+        // Role 4: Employee - can only see themselves
+        // Role 6: Manager - can see their team members AND themselves
+
+        if ($logged_in_role_id == 2) {
+            // Company Owner sees all employees except themselves (if they have an employee record)
+            if ($logged_in_employee_id > 0) {
+                $sql_where_conditions .= " AND e.id != ?";
+                $sql_params[] = $logged_in_employee_id;
+            }
+            // If no employee record, they see everyone
+        } elseif ($logged_in_role_id == 3) {
+            // HR Manager sees all employees including themselves - no additional filter needed
+            // Just company filter is enough
         } elseif ($logged_in_role_id == 4) {
             // Employee can only see their own attendance
-            $user_employee_query = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$logged_in_user_id]);
-            if ($user_employee_query['success'] && !empty($user_employee_query['data'])) {
-                $employee_id = $user_employee_query['data'][0]['id'];
+            if ($logged_in_employee_id > 0) {
                 $sql_where_conditions .= " AND e.id = ?";
-                $sql_params[] = $employee_id;
+                $sql_params[] = $logged_in_employee_id;
             } else {
                 echo json_encode(['error' => 'No employee record found for current user.']);
                 exit();
             }
-        } elseif ($logged_in_role_id == 6 && !$current_user_only) {
-            // Manager can see their team members
-            $team_members = query(
-                $mysqli,
-                "SELECT e.id FROM employees e 
-                 WHERE e.manager_id = (SELECT id FROM employees WHERE user_id = ?) 
-                 AND e.department_id IN (
-                    SELECT id FROM departments WHERE company_id = ?
-                 )",
-                [$logged_in_user_id, $company_id]
-            );
+        } elseif ($logged_in_role_id == 6) {
+            // Manager can see their team members AND themselves
+            if ($logged_in_employee_id > 0) {
+                // Get team members from teams where this user is the creator (manager)
+                // teams.created_by references users.id, not employees.id
+                $team_members_query = query(
+                    $mysqli,
+                    "SELECT DISTINCT tm.employee_id 
+                     FROM team_members tm 
+                     JOIN teams t ON tm.team_id = t.id 
+                     WHERE t.created_by = ? AND t.company_id = ?",
+                    [$logged_in_user_id, $company_id]
+                );
 
-            if ($team_members['success'] && !empty($team_members['data'])) {
-                $team_ids = array_column($team_members['data'], 'id');
-                $placeholders = implode(',', array_fill(0, count($team_ids), '?'));
+                // Build list of IDs: team members + self
+                $viewable_ids = [$logged_in_employee_id]; // Always include self
+                if ($team_members_query['success'] && !empty($team_members_query['data'])) {
+                    $team_member_ids = array_column($team_members_query['data'], 'employee_id');
+                    $viewable_ids = array_merge($viewable_ids, $team_member_ids);
+                }
+
+                $viewable_ids = array_unique($viewable_ids);
+
+                $placeholders = implode(',', array_fill(0, count($viewable_ids), '?'));
                 $sql_where_conditions .= " AND e.id IN ($placeholders)";
-                $sql_params = array_merge($sql_params, $team_ids);
+                $sql_params = array_merge($sql_params, $viewable_ids);
             } else {
-                // Manager has no team, show only themselves
-                $user_employee_query = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$logged_in_user_id]);
-                if ($user_employee_query['success'] && !empty($user_employee_query['data'])) {
-                    $employee_id = $user_employee_query['data'][0]['id'];
-                    $sql_where_conditions .= " AND e.id = ?";
-                    $sql_params[] = $employee_id;
+                echo json_encode(['error' => 'No employee record found for current user.']);
+                exit();
+            }
+        }        // Override with current_user_only flag (used for dashboard widgets)
+        if ($current_user_only && $logged_in_employee_id > 0) {
+            // Reset conditions to only show current user
+            $sql_where_conditions = "u.company_id = ? AND e.id = ?";
+            $sql_params = [$company_id, $logged_in_employee_id];
+        }
+
+        // Validate single_employee_id access - only when explicitly requesting a specific employee
+        // Don't apply this filter when just loading the list for dropdown
+        if ($single_employee_id > 0 && !$current_user_only) {
+            // Validate access based on role
+            $can_view = false;
+
+            if ($logged_in_role_id == 2) {
+                // Company Owner can view any employee except self
+                $can_view = ($single_employee_id != $logged_in_employee_id);
+            } elseif ($logged_in_role_id == 3) {
+                // HR can view any employee including self
+                $can_view = true;
+            } elseif ($logged_in_role_id == 4) {
+                // Employee can only view self
+                $can_view = ($single_employee_id == $logged_in_employee_id);
+            } elseif ($logged_in_role_id == 6) {
+                // Manager can view self + team members
+                if ($single_employee_id == $logged_in_employee_id) {
+                    $can_view = true;
+                } else {
+                    // Check if requested employee is in manager's team
+                    $team_check = query(
+                        $mysqli,
+                        "SELECT id FROM employees WHERE id = ? AND manager_id = ?",
+                        [$single_employee_id, $logged_in_employee_id]
+                    );
+                    $can_view = ($team_check['success'] && !empty($team_check['data']));
                 }
             }
-        }
 
-        if ($current_user_only) {
-            // Override: Get only the current user's attendance
-            $user_employee_query = query($mysqli, "SELECT id FROM employees WHERE user_id = ?", [$logged_in_user_id]);
-            if ($user_employee_query['success'] && !empty($user_employee_query['data'])) {
-                $employee_id = $user_employee_query['data'][0]['id'];
-                $sql_where_conditions .= " AND e.id = ?";
-                $sql_params[] = $employee_id;
-            } else {
-                echo json_encode(['error' => 'No employee record found for current user.']);
+            if (!$can_view) {
+                echo json_encode(['error' => 'You do not have permission to view this employee\'s attendance.']);
                 exit();
             }
-        }
 
-        if ($single_employee_id > 0) {
-            $sql_where_conditions .= " AND e.id = ?";
-            $sql_params[] = $single_employee_id;
+            // Don't apply the single employee filter here - let it load all employees
+            // The frontend will handle showing the selected employee
+            // $sql_where_conditions .= " AND e.id = ?";
+            // $sql_params[] = $single_employee_id;
         }
 
         $final_params = array_merge([$start_date, $end_date], $sql_params);
@@ -164,16 +207,30 @@ switch ($action) {
                 }
             }
 
+            // Count leaves properly - only for employees in the result set
+            $employee_ids_in_result = array_keys($employees);
             foreach ($employee_leaves as $emp_id => $dates) {
+                // Only count leaves for employees that are in our result set
+                if (!in_array($emp_id, $employee_ids_in_result)) {
+                    continue;
+                }
+
                 foreach ($dates as $date => $is_leave) {
-                    $has_attendance = false;
-                    foreach ($result['data'] as $row) {
-                        if ($row['employee_id'] == $emp_id && $row['date'] == $date && $row['status']) {
-                            $has_attendance = true;
-                            break;
-                        }
+                    // Check if date is in our month range
+                    if ($date < $start_date || $date > $end_date) {
+                        continue;
                     }
+
+                    // Check if there's already an attendance record for this date
+                    $has_attendance = isset($employees[$emp_id]['attendance'][$date]);
+
                     if (!$has_attendance) {
+                        // Add leave to employee's attendance
+                        $employees[$emp_id]['attendance'][$date] = [
+                            'status' => 'leave',
+                            'check_in' => null,
+                            'check_out' => null,
+                        ];
                         $summary['total_leave']++;
                     }
                 }

@@ -12,6 +12,8 @@ class AttendanceCalendar {
 		this.initialDate = config.initialDate
 			? new Date(config.initialDate)
 			: new Date();
+		this.detailUrl =
+			config.detailUrl || "/hrms/employee/attendance_detail.php";
 		this.onDataLoaded = config.onDataLoaded || null;
 		this.onDayClick = config.onDayClick || null;
 		this.showModalOnClick = config.showModalOnClick !== false;
@@ -21,6 +23,7 @@ class AttendanceCalendar {
 		this.joiningDate = config.joiningDate || null;
 		this.companyCreatedAt = config.companyCreatedAt || null;
 		this.onlyCurrentEmployee = config.onlyCurrentEmployee || false; // If true, only show current user's data
+		this.skipEmployeeIdInApi = config.skipEmployeeIdInApi || false; // If true, don't send employee_id to API (for detail page dropdown)
 		this.chartHeight = config.chartHeight || 300;
 		this.chartWidth = config.chartWidth || null;
 
@@ -28,6 +31,7 @@ class AttendanceCalendar {
 		this.allAttendanceData = null;
 		this.chartInstance = null;
 		this.container = null;
+		this.cursor = config.cursor || "pointer";
 
 		this.init();
 	}
@@ -90,26 +94,19 @@ class AttendanceCalendar {
 		const header = document.createElement("div");
 		header.className = "attendance-calendar-header card shadow-sm mb-3 p-3";
 		header.innerHTML = `
-            <div class="d-flex align-items-center flex-wrap gap-2">
-                <div class="d-flex align-items-center justify-content-between w-100">
-                    <button class="btn btn-sm border-0 prev-month-btn fs-4" title="Previous month">
-                        <i class="ti ti-chevron-left"></i>
-                    </button>
-                    <h6 class="m-0 mx-3 current-month-display" style="min-width: 150px; text-align: center;"></h6>
-                    <button class="btn btn-sm border-0 next-month-btn fs-4" title="Next month">
-                        <i class="ti ti-chevron-right"></i>
-                    </button>
-                </div>
-                <!--
-                <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-success">P - Present</span>
-                    <span class="badge bg-danger">A - Absent</span>
-                    <span class="badge bg-info">HD - Half Day</span>
-                    <span class="badge bg-warning">L - Leave</span>
-                    <span class="badge bg-secondary">H - Holiday</span>
-                </div>
-                -->
-            </div>
+	            <div class="d-flex align-items-center flex-wrap gap-2">
+	                <div class="d-flex align-items-center justify-content-between w-100 flex-wrap gap-2">
+	                    <div class="d-flex align-items-center justify-content-between flex-grow-1" style="min-width: 240px;">
+	                        <button class="btn btn-sm border-0 prev-month-btn fs-4" title="Previous month">
+	                            <i class="ti ti-chevron-left"></i>
+	                        </button>
+	                        <h6 class="m-0 mx-3 current-month-display" style="min-width: 150px; text-align: center;"></h6>
+	                        <button class="btn btn-sm border-0 next-month-btn fs-4" title="Next month">
+	                            <i class="ti ti-chevron-right"></i>
+	                        </button>
+	                    </div>
+	                </div>
+	            </div>
         `;
 
 		// Add event listeners
@@ -193,7 +190,7 @@ class AttendanceCalendar {
 
 		// Build API URL with parameters
 		let apiUrl = `/hrms/api/api_attendance.php?action=get_attendance_data&month=${monthString}`;
-		if (this.employeeId) {
+		if (this.employeeId && !this.skipEmployeeIdInApi) {
 			apiUrl += `&employee_id=${this.employeeId}`;
 		}
 		if (this.onlyCurrentEmployee) {
@@ -274,7 +271,12 @@ class AttendanceCalendar {
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
 
-		employees.forEach((emp) => {
+		// Filter employees if employeeId is specified
+		const employeesToRender = this.employeeId
+			? employees.filter((emp) => emp.id === this.employeeId)
+			: employees;
+
+		employeesToRender.forEach((emp) => {
 			const card = this.createEmployeeCard(
 				emp,
 				month_details,
@@ -309,6 +311,7 @@ class AttendanceCalendar {
 			h = 0,
 			hd = 0;
 		let calendarHtml = "";
+		let linkEle = "";
 		const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 		weekdayLabels.forEach((label) => {
 			calendarHtml += `<div class="day-square day-header fw-semibold text-muted">${label}</div>`;
@@ -344,7 +347,9 @@ class AttendanceCalendar {
 			let title = "";
 			const hasTimes =
 				attendance && attendance.check_in && attendance.check_out;
-
+			if (this.cursor && this.cursor != "pointer") {
+				classes += ` cursor-${this.cursor}`;
+			}
 			if (companyHolidays[dateStr]) {
 				status = "holiday";
 				title = companyHolidays[dateStr];
@@ -391,8 +396,14 @@ class AttendanceCalendar {
 				? `data-date="${dateStr}" data-status="${status}" data-checkin="${attendance.check_in}" data-checkout="${attendance.check_out}" data-emp="${emp.name}"`
 				: `data-date="${dateStr}"`;
 			if (hasTimes) classes += " clickable";
-
 			calendarHtml += `<div class="${classes.trim()}" title="${title}" ${dataAttrs}>${day}</div>`;
+		}
+
+		// Only show detail link if detailUrl is provided (not already on detail page)
+		if (this.detailUrl) {
+			linkEle = `<a class="btn btn-primary btn-sm d-flex align-items-center mt-4 gap-1" href="${this.detailUrl}">
+	                    <i class="ti ti-link"></i><span>Attendance Detail</span>
+	                </a>`;
 		}
 
 		card.innerHTML = `
@@ -424,6 +435,7 @@ class AttendanceCalendar {
                 <div class="mini-cal" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
                     ${calendarHtml}
                 </div>
+				${linkEle}
             </div>
         `;
 

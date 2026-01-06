@@ -168,7 +168,8 @@ $additionalScripts = ['attendance-calendar.js', 'attendance-checkin.js'];
       containerId: 'attendanceCalendarContainer',
       showMonthNavigation: true,
       employeeId: null,
-      onlyCurrentEmployee: true
+      onlyCurrentEmployee: true,
+      cursor: 'zoom-in'
     });
 
     // Render stat cards using the renderStatCards function
