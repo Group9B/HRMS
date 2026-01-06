@@ -279,17 +279,94 @@ class NexusBot {
         
         // Bind widget actions
         if (widget && widget.actions) {
-            const btns = messageDiv.querySelectorAll('.nexus-action-btn');
-            btns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                   const action = btn.dataset.action;
-                   // Handle Quick Actions (like clock in/out) directly via chat
-                   if (action === 'clock_in') this.sendQuickQuery('Clock In');
-                   if (action === 'clock_out') this.sendQuickQuery('Clock Out');
-                   if (action === 'apply_leave') window.location.href = '/hrms/employee/leave.php'; 
-                });
-            });
+            this.bindWidgetActions(messageDiv);
         }
+
+        // Animate text if it's a bot text message
+        if (sender === 'bot' && type === 'text' && !widget) {
+            const formattedContent = this.formatMessage(content);
+            bubbleDiv.innerHTML = icon; // Start with just icon
+            this.typewriterEffect(bubbleDiv, formattedContent, icon);
+        } else {
+            bubbleDiv.innerHTML = icon + this.formatMessage(content);
+            if (widget) {
+                bubbleDiv.innerHTML += this.renderWidget(widget);
+                // Re-bind (safety)
+                this.bindWidgetActions(messageDiv); 
+            }
+        }
+    }
+
+    bindWidgetActions(container) {
+        const btns = container.querySelectorAll('.nexus-action-btn');
+        btns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const action = btn.dataset.action;
+                if (action === 'clock_in') this.sendQuickQuery('Clock In');
+                if (action === 'clock_out') this.sendQuickQuery('Clock Out');
+                if (action === 'apply_leave') window.location.href = '/hrms/employee/leave.php'; 
+            });
+        });
+    }
+
+    /**
+     * Typewriter animation for bot messages
+     */
+    typewriterEffect(container, htmlContent, iconHtml) {
+        // Tokenize the HTML content into tags and text
+        const tokens = htmlContent.match(/(<[^>]*>)|([^<]+)/g) || [];
+        
+        container.innerHTML = iconHtml; // Reset
+        
+        let tokenIndex = 0;
+        let charIndex = 0;
+        let currentTextToken = '';
+        const cursorHtml = '<span class="nexus-cursor"></span>';
+        
+        const typeLoop = () => {
+            // Remove existing cursor if present (from previous frame)
+            const existingCursor = container.querySelector('.nexus-cursor');
+            if (existingCursor) existingCursor.remove();
+
+            if (tokenIndex >= tokens.length) {
+                // Animation complete
+                return;
+            }
+
+            const token = tokens[tokenIndex];
+
+            if (token.startsWith('<')) {
+                // It's a tag, append immediately
+                container.innerHTML += token + cursorHtml;
+                tokenIndex++;
+                requestAnimationFrame(typeLoop);
+            } else {
+                // It's text
+                if (!currentTextToken) {
+                    currentTextToken = token;
+                    charIndex = 0;
+                }
+
+                // Add next chunk
+                const chunkSize = 2; // Slightly slower for more realistic typing
+                const nextChunk = currentTextToken.substr(charIndex, chunkSize);
+                
+                container.innerHTML += nextChunk + cursorHtml;
+                charIndex += chunkSize;
+
+                this.scrollToBottom();
+
+                if (charIndex >= currentTextToken.length) {
+                    tokenIndex++;
+                    currentTextToken = '';
+                    setTimeout(typeLoop, 10);
+                } else {
+                    setTimeout(typeLoop, 20);
+                }
+            }
+        };
+
+        typeLoop();
     }
 
     sendQuickQuery(query) {

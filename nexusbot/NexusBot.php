@@ -168,13 +168,28 @@ class NexusBot
         $intent = $this->groq->analyze($sanitizedMessage, $history);
         $isAI = true;
 
-        // Fallback to native if Groq fails (returns null) or returns unknown
-        if ($intent === null || !isset($intent['intent']) || $intent['intent'] === 'unknown') {
-            error_log('NexusBot: Groq failed or returned unknown, falling back to native bot');
+        // Fallback to native ONLY if Groq API fails completely (returns null)
+        if ($intent === null) {
+            error_log('NexusBot: Groq API failed (null response), falling back to native bot');
             $intent = $this->recognizer->recognize($sanitizedMessage);
             $isAI = false;
         } else {
-            error_log('NexusBot: Groq successfully analyzed intent: ' . $intent['intent']);
+            // Groq responded, even if intent is 'unknown'
+            $isAI = true;
+
+            // If intent is unknown, treat as general query to let LLM handle the conversation
+            if (!isset($intent['intent']) || $intent['intent'] === 'unknown') {
+                error_log('NexusBot: Intent unknown, defaulting to general_query for LLM response');
+                $intent = [
+                    'intent' => 'general_query',
+                    'sub_intent' => null,
+                    'confidence' => 1.0,
+                    'data' => null,
+                    'context' => []
+                ];
+            } else {
+                error_log('NexusBot: Groq analysis success: ' . $intent['intent']);
+            }
         }
 
         // Gather safe user context for AI
