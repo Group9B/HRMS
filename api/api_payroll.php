@@ -284,10 +284,14 @@ switch ($action) {
     case 'send_payslip':
         // HR only send
         requireRole([3, 2, 1]);
+        require_once '../includes/mail/MailService.php';
+
         $payslipId = (int) ($_POST['payslip_id'] ?? 0);
         $toEmployee = isset($_POST['to_employee']) ? (bool) $_POST['to_employee'] : true;
         $toManager = isset($_POST['to_manager']) ? (bool) $_POST['to_manager'] : false;
+        $isEmailAction = isset($_POST['is_email_action']) ? (bool) $_POST['is_email_action'] : false;
         $managerEmailInput = trim($_POST['manager_email'] ?? '');
+
         if ($payslipId <= 0) {
             $response['message'] = 'Missing payslip_id.';
             break;
@@ -327,19 +331,27 @@ switch ($action) {
         // Recipients
         $recipients = [];
         if ($toEmployee && !empty($ps['email'])) {
-            $recipients[] = ['user_id' => (int) $ps['employee_user_id'], 'email' => $ps['email']];
+            $recipients[] = [
+                'user_id' => (int) $ps['employee_user_id'],
+                'email' => $ps['email'],
+                'name' => trim(($ps['first_name'] ?? '') . ' ' . ($ps['last_name'] ?? ''))
+            ];
         }
         if ($toManager) {
             $managerEmail = $managerEmailInput;
             if ($managerEmail === '') {
                 // Try to find a manager in the same company
-                $mgrRes = query($mysqli, "SELECT email, id FROM users WHERE company_id = ? AND role_id = 6 ORDER BY id ASC LIMIT 1", [(int) ($ps['company_id'] ?? 0)]);
+                $mgrRes = query($mysqli, "SELECT email, id, CONCAT(username) as name FROM users WHERE company_id = ? AND role_id = 6 ORDER BY id ASC LIMIT 1", [(int) ($ps['company_id'] ?? 0)]);
                 if ($mgrRes['success'] && !empty($mgrRes['data'])) {
                     $managerEmail = $mgrRes['data'][0]['email'];
-                    $recipients[] = ['user_id' => (int) $mgrRes['data'][0]['id'], 'email' => $managerEmail];
+                    $recipients[] = [
+                        'user_id' => (int) $mgrRes['data'][0]['id'],
+                        'email' => $managerEmail,
+                        'name' => 'Manager'
+                    ];
                 }
             } else {
-                $recipients[] = ['user_id' => null, 'email' => $managerEmail];
+                $recipients[] = ['user_id' => null, 'email' => $managerEmail, 'name' => 'Manager'];
             }
         }
 
@@ -347,28 +359,63 @@ switch ($action) {
         if (empty($recipients)) {
             $errors[] = 'No recipient emails found.';
         }
-        $allLogged = true;
+
+        $mailService = new MailService();
+        $allSent = true;
+
+        // Generate PDF attachment for the payslip
+        require_once '../includes/mail/PayslipPDF.php';
+        $pdfGenerator = new PayslipPDF();
+        $employeeName = trim(($ps['first_name'] ?? '') . '_' . ($ps['last_name'] ?? ''));
+        $pdfFilename = "Payslip_{$employeeName}_{$ps['period']}.pdf";
+        $pdfPath = $pdfGenerator->generateFromHTML($html, $pdfFilename, [
+            'title' => "Payslip - {$ps['period']}",
+            'company_name' => $company['name'] ?? 'Company',
+            'employee_name' => trim(($ps['first_name'] ?? '') . ' ' . ($ps['last_name'] ?? '')),
+            'employee_code' => $ps['employee_code'] ?? '',
+            'department_name' => $ps['department_name'] ?? '',
+            'designation_name' => $ps['designation_name'] ?? '',
+            'period' => $ps['period'] ?? '',
+            'currency' => $ps['currency'] ?? 'INR',
+            'gross_salary' => $ps['gross_salary'] ?? 0,
+            'net_salary' => $ps['net_salary'] ?? 0,
+            'earnings' => $earnings,
+            'deductions' => $deductions,
+        ]);
+
         foreach ($recipients as $rcpt) {
             if (empty($rcpt['email'])) {
-                $allLogged = false;
-                $errors[] = 'Empty email for a recipient';
                 continue;
             }
-            $logRes = query($mysqli, "INSERT INTO email_logs (user_id, email_to, email_from, subject, body, template_id, status, sent_at) VALUES (?,?,?,?,?,?, 'sent', NOW())", [
+
+            $mailSent = false;
+            if ($isEmailAction) {
+                // Actually send the email via SMTP with PDF attachment
+                $mailSent = $mailService->sendPayslip($rcpt['email'], $rcpt['name'], $subject, $html, $pdfPath, $pdfFilename);
+                $status = $mailSent ? 'sent' : 'failed';
+            } else {
+                // Just log as 'released' (legacy behavior or just marking it)
+                $mailSent = true;
+                $status = 'released';
+            }
+
+            if (!$mailSent) {
+                $allSent = false;
+                $errors[] = "Failed to send email to {$rcpt['email']}";
+            }
+
+            $logRes = query($mysqli, "INSERT INTO email_logs (user_id, email_to, email_from, subject, body, template_id, status, sent_at) VALUES (?,?,?,?,?,?, ?, NOW())", [
                 $rcpt['user_id'],
                 $rcpt['email'],
                 $emailFrom,
                 $subject,
                 $html,
-                null
+                null,
+                $status
             ]);
-            if (!$logRes['success']) {
-                $allLogged = false;
-                $errors[] = $logRes['error'] ?? 'log failed';
-            }
 
             // Create notifications for known users
-            if (!empty($rcpt['user_id'])) {
+            if ($status !== 'failed' && !empty($rcpt['user_id'])) {
                 query($mysqli, "INSERT INTO notifications (user_id, type, title, message, related_id, related_type) VALUES (?, 'payroll', 'Payslip', ?, ?, 'payslip')", [
                     (int) $rcpt['user_id'],
                     $subject,
@@ -377,15 +424,24 @@ switch ($action) {
             }
         }
 
-        // Update payslip status
-        $upd = query($mysqli, "UPDATE payslips SET status = 'sent', sent_at = NOW() WHERE id = ?", [$payslipId]);
+        // Update payslip status only if acting on it
+        if ($allSent) {
+            $newStatus = $isEmailAction ? 'emailed' : 'sent';
+            $upd = query($mysqli, "UPDATE payslips SET status = ?, sent_at = NOW() WHERE id = ?", [$newStatus, $payslipId]);
+            $response = ['success' => true, 'message' => $isEmailAction ? 'Payslip emailed successfully.' : 'Payslip released successfully.'];
 
-        if ($allLogged && $upd['success']) {
-            // Fetch updated row for UI without full reload
+            // Fetch updated row
             $rowRes = query($mysqli, "SELECT p.*, e.first_name, e.last_name, e.employee_code FROM payslips p JOIN employees e ON p.employee_id = e.id WHERE p.id = ?", [$payslipId]);
-            $response = ['success' => true, 'message' => 'Payslip sent.', 'data' => $rowRes['success'] && !empty($rowRes['data']) ? $rowRes['data'][0] : null];
+            if ($rowRes['success'] && !empty($rowRes['data'])) {
+                $response['data'] = $rowRes['data'][0];
+            }
         } else {
-            $response = ['success' => false, 'message' => 'Failed to send payslip.', 'errors' => $errors];
+            $response = ['success' => false, 'message' => 'Failed to send/release some payslips.', 'errors' => $errors];
+        }
+
+        // Delete temporary PDF file after sending
+        if ($pdfPath && file_exists($pdfPath)) {
+            @unlink($pdfPath);
         }
         break;
 

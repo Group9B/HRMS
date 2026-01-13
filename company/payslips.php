@@ -170,7 +170,7 @@ require_once '../components/layout/header.php';
                 '<td>' + (parseFloat(p.net_salary).toFixed(2)) + '</td>' +
                 '<td>' + (p.status || '') + '</td>' +
                 '<td>' + (p.generated_at || '') + '</td>' +
-                '<td>' + sendBtn + '</td>' +
+                '<td>' + sendBtn + '&nbsp;' + '<button class="btn btn-sm btn-outline-info email-btn" data-id="' + p.id + '" title="Send via Email"><i class="ti ti-mail"></i></button>' + '</td>' +
                 '</tr>';
             }).join('');
             $tbody.html(rows);
@@ -270,7 +270,7 @@ require_once '../components/layout/header.php';
                     '<td>' + (parseFloat(p.net_salary).toFixed(2)) + '</td>' +
                     '<td>' + (p.status || '') + '</td>' +
                     '<td>' + (p.generated_at || '') + '</td>' +
-                    '<td><button class="btn btn-sm btn-outline-primary send-btn" data-id="' + p.id + '">Send</button></td>' +
+                    '<td><button class="btn btn-sm btn-outline-primary send-btn" data-id="' + p.id + '">Send</button>&nbsp;<button class="btn btn-sm btn-outline-info email-btn" data-id="' + p.id + '" title="Send via Email"><i class="ti ti-mail"></i></button></td>' +
                     '</tr>';
                   if ($.fn.DataTable.isDataTable('#payslipsTable')) {
                     const dt = $('#payslipsTable').DataTable();
@@ -287,19 +287,36 @@ require_once '../components/layout/header.php';
             }).catch(function () { $generateStatus.text('Error generating'); });
         });
 
+        // Send (Release) button handler
         $tbody.on('click', '.send-btn', function () {
           const id = parseInt($(this).data('id'), 10);
           if (!id) return;
-          if (!confirm('Send payslip #' + id + ' to employee (and optionally manager)?')) return;
+          if (!confirm('Mark payslip #' + id + ' as Sent (Release)? This will NOT send an email.')) return;
+          sendPayslipAction(id, false);
+        });
+
+        // Email button handler
+        $tbody.on('click', '.email-btn', function () {
+          const id = parseInt($(this).data('id'), 10);
+          if (!id) return;
+          if (!confirm('Email payslip #' + id + ' to employee?')) return;
+          sendPayslipAction(id, true);
+        });
+
+        function sendPayslipAction(id, isEmail) {
           const form = new FormData();
           form.append('action', 'send_payslip');
           form.append('payslip_id', id);
           form.append('to_employee', '1');
           form.append('to_manager', '0');
+          if (isEmail) {
+            form.append('is_email_action', '1');
+          }
+
           fetch('/hrms/api/api_payroll.php', { method: 'POST', body: form })
             .then(r => r.json()).then(function (res) {
               if (res && res.success) {
-                alert('Payslip sent');
+                alert(res.message || 'Action completed');
                 // Update status cell in place if row returned
                 if (res.data && res.data.id) {
                   const id = res.data.id;
@@ -315,10 +332,10 @@ require_once '../components/layout/header.php';
                   loadPayslips();
                 }
               } else {
-                alert('Failed to send');
+                alert('Failed: ' + (res.message || 'Unknown error'));
               }
-            }).catch(function () { alert('Error sending'); });
-        });
+            }).catch(function () { alert('Error processing request'); });
+        }
 
         // removed "Send to Mail" ad-hoc button
 
