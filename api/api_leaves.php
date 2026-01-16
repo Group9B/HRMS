@@ -13,6 +13,7 @@
 header('Content-Type: application/json');
 require_once '../config/db.php';
 require_once '../includes/functions.php';
+require_once '../includes/notification_helpers.php';
 
 $response = ['success' => false, 'message' => 'An unknown error occurred.'];
 
@@ -569,10 +570,81 @@ switch ($action) {
         );
 
         if ($result['success']) {
+            $new_leave_id = $mysqli->insert_id;
+
+            // Notify relevant approvers based on role
+            $approvers_to_notify = [];
+
+            // Get employee info for notification message
+            $emp_info = query($mysqli, "SELECT first_name, last_name FROM employees WHERE user_id = ?", [$user_id])['data'][0] ?? null;
+            $emp_name = $emp_info ? "{$emp_info['first_name']} {$emp_info['last_name']}" : 'An employee';
+
+            if ($role_id == 4) {
+                // Employee: Notify Manager (via team_members or same dept) and HR
+
+                // First, find managers via team_members (assigned_by)
+                $team_managers = query(
+                    $mysqli,
+                    "SELECT DISTINCT tm.assigned_by as user_id FROM team_members tm
+                     JOIN employees e ON tm.employee_id = e.id
+                     JOIN users u ON tm.assigned_by = u.id
+                     WHERE e.user_id = ? AND u.role_id = 6 AND u.company_id = ?",
+                    [$user_id, $company_id]
+                )['data'] ?? [];
+                foreach ($team_managers as $mgr) {
+                    $approvers_to_notify[] = $mgr['user_id'];
+                }
+
+                // Also check department-level managers
+                $dept_info = query($mysqli, "SELECT department_id FROM employees WHERE user_id = ?", [$user_id])['data'][0] ?? null;
+                if ($dept_info && $dept_info['department_id']) {
+                    $dept_managers = query(
+                        $mysqli,
+                        "SELECT u.id FROM users u 
+                         JOIN employees e ON u.id = e.user_id 
+                         WHERE u.role_id = 6 AND u.company_id = ? AND e.department_id = ?",
+                        [$company_id, $dept_info['department_id']]
+                    )['data'] ?? [];
+                    foreach ($dept_managers as $mgr) {
+                        $approvers_to_notify[] = $mgr['id'];
+                    }
+                }
+                // Also notify HR
+                $hr_users = query($mysqli, "SELECT id FROM users WHERE role_id = 3 AND company_id = ?", [$company_id])['data'] ?? [];
+                foreach ($hr_users as $hr) {
+                    $approvers_to_notify[] = $hr['id'];
+                }
+            } elseif ($role_id == 6) {
+                // Manager: Notify HR
+                $hr_users = query($mysqli, "SELECT id FROM users WHERE role_id = 3 AND company_id = ?", [$company_id])['data'] ?? [];
+                foreach ($hr_users as $hr) {
+                    $approvers_to_notify[] = $hr['id'];
+                }
+            } elseif ($role_id == 3) {
+                // HR: Notify Company Owner
+                $owner_users = query($mysqli, "SELECT id FROM users WHERE role_id = 2 AND company_id = ?", [$company_id])['data'] ?? [];
+                foreach ($owner_users as $owner) {
+                    $approvers_to_notify[] = $owner['id'];
+                }
+            }
+
+            // Send notifications to all approvers
+            foreach (array_unique($approvers_to_notify) as $approver_id) {
+                createNotification(
+                    $mysqli,
+                    $approver_id,
+                    'leave',
+                    'New Leave Request',
+                    "{$emp_name} has requested {$leave_type} from {$start_date} to {$end_date}",
+                    $new_leave_id,
+                    'leave'
+                );
+            }
+
             $response = [
                 'success' => true,
                 'message' => 'Leave request submitted successfully!',
-                'leave_id' => $mysqli->insert_id
+                'leave_id' => $new_leave_id
             ];
         } else {
             $response['message'] = 'Failed to submit leave request.';
@@ -641,6 +713,28 @@ switch ($action) {
         // If approved, update attendance records
         if ($action_type === 'approve') {
             updateAttendanceForApprovedLeave($mysqli, $leave_data);
+        }
+
+        // Notify the employee about the decision
+        $leave_emp_info = query(
+            $mysqli,
+            "SELECT e.user_id, e.first_name, e.last_name FROM employees e WHERE e.id = ?",
+            [$leave_data['employee_id']]
+        )['data'][0] ?? null;
+
+        if ($leave_emp_info) {
+            $notification_title = $action_type === 'approve' ? 'Leave Approved' : 'Leave Rejected';
+            $notification_message = "Your {$leave_data['leave_type']} request from {$leave_data['start_date']} to {$leave_data['end_date']} has been {$new_status}.";
+
+            createNotification(
+                $mysqli,
+                $leave_emp_info['user_id'],
+                'leave',
+                $notification_title,
+                $notification_message,
+                $leave_id,
+                'leave'
+            );
         }
 
         $response = [

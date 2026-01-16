@@ -1,6 +1,7 @@
 <?php
 require_once '../config/db.php';
 require_once '../includes/functions.php';
+require_once '../includes/notification_helpers.php';
 
 header('Content-Type: application/json');
 
@@ -147,6 +148,23 @@ switch ($action) {
         }
 
         if ($res['success']) {
+            // Notify the employee about their performance review
+            if ($id == 0) { // Only for new reviews, not updates
+                $emp_user_info = query($mysqli, "SELECT user_id FROM employees WHERE id = ?", [$employee_id])['data'][0] ?? null;
+                if ($emp_user_info) {
+                    $evaluator_info = query($mysqli, "SELECT first_name, last_name FROM employees WHERE user_id = ?", [$user_id])['data'][0] ?? null;
+                    $evaluator_name = $evaluator_info ? "{$evaluator_info['first_name']} {$evaluator_info['last_name']}" : 'Your manager';
+                    createNotification(
+                        $mysqli,
+                        $emp_user_info['user_id'],
+                        'performance',
+                        'Performance Review Added',
+                        "{$evaluator_name} has added a performance review for {$period}. Score: {$score}%",
+                        $res['insert_id'] ?? $id,
+                        'performance'
+                    );
+                }
+            }
             echo json_encode(['success' => true, 'message' => 'Performance review saved successfully']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Database error: ' . $res['error']]);

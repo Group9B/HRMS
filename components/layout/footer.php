@@ -7,6 +7,7 @@
 <script src="/hrms/assets/js/datatable_bootstrap_responsive.js"></script>
 <script src="/hrms/assets/js/chart.js"></script>
 <script src="/hrms/assets/js/main.js"></script>
+<script src="/hrms/assets/js/notifications.js"></script>
 <?php
 if (isset($additionalScripts) && is_array($additionalScripts)) {
     foreach ($additionalScripts as $script) {

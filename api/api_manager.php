@@ -4,6 +4,7 @@ header('Content-Type: application/json');
 
 require_once '../config/db.php';
 require_once '../includes/functions.php';
+require_once '../includes/notification_helpers.php';
 
 $response = ['success' => false, 'message' => 'An unknown error occurred.'];
 
@@ -307,6 +308,21 @@ switch ($action) {
                 ", [$employee_id, $title, $description, $due_date, $user_id, $team_id]);
 
                 if ($insert_result['success']) {
+                    // Notify the employee about the new task
+                    $emp_user_info = query($mysqli, "SELECT user_id FROM employees WHERE id = ?", [$employee_id])['data'][0] ?? null;
+                    if ($emp_user_info) {
+                        $manager_name_res = query($mysqli, "SELECT first_name, last_name FROM employees WHERE user_id = ?", [$user_id])['data'][0] ?? null;
+                        $manager_name = $manager_name_res ? "{$manager_name_res['first_name']} {$manager_name_res['last_name']}" : 'Your manager';
+                        createNotification(
+                            $mysqli,
+                            $emp_user_info['user_id'],
+                            'task',
+                            'New Task Assigned',
+                            "{$manager_name} has assigned you a task: {$title}",
+                            $mysqli->insert_id,
+                            'task'
+                        );
+                    }
                     $response = ['success' => true, 'message' => 'Task assigned successfully!'];
                 } else {
                     $response['message'] = 'Failed to assign task.';
