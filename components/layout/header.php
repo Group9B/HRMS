@@ -63,11 +63,11 @@ if (isLoggedIn()) {
                     </div>
                 </div>
                 <div class="wrapper d-flex align-items-center justify-content-end gap-3">
-                    <?php if (isLoggedIn()): ?>
+                    <div class="wrapper-of-btn d-flex align-items-center justify-content-end gap-0">
                         <div class="notifications position-relative">
                             <div class="dropdown">
-                                <button class="btn dropdown-toggle position-relative" type="button" id="notificationButton"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <button class="btn dropdown-toggle position-relative action border-0 opacity-75"
+                                    type="button" id="notificationButton" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="ti ti-bell fs-5"></i>
                                     <span id="notificationBadge"
                                         class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
@@ -91,7 +91,8 @@ if (isLoggedIn()) {
                                         <hr class="dropdown-divider">
                                     </li>
                                     <li class="text-center">
-                                        <a class="dropdown-item small text-primary" href="/hrms/employee/notifications.php">View
+                                        <a class="dropdown-item small text-primary"
+                                            href="/hrms/employee/notifications.php">View
                                             all
                                             notifications</a>
                                     </li>
@@ -101,58 +102,58 @@ if (isLoggedIn()) {
                         <button class="btn fs-5" id="toggleThemeBtn" aria-label="Toggle theme">
                             <i class="ti ti-moon"></i>
                         </button>
-                        <div class="user-menu d-flex align-items-center gap-2">
-                            <?php
-                            $role_id = $_SESSION['role_id'] ?? 0;
-                            $role_names = [
-                                1 => 'Admin',
-                                2 => 'Company Owner',
-                                3 => 'HR',
-                                4 => 'Employee',
-                                5 => 'Candidate',
-                                6 => 'Manager'
-                            ];
-                            $role_colors = [
-                                1 => 'danger',
-                                2 => 'primary',
-                                3 => 'success',
-                                4 => 'info',
-                                5 => 'secondary',
-                                6 => 'warning'
-                            ];
-                            $role_name = $role_names[$role_id] ?? 'Unknown';
-                            $role_color = $role_colors[$role_id] ?? 'secondary';
-                            ?>
-                            <span
-                                class="badge bg-<?= $role_color ?>-subtle text-<?= $role_color ?>-emphasis px-2 py-1 d-none d-sm-inline-block">
-                                <?= htmlspecialchars($role_name) ?>
-                            </span>
-                            <div class="dropdown">
-                                <button class="btn dropdown-toggle d-flex justify-content-between align-items-center border-0"
-                                    type="button" id="userMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <div class="avatar"></div>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="userMenuButton">
-                                    <li class="dropdown-header d-sm-none">
-                                        <small><?= htmlspecialchars($role_name) ?></small>
-                                    </li>
-                                    <li class="dropdown-divider d-sm-none"></li>
-                                    <?php if (in_array($_SESSION['role_id'] ?? 0, [3, 4, 6])): ?>
-                                        <li><a class="dropdown-item" href="/hrms/employee/profile.php">
-                                                <i class="ti ti-user"></i> Profile</a></li>
-                                    <?php endif; ?>
-                                    <li><a class="dropdown-item" href="/hrms/user/account.php"><i
-                                                class="ti ti-settings me-2"></i>Settings</a></li>
-                                    <li>
-                                        <hr class="dropdown-divider">
-                                    </li>
-                                    <li><a class="dropdown-item text-danger" href="/hrms/auth/logout.php"><i
-                                                class="ti ti-logout"></i>
-                                            Logout</a></li>
-                                </ul>
-                            </div>
+                    </div>
+                    <div class="user-menu d-flex align-items-center gap-2">
+                        <?php
+                        $role_id = $_SESSION['role_id'] ?? 0;
+                        $role_names = [
+                            1 => 'Admin',
+                            2 => 'Company Owner',
+                            3 => 'HR',
+                            4 => 'Employee',
+                            5 => 'Candidate',
+                            6 => 'Manager'
+                        ];
+                        $role_colors = [
+                            1 => 'danger',
+                            2 => 'primary',
+                            3 => 'success',
+                            4 => 'info',
+                            5 => 'secondary',
+                            6 => 'warning'
+                        ];
+                        $role_name = $role_names[$role_id] ?? 'Unknown';
+                        $role_color = $role_colors[$role_id] ?? 'secondary';
+                        ?>
+                        <span
+                            class="badge bg-<?= $role_color ?>-subtle text-<?= $role_color ?>-emphasis px-2 py-1 d-none d-sm-inline-block">
+                            <?= htmlspecialchars($role_name) ?>
+                        </span>
+                        <div class="dropdown">
+                            <button class="btn dropdown-toggle d-flex justify-content-between align-items-center border-0"
+                                type="button" id="userMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="avatar"></div>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="userMenuButton">
+                                <li class="dropdown-header d-sm-none">
+                                    <small><?= htmlspecialchars($role_name) ?></small>
+                                </li>
+                                <li class="dropdown-divider d-sm-none"></li>
+                                <?php if (in_array($_SESSION['role_id'] ?? 0, [3, 4, 6])): ?>
+                                    <li><a class="dropdown-item" href="/hrms/employee/profile.php">
+                                            <i class="ti ti-user"></i> Profile</a></li>
+                                <?php endif; ?>
+                                <li><a class="dropdown-item" href="/hrms/user/account.php"><i
+                                            class="ti ti-settings me-2"></i>Settings</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item text-danger" href="/hrms/auth/logout.php"><i
+                                            class="ti ti-logout"></i>
+                                        Logout</a></li>
+                            </ul>
                         </div>
-                    <?php endif; ?>
+                    </div>
                 </div>
             </div>
             <div class="breaker mb-5"></div>
