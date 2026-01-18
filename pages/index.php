@@ -7,6 +7,10 @@ requireAuth();
 $user_id = $_SESSION['user_id'];
 $currentUser = getCurrentUser($mysqli);
 
+if ($_SESSION['role_id'] === 1) {
+    redirect('/hrms/admin/support.php');
+}
+
 // Get user's support tickets
 $ticketsRes = query($mysqli, "SELECT * FROM support_tickets WHERE user_id = ? ORDER BY created_at DESC", [$user_id]);
 $tickets = $ticketsRes['success'] ? $ticketsRes['data'] : [];

@@ -145,19 +145,21 @@ if (isLoggedIn()) {
                                 <?php endif; ?>
                                 <li><a class="dropdown-item" href="/hrms/user/account.php"><i
                                             class="ti ti-settings me-2"></i>Settings</a></li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item text-danger" href="/hrms/auth/logout.php"><i
-                                            class="ti ti-logout"></i>
-                                        Logout</a></li>
-                            </ul>
-                        </div>
+                            <?php endif; ?>
+                            <li><a class="dropdown-item" href="/hrms/pages/index.php"><i
+                                        class="ti ti-help me-2"></i>Support</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item text-danger" href="/hrms/auth/logout.php"><i
+                                        class="ti ti-logout"></i>
+                                    Logout</a></li>
+                        </ul>
                     </div>
                 </div>
             </div>
-            <div class="breaker mb-5"></div>
-        <?php endif; ?>
+        </div>
+        <div class="breaker mb-5"></div>
         <?php if (!empty($_SESSION['toasts'])):
             ?>
             <div class="toast-container position-fixed top-0 end-0 p-3 show" style="z-index: 1055;">
