@@ -303,6 +303,88 @@ function updateAttendanceForApprovedLeave($mysqli, $leave_data)
     }
 }
 
+/**
+ * Get employee leave balance including pending leaves
+ * Returns balance info for a specific leave type or all types
+ */
+function getEmployeeLeaveBalance($mysqli, $emp_id, $company_id, $leave_type = null)
+{
+    // Get holidays and Saturday policy
+    $holidays_result = query($mysqli, "SELECT holiday_date FROM holidays WHERE company_id = ?", [$company_id]);
+    $holiday_dates = array_column($holidays_result['data'] ?? [], 'holiday_date');
+
+    $settings_result = query($mysqli, "SELECT saturday_policy FROM company_holiday_settings WHERE company_id = ?", [$company_id]);
+    $saturday_policy = $settings_result['success'] && !empty($settings_result['data'])
+        ? $settings_result['data'][0]['saturday_policy']
+        : 'none';
+
+    // Get leave policies
+    $policy_query = "SELECT leave_type, days_per_year FROM leave_policies WHERE company_id = ?";
+    $policy_params = [$company_id];
+    if ($leave_type) {
+        $policy_query .= " AND leave_type = ?";
+        $policy_params[] = $leave_type;
+    }
+    $policies = query($mysqli, $policy_query, $policy_params)['data'] ?? [];
+
+    // Get all approved and pending leaves for this employee this year
+    $leaves_query = "
+        SELECT leave_type, start_date, end_date, status
+        FROM leaves
+        WHERE employee_id = ? 
+          AND status IN ('approved', 'pending')
+          AND YEAR(start_date) = YEAR(CURDATE())
+    ";
+    $leaves_params = [$emp_id];
+    if ($leave_type) {
+        $leaves_query .= " AND leave_type = ?";
+        $leaves_params[] = $leave_type;
+    }
+    $leaves = query($mysqli, $leaves_query, $leaves_params)['data'] ?? [];
+
+    // Calculate days per leave type and status
+    $approved_map = [];
+    $pending_map = [];
+    foreach ($leaves as $leave) {
+        $start = new DateTime($leave['start_date'], new DateTimeZone('UTC'));
+        $end = new DateTime($leave['end_date'], new DateTimeZone('UTC'));
+        $actual_days = calculateActualLeaveDays($start, $end, $holiday_dates, $saturday_policy);
+
+        if ($leave['status'] === 'approved') {
+            if (!isset($approved_map[$leave['leave_type']])) {
+                $approved_map[$leave['leave_type']] = 0;
+            }
+            $approved_map[$leave['leave_type']] += $actual_days;
+        } else {
+            if (!isset($pending_map[$leave['leave_type']])) {
+                $pending_map[$leave['leave_type']] = 0;
+            }
+            $pending_map[$leave['leave_type']] += $actual_days;
+        }
+    }
+
+    // Build result
+    $balances = [];
+    foreach ($policies as $policy) {
+        $type = $policy['leave_type'];
+        $total = $policy['days_per_year'];
+        $approved = $approved_map[$type] ?? 0;
+        $pending = $pending_map[$type] ?? 0;
+        $remaining = max(0, $total - $approved - $pending);
+
+        $balances[] = [
+            'leave_type' => $type,
+            'total_allowed' => $total,
+            'approved_days' => $approved,
+            'pending_days' => $pending,
+            'remaining' => $remaining,
+            'will_exceed' => ($approved + $pending) > $total
+        ];
+    }
+
+    return $leave_type && count($balances) === 1 ? $balances[0] : $balances;
+}
+
 // Handle actions
 $action = $_REQUEST['action'] ?? '';
 
@@ -493,6 +575,77 @@ switch ($action) {
         $response = ['success' => true, 'data' => $leaves];
         break;
 
+    // ====================== GET EMPLOYEE LEAVE BALANCE (for approvers) ======================
+    case 'get_employee_leave_balance':
+        // Only allow approvers
+        if (!in_array($role_id, [1, 2, 3, 6])) {
+            $response['message'] = 'You are not authorized to view employee balances.';
+            http_response_code(403);
+            break;
+        }
+
+        $target_employee_id = (int) ($_GET['employee_id'] ?? 0);
+        $target_leave_type = $_GET['leave_type'] ?? null;
+
+        if (!$target_employee_id) {
+            $response['message'] = 'Missing employee_id parameter.';
+            break;
+        }
+
+        $balance_data = getEmployeeLeaveBalance($mysqli, $target_employee_id, $company_id, $target_leave_type);
+        $response = [
+            'success' => true,
+            'data' => $balance_data
+        ];
+        break;
+
+    // ====================== GET EMPLOYEE EXCESS LEAVES (for payroll) ======================
+    case 'get_employee_excess_leaves':
+        // Only allow HR and admins (payroll access)
+        if (!in_array($role_id, [1, 2, 3])) {
+            $response['message'] = 'You are not authorized to view this data.';
+            http_response_code(403);
+            break;
+        }
+
+        $target_employee_id = (int) ($_GET['employee_id'] ?? 0);
+
+        if (!$target_employee_id) {
+            $response['message'] = 'Missing employee_id parameter.';
+            break;
+        }
+
+        // Get all leave balances for the employee
+        $all_balances = getEmployeeLeaveBalance($mysqli, $target_employee_id, $company_id);
+
+        // Calculate total excess days across all leave types
+        $total_excess_days = 0;
+        $breakdown = [];
+        foreach ($all_balances as $balance) {
+            $used = $balance['approved_days'] + $balance['pending_days'];
+            $allowed = $balance['total_allowed'];
+            if ($used > $allowed) {
+                $excess = $used - $allowed;
+                $total_excess_days += $excess;
+                $breakdown[] = [
+                    'leave_type' => $balance['leave_type'],
+                    'used' => $used,
+                    'allowed' => $allowed,
+                    'excess' => $excess
+                ];
+            }
+        }
+
+        $response = [
+            'success' => true,
+            'data' => [
+                'employee_id' => $target_employee_id,
+                'total_excess_days' => $total_excess_days,
+                'breakdown' => $breakdown
+            ]
+        ];
+        break;
+
     // ====================== GET PENDING REQUESTS FOR APPROVER ======================
     case 'get_pending_requests':
         // Only allow approvers
@@ -504,9 +657,15 @@ switch ($action) {
 
         $pending_leaves = getPendingLeavesForApprover($mysqli, $user_id, $role_id, $company_id);
 
-        // Enrich with approver names
+        // Enrich with approver names and leave balance info
         foreach ($pending_leaves as &$leave) {
             $leave['approver_name'] = getApproverName($mysqli, $leave['approved_by']);
+
+            // Add balance info for this leave type
+            $balance = getEmployeeLeaveBalance($mysqli, $leave['employee_id'], $company_id, $leave['leave_type']);
+            if ($balance) {
+                $leave['balance_info'] = $balance;
+            }
         }
 
         $response = ['success' => true, 'data' => $pending_leaves];
@@ -641,10 +800,20 @@ switch ($action) {
                 );
             }
 
+            // Check balance and add warning if exceeded
+            $balance_info = getEmployeeLeaveBalance($mysqli, $employee_id, $company_id, $leave_type);
+            $warning = null;
+            if ($balance_info && $balance_info['will_exceed']) {
+                $excess_days = ($balance_info['approved_days'] + $balance_info['pending_days']) - $balance_info['total_allowed'];
+                $warning = "Your total {$leave_type} leaves (" . ($balance_info['approved_days'] + $balance_info['pending_days']) . " days) exceed the allowed limit of {$balance_info['total_allowed']} days. Extra {$excess_days} day(s) will be charged/deducted from salary.";
+            }
+
             $response = [
                 'success' => true,
-                'message' => 'Leave request submitted successfully!',
-                'leave_id' => $new_leave_id
+                'message' => 'Leave request submitted successfully!' . ($warning ? ' Note: ' . $warning : ''),
+                'leave_id' => $new_leave_id,
+                'balance_info' => $balance_info,
+                'warning' => $warning
             ];
         } else {
             $response['message'] = 'Failed to submit leave request.';

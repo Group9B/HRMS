@@ -44,6 +44,18 @@ require_once '../components/layout/header.php';
                 <label class="form-label">Base Deductions</label>
                 <input type="number" step="0.01" id="deductionsInput" class="form-control" value="0">
               </div>
+              <div class="col-md-4" id="leaveDeductionSection" style="display: none;">
+                <label class="form-label">Leave Deduction <i class="ti ti-info-circle text-muted"
+                    data-bs-toggle="tooltip" title="Deduction for excess leave days taken"></i></label>
+                <div class="input-group">
+                  <span class="input-group-text bg-warning-subtle" id="excessDaysDisplay">0 excess days</span>
+                  <input type="number" step="0.01" id="leaveRateInput" class="form-control" placeholder="Rate/day"
+                    value="0">
+                </div>
+                <small class="text-muted">Total Deduction: ₹<span id="leaveDeductionTotal"
+                    class="fw-bold">0</span></small>
+                <input type="hidden" id="excessDaysHidden" value="0">
+              </div>
               <div class="col-12">
                 <label class="form-label">Optional Components (select to include)</label>
                 <div class="row g-2">
@@ -195,6 +207,57 @@ require_once '../components/layout/header.php';
           });
         }
 
+        // Fetch excess leave days when employee is selected
+        function fetchExcessLeaves(employeeId) {
+          const $section = $('#leaveDeductionSection');
+          const $daysDisplay = $('#excessDaysDisplay');
+          const $daysHidden = $('#excessDaysHidden');
+          const $rateInput = $('#leaveRateInput');
+          const $total = $('#leaveDeductionTotal');
+
+          if (!employeeId) {
+            $section.hide();
+            $daysHidden.val(0);
+            return;
+          }
+
+          $.getJSON('/hrms/api/api_leaves.php?action=get_employee_excess_leaves&employee_id=' + employeeId, function (res) {
+            if (res && res.success && res.data) {
+              const excessDays = res.data.total_excess_days || 0;
+              $daysHidden.val(excessDays);
+
+              if (excessDays > 0) {
+                $daysDisplay.text(excessDays + ' excess day' + (excessDays > 1 ? 's' : ''));
+                $daysDisplay.removeClass('bg-success-subtle').addClass('bg-warning-subtle');
+                $section.show();
+                updateLeaveDeductionTotal();
+              } else {
+                $daysDisplay.text('No excess leaves');
+                $daysDisplay.removeClass('bg-warning-subtle').addClass('bg-success-subtle');
+                $section.show();
+                $total.text('0');
+              }
+            } else {
+              $section.hide();
+            }
+          });
+        }
+
+        // Update leave deduction total when rate changes
+        function updateLeaveDeductionTotal() {
+          const days = parseFloat($('#excessDaysHidden').val()) || 0;
+          const rate = parseFloat($('#leaveRateInput').val()) || 0;
+          const total = days * rate;
+          $('#leaveDeductionTotal').text(total.toFixed(2));
+        }
+
+        // Event handlers for leave deduction
+        $employeeSelect.on('change', function () {
+          fetchExcessLeaves($(this).val());
+        });
+
+        $('#leaveRateInput').on('input change', updateLeaveDeductionTotal);
+
         function loadTemplates() {
           $.getJSON('/hrms/api/api_payroll.php?action=list_templates', function (res) {
             if (res && res.success && res.data) {
@@ -238,8 +301,14 @@ require_once '../components/layout/header.php';
           const period = $('#periodInput').val();
           const currency = $('#currencyInput').val() || 'INR';
           const gross = parseFloat($('#grossInput').val() || '0');
-          const deductions = parseFloat($('#deductionsInput').val() || '0');
+          const baseDeductions = parseFloat($('#deductionsInput').val() || '0');
           const template_id = parseInt($templateSelect.val() || '0', 10) || '';
+
+          // Calculate leave deduction
+          const excessDays = parseFloat($('#excessDaysHidden').val() || '0');
+          const leaveRate = parseFloat($('#leaveRateInput').val() || '0');
+          const leaveDeduction = excessDays * leaveRate;
+
           if (!employee_id || !period) { return; }
           $generateStatus.text('Generating...');
           const form = new FormData();
@@ -250,7 +319,13 @@ require_once '../components/layout/header.php';
           if (template_id) form.append('template_id', template_id);
           const selected = collectSelectedComponents();
           const earnings = [{ name: 'Gross', amount: gross }, ...selected.earnings];
-          const deductionsArr = (deductions ? [{ name: 'Base Deductions', amount: deductions }] : []).concat(selected.deductions);
+
+          // Build deductions array with leave deduction
+          let deductionsArr = [];
+          if (baseDeductions > 0) deductionsArr.push({ name: 'Base Deductions', amount: baseDeductions });
+          if (leaveDeduction > 0) deductionsArr.push({ name: 'Leave Deduction (' + excessDays + ' days)', amount: leaveDeduction });
+          deductionsArr = deductionsArr.concat(selected.deductions);
+
           form.append('earnings', JSON.stringify(earnings));
           form.append('deductions', JSON.stringify(deductionsArr));
           fetch('/hrms/api/api_payroll.php', { method: 'POST', body: form })

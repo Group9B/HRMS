@@ -68,7 +68,7 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
-<div class="modal fade" id="applyLeaveModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><form id="applyLeaveForm"><div class="modal-header"><h5 class="modal-title">Apply for Leave</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" name="action" value="apply_leave"><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Start Date *</label><input type="date" class="form-control" name="start_date" id="startDate" required></div><div class="col-md-6 mb-3"><label class="form-label">End Date *</label><input type="date" class="form-control" name="end_date" id="endDate" required></div></div><div class="mb-3" id="dateErrorContainer" style="display: none;"><div class="alert alert-danger mb-0" id="dateError"></div></div><div class="mb-3" id="leaveDaysCalculation" style="display: none;"><div class="alert alert-info mb-0"><small><strong>Calculation:</strong> <span id="totalDaysText">0</span> calendar days</small><br><small id="holidaysText" style="display: none;"></small><small id="sundaysText" style="display: none;"></small><small id="saturdaysText" style="display: none;"></small><br><small class="text-primary"><strong>Actual days to deduct:</strong> <span id="actualDaysText">0</span></small></div></div><div class="mb-3"><label class="form-label">Leave Type *</label><select class="form-select" name="leave_type" required><option value="">-- Select --</option><?php foreach ($leave_types as $type) : ?><option value="<?= htmlspecialchars($type['leave_type']) ?>"><?= htmlspecialchars($type['leave_type']) ?></option><?php endforeach; ?></select></div><div class="mb-3"><label class="form-label">Reason</label><textarea class="form-control" name="reason" rows="3"></textarea></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary" id="submitLeaveBtn">Submit Request</button></div></form></div></div></div>
+<div class="modal fade" id="applyLeaveModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><form id="applyLeaveForm"><div class="modal-header"><h5 class="modal-title">Apply for Leave</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" name="action" value="apply_leave"><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Start Date *</label><input type="date" class="form-control" name="start_date" id="startDate" required></div><div class="col-md-6 mb-3"><label class="form-label">End Date *</label><input type="date" class="form-control" name="end_date" id="endDate" required></div></div><div class="mb-3" id="dateErrorContainer" style="display: none;"><div class="alert alert-danger mb-0" id="dateError"></div></div><div class="mb-3" id="leaveDaysCalculation" style="display: none;"><div class="alert alert-info mb-0"><small><strong>Calculation:</strong> <span id="totalDaysText">0</span> calendar days</small><br><small id="holidaysText" style="display: none;"></small><small id="sundaysText" style="display: none;"></small><small id="saturdaysText" style="display: none;"></small><br><small class="text-primary"><strong>Actual days to deduct:</strong> <span id="actualDaysText">0</span></small></div></div><div class="mb-3"><label class="form-label">Leave Type *</label><select class="form-select" name="leave_type" id="leaveTypeSelect" required><option value="">-- Select --</option><?php foreach ($leave_types as $type) : ?><option value="<?= htmlspecialchars($type['leave_type']) ?>"><?= htmlspecialchars($type['leave_type']) ?></option><?php endforeach; ?></select></div><div class="mb-3" id="balanceWarningContainer" style="display: none;"></div><div class="mb-3"><label class="form-label">Reason</label><textarea class="form-control" name="reason" rows="3"></textarea></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary" id="submitLeaveBtn">Submit Request</button></div></form></div></div></div>
 
 <?php require_once '../components/layout/footer.php'; ?>
 <script>
@@ -86,9 +86,14 @@ require_once '../components/layout/header.php';
         $('#startDate').attr('min', today);
         $('#endDate').attr('min', today);
         
-        // Validate dates on change
-        $('#startDate, #endDate').on('change', validateLeaveDates);
+        // Validate dates and check balance on change
+        $('#startDate, #endDate').on('change', function() {
+            validateLeaveDates();
+            checkLeaveBalance();
+        });
         
+        // Check balance when leave type changes
+        $('#leaveTypeSelect').on('change', checkLeaveBalance);
         if (hasMyRequestsTab) {
             myRequestsTable = $('#myRequestsTable').DataTable({
                 responsive: true, ajax: { url: '/hrms/api/api_leaves.php?action=get_my_leaves', dataSrc: 'data' },
@@ -127,7 +132,12 @@ require_once '../components/layout/header.php';
             fetch('/hrms/api/api_leaves.php', { method: 'POST', body: new FormData(this) })
             .then(res => res.json()).then(result => {
                 if (result.success) {
-                    showToast(result.message, 'success');
+                    // Show warning if balance exceeded
+                    if (result.warning) {
+                        showToast('Leave submitted! Warning: ' + result.warning, 'warning');
+                    } else {
+                        showToast(result.message, 'success');
+                    }
                     applyLeaveModal.hide(); this.reset();
                     if(myRequestsTable) myRequestsTable.ajax.reload();
                     if(approveRequestsTable) approveRequestsTable.ajax.reload();
@@ -288,6 +298,69 @@ require_once '../components/layout/header.php';
         });
     }
 
+    // Check leave balance and show warning if exceeded
+    function checkLeaveBalance() {
+        const startDate = $('#startDate').val();
+        const endDate = $('#endDate').val();
+        const leaveType = $('#leaveTypeSelect').val();
+        const balanceContainer = $('#balanceWarningContainer');
+        
+        // Hide container if any field is missing
+        if (!startDate || !endDate || !leaveType) {
+            balanceContainer.hide();
+            return;
+        }
+        
+        // Calculate requested days
+        const saturPolicy = document.querySelector('[data-saturday-policy]')?.dataset.saturdayPolicy || 'none';
+        const requestedDays = getActualLeaveDays(startDate, endDate, saturPolicy);
+        
+        // Fetch current balance from API
+        fetch('/hrms/api/api_leaves.php?action=get_leave_summary')
+            .then(res => res.json())
+            .then(result => {
+                if (result.success && result.data.balances) {
+                    const balance = result.data.balances.find(b => b.type === leaveType);
+                    if (balance) {
+                        const remaining = balance.balance;
+                        const total = balance.total;
+                        const used = balance.used;
+                        const afterRequest = used + requestedDays;
+                        const willExceed = afterRequest > total;
+                        
+                        let html = `
+                            <div class="alert ${willExceed ? 'alert-warning' : 'alert-success'} py-2 mb-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>${escapeHTML(leaveType)} Balance:</strong>
+                                        <span class="ms-2">${remaining} days remaining</span>
+                                        <small class="text-muted ms-2">(${used}/${total} used)</small>
+                                    </div>
+                                </div>
+                                ${willExceed ? `
+                                <hr class="my-2">
+                                <div class="d-flex align-items-center">
+                                    <i class="ti ti-alert-triangle text-warning me-2"></i>
+                                    <small><strong>Warning:</strong> This request (${requestedDays} days) exceeds your remaining balance by ${afterRequest - total} day(s). Extra days will be charged/deducted from salary.</small>
+                                </div>
+                                ` : `
+                                <hr class="my-2">
+                                <div class="d-flex align-items-center text-success">
+                                    <i class="ti ti-circle-check me-2"></i>
+                                    <small>After this request: ${afterRequest}/${total} days used</small>
+                                </div>
+                                `}
+                            </div>
+                        `;
+                        balanceContainer.html(html).show();
+                    } else {
+                        balanceContainer.hide();
+                    }
+                }
+            })
+            .catch(() => balanceContainer.hide());
+    }
+
     // Event delegation for policy document link
     $(document).on('click', '.view-policy-btn', function(e) {
         e.preventDefault();
@@ -393,8 +466,38 @@ require_once '../components/layout/header.php';
         const action = isApprove ? 'approve' : 'reject';
         const btnClass = isApprove ? 'btn-success' : 'btn-danger';
         
+        // Get the row data from DataTable to show balance info
+        const row = approveRequestsTable.rows().data().toArray().find(r => r.id == leaveId);
+        let confirmMessage = `Are you sure you want to ${action} this leave request?`;
+        
+        // Add balance info for approval confirmation
+        if (isApprove && row && row.balance_info) {
+            const bal = row.balance_info;
+            const saturPolicy = document.querySelector('[data-saturday-policy]').dataset.saturdayPolicy;
+            const requestDays = getActualLeaveDays(row.start_date, row.end_date, saturPolicy);
+            const afterApproval = bal.approved_days + requestDays;
+            const willExceed = afterApproval > bal.total_allowed;
+            
+            confirmMessage = `
+                <div class="text-start">
+                    <p><strong>Employee Leave Balance (${escapeHTML(bal.leave_type)}):</strong></p>
+                    <ul class="mb-2">
+                        <li>Total Allowed: <strong>${bal.total_allowed} days</strong></li>
+                        <li>Already Approved: <strong>${bal.approved_days} days</strong></li>
+                        <li>Other Pending: <strong>${bal.pending_days - requestDays} days</strong></li>
+                        <li>This Request: <strong>${requestDays} days</strong></li>
+                    </ul>
+                    ${willExceed ? 
+                        `<div class="alert alert-warning py-2 mb-2"><i class="ti ti-alert-triangle me-1"></i><strong>Warning:</strong> Approving this will exceed the allowed limit by ${afterApproval - bal.total_allowed} day(s). Extra days may be charged.</div>` 
+                        : `<div class="alert alert-success py-2 mb-2"><i class="ti ti-circle-check me-1"></i>Within allowed limit. After approval: ${afterApproval}/${bal.total_allowed} days used.</div>`
+                    }
+                    <p>Do you want to ${action} this request?</p>
+                </div>
+            `;
+        }
+        
         showConfirmationModal(
-            `Are you sure you want to ${action} this leave request?`,
+            confirmMessage,
             () => {
                 const formData = new FormData();
                 formData.append('action', 'approve_or_reject');
