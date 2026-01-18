@@ -79,15 +79,12 @@ switch ($action) {
                 try {
                     require_once '../includes/mail/MailService.php';
                     $mailService = new MailService();
-                    $emailBody = "
-                        <h2>Application Received!</h2>
-                        <p>Dear {$first_name},</p>
-                        <p>Thank you for applying for the position of <strong>{$job_title}</strong> at <strong>{$company_name}</strong>.</p>
-                        <p>We have received your application and our recruitment team will review it shortly.</p>
-                        <p>You can check your application status anytime by visiting our portal and entering your email address.</p>
-                        <br>
-                        <p>Best regards,<br>HR Team at {$company_name}</p>
-                    ";
+
+                    // Load email template
+                    ob_start();
+                    include '../includes/mail/templates/application_received.php';
+                    $emailBody = ob_get_clean();
+
                     $mailService->send($email, $first_name, "Application Received - {$job_title}", $emailBody);
                 } catch (Exception $e) {
                     // Email failure should not affect application success
