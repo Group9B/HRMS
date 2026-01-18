@@ -30,7 +30,7 @@ require_once '../components/layout/header.php';
               </div>
               <div class="col-md-2">
                 <label class="form-label">Period (YYYY-MM)</label>
-                <input type="month" id="periodInput" class="form-control" required>
+                <input type="month" id="periodInput" class="form-control" required value="<?= date('Y-m') ?>">
               </div>
               <div class="col-md-2">
                 <label class="form-label">Currency</label>
@@ -198,7 +198,8 @@ require_once '../components/layout/header.php';
             if (res && res.success && res.data) {
               const opts = res.data.map(function (e) {
                 const name = (e.first_name || '') + ' ' + (e.last_name || '');
-                return '<option value="' + e.id + '">' + name + ' (' + (e.employee_code || '') + ')</option>';
+                const salary = e.salary || 0;
+                return '<option value="' + e.id + '" data-salary="' + salary + '">' + name + ' (' + (e.employee_code || '') + ')</option>';
               }).join('');
               $employeeSelect.html('<option value="">Select employee</option>' + opts);
             } else {
@@ -251,9 +252,25 @@ require_once '../components/layout/header.php';
           $('#leaveDeductionTotal').text(total.toFixed(2));
         }
 
-        // Event handlers for leave deduction
+        // Event handlers for employee selection - fetch excess leaves AND set salary
         $employeeSelect.on('change', function () {
-          fetchExcessLeaves($(this).val());
+          const selectedOption = $(this).find('option:selected');
+          const employeeId = $(this).val();
+          const salary = parseFloat(selectedOption.data('salary')) || 0;
+
+          // Set gross salary from employee's stored salary
+          if (salary > 0) {
+            $('#grossInput').val(salary.toFixed(2));
+
+            // Auto-calculate per-day rate (salary / 30 days)
+            const perDayRate = salary / 30;
+            $('#leaveRateInput').val(perDayRate.toFixed(2));
+          } else {
+            $('#grossInput').val('');
+            $('#leaveRateInput').val('0');
+          }
+
+          fetchExcessLeaves(employeeId);
         });
 
         $('#leaveRateInput').on('input change', updateLeaveDeductionTotal);
