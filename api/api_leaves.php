@@ -630,7 +630,7 @@ switch ($action) {
 
             // Send notifications to all approvers
             foreach (array_unique($approvers_to_notify) as $approver_id) {
-                createNotification(
+                createNotificationIfEnabled(
                     $mysqli,
                     $approver_id,
                     'leave',
@@ -726,7 +726,7 @@ switch ($action) {
             $notification_title = $action_type === 'approve' ? 'Leave Approved' : 'Leave Rejected';
             $notification_message = "Your {$leave_data['leave_type']} request from {$leave_data['start_date']} to {$leave_data['end_date']} has been {$new_status}.";
 
-            createNotification(
+            createNotificationIfEnabled(
                 $mysqli,
                 $leave_emp_info['user_id'],
                 'leave',

@@ -313,7 +313,7 @@ switch ($action) {
                     if ($emp_user_info) {
                         $manager_name_res = query($mysqli, "SELECT first_name, last_name FROM employees WHERE user_id = ?", [$user_id])['data'][0] ?? null;
                         $manager_name = $manager_name_res ? "{$manager_name_res['first_name']} {$manager_name_res['last_name']}" : 'Your manager';
-                        createNotification(
+                        createNotificationIfEnabled(
                             $mysqli,
                             $emp_user_info['user_id'],
                             'task',

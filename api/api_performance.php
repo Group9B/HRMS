@@ -154,7 +154,7 @@ switch ($action) {
                 if ($emp_user_info) {
                     $evaluator_info = query($mysqli, "SELECT first_name, last_name FROM employees WHERE user_id = ?", [$user_id])['data'][0] ?? null;
                     $evaluator_name = $evaluator_info ? "{$evaluator_info['first_name']} {$evaluator_info['last_name']}" : 'Your manager';
-                    createNotification(
+                    createNotificationIfEnabled(
                         $mysqli,
                         $emp_user_info['user_id'],
                         'performance',

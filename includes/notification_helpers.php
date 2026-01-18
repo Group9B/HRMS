@@ -36,6 +36,47 @@ function createNotification($mysqli, $user_id, $type, $title, $message, $related
 }
 
 /**
+ * Create a notification only if user has enabled this notification type.
+ * 
+ * This wrapper checks user preferences before creating notifications.
+ * If the user has disabled the notification type, it silently skips.
+ *
+ * @param mysqli $mysqli Database connection
+ * @param int $user_id The ID of the user to notify
+ * @param string $type Notification type (system, leave, attendance, payroll, etc.)
+ * @param string $title Short title for the notification
+ * @param string $message Detailed message
+ * @param int|null $related_id Optional ID of the related entity
+ * @param string|null $related_type Optional type of the related entity
+ * @return bool True on success or if skipped, false on failure
+ */
+function createNotificationIfEnabled($mysqli, $user_id, $type, $title, $message, $related_id = null, $related_type = null)
+{
+    // Map notification types to user preference keys
+    $type_to_pref_key = [
+        'leave' => 'notif_leave_status',
+        'attendance' => 'notif_attendance',
+        'payroll' => 'notif_payslip',
+        'announcement' => 'notif_announcements',
+        'system' => 'notif_system',
+        'performance' => 'notif_system',  // Performance uses system alerts
+        'task' => 'notif_system'           // Tasks use system alerts
+    ];
+
+    $pref_key = $type_to_pref_key[$type] ?? 'notif_system';
+
+    // Check user preference - default to enabled ('1')
+    require_once __DIR__ . '/preferences.php';
+    $enabled = getUserPreference($mysqli, $user_id, $pref_key, '1');
+
+    if ($enabled !== '1') {
+        return true; // Silently skip - user disabled this notification type
+    }
+
+    return createNotification($mysqli, $user_id, $type, $title, $message, $related_id, $related_type);
+}
+
+/**
  * Get the count of unread notifications for a user.
  *
  * @param mysqli $mysqli Database connection
