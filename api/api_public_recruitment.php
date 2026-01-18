@@ -55,6 +55,11 @@ switch ($action) {
         if (move_uploaded_file($_FILES['resume']['tmp_name'], $target_file)) {
             $db_path = '/hrms/uploads/resumes/' . $file_name;
 
+            // Get job and company details for email
+            $job_details = query($mysqli, "SELECT j.title, c.name as company_name FROM jobs j JOIN companies c ON j.company_id = c.id WHERE j.id = ?", [$job_id]);
+            $job_title = $job_details['data'][0]['title'] ?? 'the position';
+            $company_name = $job_details['data'][0]['company_name'] ?? 'the company';
+
             // --- Database Inserts ---
             // 1. Create Candidate
             $candidate_sql = "INSERT INTO candidates (first_name, last_name, email, phone, dob, gender) VALUES (?, ?, ?, ?, ?, ?)";
@@ -69,6 +74,25 @@ switch ($action) {
                 // 3. Create Job Application
                 $app_sql = "INSERT INTO job_applications (candidate_id, job_id) VALUES (?, ?)";
                 query($mysqli, $app_sql, [$candidate_id, $job_id]);
+
+                // 4. Send confirmation email to candidate
+                try {
+                    require_once '../includes/mail/MailService.php';
+                    $mailService = new MailService();
+                    $emailBody = "
+                        <h2>Application Received!</h2>
+                        <p>Dear {$first_name},</p>
+                        <p>Thank you for applying for the position of <strong>{$job_title}</strong> at <strong>{$company_name}</strong>.</p>
+                        <p>We have received your application and our recruitment team will review it shortly.</p>
+                        <p>You can check your application status anytime by visiting our portal and entering your email address.</p>
+                        <br>
+                        <p>Best regards,<br>HR Team at {$company_name}</p>
+                    ";
+                    $mailService->send($email, $first_name, "Application Received - {$job_title}", $emailBody);
+                } catch (Exception $e) {
+                    // Email failure should not affect application success
+                    error_log("Failed to send application confirmation email: " . $e->getMessage());
+                }
 
                 $response = ['success' => true, 'message' => 'Your application has been submitted successfully! You can check your status using your email address.'];
             } else {

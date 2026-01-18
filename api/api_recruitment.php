@@ -241,7 +241,6 @@ switch ($action) {
     case 'update_application_status':
         $application_id = (int) ($_POST['id'] ?? 0);
         $status = trim($_POST['status'] ?? '');
-        $is_hired = (int) ($_POST['is_hired'] ?? 0);
 
         if (!$application_id) {
             $response['message'] = 'Invalid application ID.';
@@ -254,112 +253,190 @@ switch ($action) {
             break;
         }
 
+        // For hired status, require password to be set via hire_candidate action
+        if ($status === 'hired') {
+            $response = [
+                'success' => true,
+                'requires_action' => 'hire',
+                'message' => 'Please set password for the new employee.',
+                'application_id' => $application_id
+            ];
+            break;
+        }
+
+        // For rejected status, ask about keeping data
+        if ($status === 'rejected') {
+            $sql = "UPDATE job_applications SET status = ?, updated_at = NOW() WHERE id = ?";
+            $result = query($mysqli, $sql, [$status, $application_id]);
+            if ($result['success']) {
+                $response = [
+                    'success' => true,
+                    'requires_action' => 'confirm_delete',
+                    'message' => 'Candidate rejected. Do you want to keep their data for future opportunities?',
+                    'application_id' => $application_id
+                ];
+            }
+            break;
+        }
+
+        // For other statuses, just update
         $sql = "UPDATE job_applications SET status = ?, updated_at = NOW() WHERE id = ?";
         $result = query($mysqli, $sql, [$status, $application_id]);
         if ($result['success']) {
-            // If status is hired, move candidate to employees table
-            if ($is_hired && $status === 'hired') {
-                // Get candidate and job details
-                $candidateQuery = query($mysqli, "
-                    SELECT c.id, c.first_name, c.last_name, c.email, c.phone, c.dob, c.gender,
-                           ja.job_id, j.department_id
-                    FROM job_applications ja
-                    JOIN candidates c ON ja.candidate_id = c.id
-                    JOIN jobs j ON ja.job_id = j.id
-                    WHERE ja.id = ?
-                ", [$application_id]);
-
-                if ($candidateQuery['success'] && !empty($candidateQuery['data'])) {
-                    $candidate = $candidateQuery['data'][0];
-
-                    // Create a user account for the candidate first
-                    $temporary_password = generateRandomPassword(12);
-                    $hashed_password = password_hash($temporary_password, PASSWORD_DEFAULT);
-
-                    // Get employee role ID (usually role_id = 4 for Employee)
-                    $roleResult = query($mysqli, "SELECT id FROM roles WHERE name = 'Employee' LIMIT 1");
-                    $role_id = (!empty($roleResult['data'])) ? $roleResult['data'][0]['id'] : 4;
-
-                    // Generate username from email
-                    $username = strtolower(str_replace('@mail.com', '', $candidate['email']));
-                    $username = preg_replace('/[^a-z0-9_]/', '_', $username);
-
-                    $createUserQuery = query($mysqli, "
-                        INSERT INTO users (username, email, password, role_id, company_id, status)
-                        VALUES (?, ?, ?, ?, ?, 'active')
-                    ", [
-                        $username,
-                        $candidate['email'],
-                        $hashed_password,
-                        $role_id,
-                        $company_id
-                    ]);
-                    if (!$createUserQuery['success']) {
-                        $response['message'] = 'Application status updated but failed to create user account: ' . ($createUserQuery['error'] ?? 'Unknown error');
-                        echo json_encode($response);
-                        exit();
-                    }
-
-                    $user_id = $createUserQuery['insert_id'];
-
-                    // Generate employee code
-                    $emp_code = generateEmployeeCode($mysqli, $company_id, date('Y-m-d'));
-
-                    // Insert into employees table with the new user_id
-                    $insertEmployeeQuery = query($mysqli, "
-                        INSERT INTO employees 
-                        (user_id, employee_code, first_name, last_name, dob, gender, contact, 
-                         department_id, date_of_joining, status)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ", [
-                        $user_id,
-                        $emp_code,
-                        $candidate['first_name'],
-                        $candidate['last_name'],
-                        !empty($candidate['dob']) ? $candidate['dob'] : null,
-                        !empty($candidate['gender']) ? $candidate['gender'] : null,
-                        $candidate['phone'],
-                        $candidate['department_id'],
-                        date('Y-m-d'),
-                        'active'
-                    ]);
-
-                    if (!$insertEmployeeQuery['success']) {
-                        $response['message'] = 'Application status updated but failed to add employee record: ' . ($insertEmployeeQuery['error'] ?? 'Unknown error');
-                        echo json_encode($response);
-                        exit();
-                    }
-
-                    // Check if job should be auto-closed (all openings filled)
-                    $jobId = $candidate['job_id'];
-                    $jobDetailsQuery = query($mysqli, "SELECT openings FROM jobs WHERE id = ?", [$jobId]);
-                    if ($jobDetailsQuery['success'] && !empty($jobDetailsQuery['data'])) {
-                        $requiredOpenings = (int) $jobDetailsQuery['data'][0]['openings'];
-
-                        // Count hired applicants for this job
-                        $hiredCountQuery = query($mysqli, "
-                            SELECT COUNT(*) as hired_count 
-                            FROM job_applications 
-                            WHERE job_id = ? AND status = 'hired'
-                        ", [$jobId]);
-
-                        if ($hiredCountQuery['success'] && !empty($hiredCountQuery['data'])) {
-                            $hiredCount = (int) $hiredCountQuery['data'][0]['hired_count'];
-
-                            // If all openings are filled, close the job
-                            if ($hiredCount >= $requiredOpenings) {
-                                query($mysqli, "UPDATE jobs SET status = 'closed' WHERE id = ?", [$jobId]);
-                            }
-                        }
-                    }
-                } else {
-                    $response['message'] = 'Application status updated but could not fetch candidate details.';
-                    echo json_encode($response);
-                    exit();
-                }
-            }
             $response = ['success' => true, 'message' => 'Application status updated.'];
         }
+        break;
+
+    // --- Hire Candidate with Password ---
+    case 'hire_candidate':
+        $application_id = (int) ($_POST['application_id'] ?? 0);
+        $password = trim($_POST['password'] ?? '');
+
+        if (!$application_id) {
+            $response['message'] = 'Invalid application ID.';
+            break;
+        }
+
+        if (strlen($password) < 6) {
+            $response['message'] = 'Password must be at least 6 characters.';
+            break;
+        }
+
+        // Update application status to hired
+        query($mysqli, "UPDATE job_applications SET status = 'hired', updated_at = NOW() WHERE id = ?", [$application_id]);
+
+        // Get candidate and job details
+        $candidateQuery = query($mysqli, "
+            SELECT c.id as candidate_id, c.first_name, c.last_name, c.email, c.phone, c.dob, c.gender,
+                   ja.job_id, j.department_id, j.title as job_title
+            FROM job_applications ja
+            JOIN candidates c ON ja.candidate_id = c.id
+            JOIN jobs j ON ja.job_id = j.id
+            WHERE ja.id = ?
+        ", [$application_id]);
+
+        if (!$candidateQuery['success'] || empty($candidateQuery['data'])) {
+            $response['message'] = 'Could not fetch candidate details.';
+            break;
+        }
+
+        $candidate = $candidateQuery['data'][0];
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+        // Get employee role ID
+        $roleResult = query($mysqli, "SELECT id FROM roles WHERE name = 'Employee' LIMIT 1");
+        $role_id = (!empty($roleResult['data'])) ? $roleResult['data'][0]['id'] : 4;
+
+        // Generate username from email
+        $username = strtolower(explode('@', $candidate['email'])[0]);
+        $username = preg_replace('/[^a-z0-9_]/', '_', $username);
+
+        // Create user account
+        $createUserQuery = query($mysqli, "
+            INSERT INTO users (username, email, password, role_id, company_id, status)
+            VALUES (?, ?, ?, ?, ?, 'active')
+        ", [$username, $candidate['email'], $hashed_password, $role_id, $company_id]);
+
+        if (!$createUserQuery['success']) {
+            $response['message'] = 'Failed to create user account: ' . ($createUserQuery['error'] ?? 'Email may already exist');
+            break;
+        }
+
+        $new_user_id = $createUserQuery['insert_id'];
+
+        // Generate employee code
+        $emp_code = generateEmployeeCode($mysqli, $company_id, date('Y-m-d'));
+
+        // Create employee record
+        $insertEmployeeQuery = query($mysqli, "
+            INSERT INTO employees 
+            (user_id, employee_code, first_name, last_name, dob, gender, contact, 
+             department_id, date_of_joining, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')
+        ", [
+            $new_user_id,
+            $emp_code,
+            $candidate['first_name'],
+            $candidate['last_name'],
+            !empty($candidate['dob']) ? $candidate['dob'] : null,
+            !empty($candidate['gender']) ? $candidate['gender'] : null,
+            $candidate['phone'],
+            $candidate['department_id'],
+            date('Y-m-d')
+        ]);
+
+        if (!$insertEmployeeQuery['success']) {
+            $response['message'] = 'Failed to create employee record.';
+            break;
+        }
+
+        // Send welcome email
+        require_once '../includes/mail/MailService.php';
+        $mailService = new MailService();
+        $emailBody = "
+            <h2>Welcome to the Team!</h2>
+            <p>Dear {$candidate['first_name']},</p>
+            <p>Congratulations! You have been hired for the position of <strong>{$candidate['job_title']}</strong>.</p>
+            <p>Your login credentials:</p>
+            <ul>
+                <li><strong>Email:</strong> {$candidate['email']}</li>
+                <li><strong>Password:</strong> {$password}</li>
+            </ul>
+            <p>Please login at our HRMS portal and change your password.</p>
+        ";
+        $mailService->send($candidate['email'], $candidate['first_name'], 'Welcome - You are Hired!', $emailBody);
+
+        // Auto-close job if all openings filled
+        $jobId = $candidate['job_id'];
+        $jobDetailsQuery = query($mysqli, "SELECT openings FROM jobs WHERE id = ?", [$jobId]);
+        if ($jobDetailsQuery['success'] && !empty($jobDetailsQuery['data'])) {
+            $requiredOpenings = (int) $jobDetailsQuery['data'][0]['openings'];
+            $hiredCountQuery = query($mysqli, "SELECT COUNT(*) as hired_count FROM job_applications WHERE job_id = ? AND status = 'hired'", [$jobId]);
+            if ($hiredCountQuery['success'] && !empty($hiredCountQuery['data'])) {
+                $hiredCount = (int) $hiredCountQuery['data'][0]['hired_count'];
+                if ($hiredCount >= $requiredOpenings) {
+                    query($mysqli, "UPDATE jobs SET status = 'closed' WHERE id = ?", [$jobId]);
+                }
+            }
+        }
+
+        $response = [
+            'success' => true,
+            'message' => "Candidate hired successfully! Employee code: {$emp_code}. Welcome email sent."
+        ];
+        break;
+
+    // --- Delete Rejected Candidate Data ---
+    case 'delete_candidate_data':
+        $application_id = (int) ($_POST['application_id'] ?? 0);
+
+        if (!$application_id) {
+            $response['message'] = 'Invalid application ID.';
+            break;
+        }
+
+        // Get candidate ID
+        $appQuery = query($mysqli, "SELECT candidate_id FROM job_applications WHERE id = ?", [$application_id]);
+        if (!$appQuery['success'] || empty($appQuery['data'])) {
+            $response['message'] = 'Application not found.';
+            break;
+        }
+
+        $candidate_id = $appQuery['data'][0]['candidate_id'];
+
+        // Delete documents
+        query($mysqli, "DELETE FROM documents WHERE related_type = 'candidate' AND related_id = ?", [$candidate_id]);
+
+        // Delete all job applications for this candidate
+        query($mysqli, "DELETE FROM job_applications WHERE candidate_id = ?", [$candidate_id]);
+
+        // Delete interviews
+        query($mysqli, "DELETE FROM interviews WHERE candidate_id = ?", [$candidate_id]);
+
+        // Delete candidate
+        query($mysqli, "DELETE FROM candidates WHERE id = ?", [$candidate_id]);
+
+        $response = ['success' => true, 'message' => 'Candidate data deleted successfully.'];
         break;
 
     // --- Interviews ---
@@ -404,6 +481,43 @@ switch ($action) {
 
         if ($result['success']) {
             query($mysqli, "UPDATE job_applications SET status = 'interviewed' WHERE id = ?", [$application_id]);
+
+            // Send interview notification email to candidate
+            try {
+                $candidateInfo = query($mysqli, "
+                    SELECT c.first_name, c.email, j.title as job_title, comp.name as company_name
+                    FROM candidates c
+                    JOIN job_applications ja ON c.id = ja.candidate_id
+                    JOIN jobs j ON ja.job_id = j.id
+                    JOIN companies comp ON j.company_id = comp.id
+                    WHERE ja.id = ?
+                ", [$application_id]);
+
+                if (!empty($candidateInfo['data'])) {
+                    $candidate = $candidateInfo['data'][0];
+                    $formattedDate = date('l, F j, Y \a\t g:i A', strtotime($interview_date));
+                    $modeDisplay = ucfirst($mode);
+
+                    require_once '../includes/mail/MailService.php';
+                    $mailService = new MailService();
+                    $emailBody = "
+                        <h2>Interview Scheduled!</h2>
+                        <p>Dear {$candidate['first_name']},</p>
+                        <p>Great news! Your interview for <strong>{$candidate['job_title']}</strong> at <strong>{$candidate['company_name']}</strong> has been scheduled.</p>
+                        <div style='background:#f8f9fa;padding:15px;border-radius:8px;margin:20px 0;'>
+                            <p><strong>📅 Date & Time:</strong> {$formattedDate}</p>
+                            <p><strong>📍 Mode:</strong> {$modeDisplay}</p>
+                        </div>
+                        <p>Please make sure to be available at the scheduled time.</p>
+                        <br>
+                        <p>Best of luck!<br>HR Team at {$candidate['company_name']}</p>
+                    ";
+                    $mailService->send($candidate['email'], $candidate['first_name'], "Interview Scheduled - {$candidate['job_title']}", $emailBody);
+                }
+            } catch (Exception $e) {
+                error_log("Failed to send interview notification email: " . $e->getMessage());
+            }
+
             $response = ['success' => true, 'message' => 'Interview scheduled successfully!'];
         }
         break;
@@ -472,11 +586,12 @@ switch ($action) {
         break;
 
     case 'get_scheduled_interviews':
-        $sql = "SELECT i.id as interview_id, c.first_name, c.last_name, c.email, j.title as job_title, i.interview_date, i.mode, u.first_name as interviewer_first_name, u.last_name as interviewer_last_name 
+        $sql = "SELECT i.id as interview_id, c.first_name, c.last_name, c.email, j.title as job_title, 
+                       i.interview_date, i.mode, e.first_name as interviewer_first_name, e.last_name as interviewer_last_name 
                 FROM interviews i 
                 JOIN candidates c ON i.candidate_id = c.id 
                 JOIN jobs j ON i.job_id = j.id 
-                JOIN users u ON i.interviewer_id = u.id 
+                LEFT JOIN employees e ON i.interviewer_id = e.user_id 
                 WHERE j.company_id = ? 
                 ORDER BY i.interview_date DESC";
         $result = query($mysqli, $sql, [$company_id]);

@@ -327,6 +327,43 @@ require_once '../components/layout/header.php';
 </div>
 
 
+<!-- Hire Password Modal -->
+<div class="modal fade" id="hirePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="hirePasswordForm">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="ti ti-user-plus me-2"></i>Hire Candidate</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="application_id" id="hireApplicationId">
+                    <div class="alert alert-info">
+                        <i class="ti ti-info-circle me-2"></i>
+                        Set a password for the new employee's account. They will receive this via email.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password *</label>
+                        <input type="password" class="form-control" name="password" id="hirePassword" minlength="6"
+                            required placeholder="Minimum 6 characters">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Confirm Password *</label>
+                        <input type="password" class="form-control" id="hirePasswordConfirm" minlength="6" required
+                            placeholder="Re-enter password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="ti ti-check me-1"></i>Hire & Create Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <?php require_once '../components/layout/footer.php'; ?>
 <script>
     let tables = {}, modals = {};
@@ -388,7 +425,8 @@ require_once '../components/layout/header.php';
         modals = {
             job: new bootstrap.Modal('#jobModal'),
             applicants: new bootstrap.Modal('#applicantsModal'),
-            interview: new bootstrap.Modal('#interviewModal')
+            interview: new bootstrap.Modal('#interviewModal'),
+            hirePassword: new bootstrap.Modal('#hirePasswordModal')
         };
 
         // Initialize dashboard
@@ -848,7 +886,13 @@ require_once '../components/layout/header.php';
         // Get the applicant row to check current status
         const appRow = tables.applicants.rows().data().toArray().find(row => row.id == appId);
         if (appRow && appRow.status === 'rejected') {
-            showToast('Cannot change status - this applicant has been rejected. Rejected status is final.', 'warning');
+            showToast('Cannot change status - this applicant has been rejected.', 'warning');
+            if (tables.applicants) tables.applicants.ajax.reload();
+            return;
+        }
+        if (appRow && appRow.status === 'hired') {
+            showToast('Cannot change status - this applicant has been hired.', 'warning');
+            if (tables.applicants) tables.applicants.ajax.reload();
             return;
         }
 
@@ -856,40 +900,116 @@ require_once '../components/layout/header.php';
         formData.append('action', 'update_application_status');
         formData.append('id', appId);
         formData.append('status', status);
-        formData.append('is_hired', status === 'hired' ? 1 : 0);
+
         fetch('/hrms/api/api_recruitment.php', { method: 'POST', body: formData })
             .then(res => res.json()).then(result => {
                 if (result.success) {
-                    // Show success toast
-                    showToast(result.message, 'success');
+                    // Check if requires further action
+                    if (result.requires_action === 'hire') {
+                        // Show hire password modal
+                        $('#hirePasswordForm').trigger('reset');
+                        $('#hireApplicationId').val(result.application_id);
+                        modals.hirePassword.show();
+                    } else if (result.requires_action === 'confirm_delete') {
+                        // Show delete confirmation using browser confirm
+                        const keepData = confirm(
+                            'Candidate rejected.\n\n' +
+                            'Do you want to KEEP this candidate\'s data for future opportunities?\n\n' +
+                            'Click OK to keep data, Cancel to delete data.'
+                        );
 
-                    // If hired, show additional confirmation message
-                    if (status === 'hired' && appRow) {
-                        setTimeout(() => {
-                            showConfirmationModal(
-                                `<strong>${appRow.first_name} ${appRow.last_name}</strong> has been successfully hired!<br><br>
-                                <div class="alert alert-info mt-3">
-                                    <strong>Next Steps:</strong>
-                                    <ul class="mb-0 mt-2">
-                                        <li>Employee code has been generated automatically</li>
-                                        <li>Please add <strong>Shift</strong> and <strong>Designation</strong> in the <strong>Organization Management</strong> page</li>
-                                        <li>Assign shift and designation to this employee in the employee management section</li>
-                                    </ul>
-                                </div>`,
-                                () => {
-                                    if (tables.applicants) tables.applicants.ajax.reload();
-                                },
-                                'Employee Hired Successfully',
-                                'OK',
-                                'btn-success'
-                            );
-                        }, 500);
+                        if (keepData) {
+                            showToast('Candidate rejected. Data retained for future opportunities.', 'info');
+                            if (tables.applicants) tables.applicants.ajax.reload();
+                        } else {
+                            deleteCandidateData(result.application_id);
+                        }
                     } else {
+                        showToast(result.message, 'success');
                         if (tables.applicants) tables.applicants.ajax.reload();
                     }
                 } else {
                     showToast(result.message, 'error');
+                    if (tables.applicants) tables.applicants.ajax.reload();
                 }
+            });
+    }
+
+    // Handle hire password form submission
+    $('#hirePasswordForm').on('submit', function (e) {
+        e.preventDefault();
+
+        const password = $('#hirePassword').val();
+        const confirm = $('#hirePasswordConfirm').val();
+
+        if (password !== confirm) {
+            showToast('Passwords do not match!', 'error');
+            return;
+        }
+
+        if (password.length < 6) {
+            showToast('Password must be at least 6 characters.', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('action', 'hire_candidate');
+        formData.append('application_id', $('#hireApplicationId').val());
+        formData.append('password', password);
+
+        const btn = $(this).find('button[type="submit"]');
+        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Processing...');
+
+        fetch('/hrms/api/api_recruitment.php', { method: 'POST', body: formData })
+            .then(res => res.json()).then(result => {
+                if (result.success) {
+                    modals.hirePassword.hide();
+                    showToast(result.message, 'success');
+
+                    // Show next steps info
+                    setTimeout(() => {
+                        showConfirmationModal(
+                            `<div class="text-center mb-3"><i class="ti ti-check-circle text-success" style="font-size:3rem"></i></div>
+                            <strong>Employee Created Successfully!</strong><br><br>
+                            <div class="alert alert-info mt-3 text-start">
+                                <strong>Welcome email sent with credentials.</strong><br>
+                                <strong>Next Steps:</strong>
+                                <ul class="mb-0 mt-2">
+                                    <li>Assign <strong>Shift</strong> and <strong>Designation</strong></li>
+                                    <li>Set salary in employee management</li>
+                                </ul>
+                            </div>`,
+                            () => {
+                                if (tables.applicants) tables.applicants.ajax.reload();
+                                loadDashboardData();
+                            },
+                            'Welcome New Employee!',
+                            'OK',
+                            'btn-success'
+                        );
+                    }, 300);
+                } else {
+                    showToast(result.message, 'error');
+                }
+            }).finally(() => {
+                btn.prop('disabled', false).html('<i class="ti ti-check me-1"></i>Hire & Create Account');
+            });
+    });
+
+    // Delete candidate data for rejected candidates
+    function deleteCandidateData(appId) {
+        const formData = new FormData();
+        formData.append('action', 'delete_candidate_data');
+        formData.append('application_id', appId);
+
+        fetch('/hrms/api/api_recruitment.php', { method: 'POST', body: formData })
+            .then(res => res.json()).then(result => {
+                if (result.success) {
+                    showToast('Candidate data deleted.', 'success');
+                } else {
+                    showToast(result.message, 'error');
+                }
+                if (tables.applicants) tables.applicants.ajax.reload();
             });
     }
 
