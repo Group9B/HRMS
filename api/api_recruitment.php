@@ -373,17 +373,19 @@ switch ($action) {
         // Send welcome email
         require_once '../includes/mail/MailService.php';
         $mailService = new MailService();
-        $emailBody = "
-            <h2>Welcome to the Team!</h2>
-            <p>Dear {$candidate['first_name']},</p>
-            <p>Congratulations! You have been hired for the position of <strong>{$candidate['job_title']}</strong>.</p>
-            <p>Your login credentials:</p>
-            <ul>
-                <li><strong>Email:</strong> {$candidate['email']}</li>
-                <li><strong>Password:</strong> {$password}</li>
-            </ul>
-            <p>Please login at our HRMS portal and change your password.</p>
-        ";
+
+        // Load email template
+        $first_name = $candidate['first_name'];
+        $job_title = $candidate['job_title'];
+        $email = $candidate['email'];
+        // Get company name
+        $companyQuery = query($mysqli, "SELECT c.name FROM companies c JOIN jobs j ON j.company_id = c.id WHERE j.id = ?", [$candidate['job_id']]);
+        $company_name = $companyQuery['data'][0]['name'] ?? 'the company';
+
+        ob_start();
+        include '../includes/mail/templates/welcome_hired.php';
+        $emailBody = ob_get_clean();
+
         $mailService->send($candidate['email'], $candidate['first_name'], 'Welcome - You are Hired!', $emailBody);
 
         // Auto-close job if all openings filled
@@ -495,23 +497,19 @@ switch ($action) {
 
                 if (!empty($candidateInfo['data'])) {
                     $candidate = $candidateInfo['data'][0];
-                    $formattedDate = date('l, F j, Y \a\t g:i A', strtotime($interview_date));
-                    $modeDisplay = ucfirst($mode);
+                    $first_name = $candidate['first_name'];
+                    $job_title = $candidate['job_title'];
+                    $company_name = $candidate['company_name'];
+                    $interview_date = date('l, F j, Y \a\t g:i A', strtotime($interview_date));
+                    $interview_mode = ucfirst($mode);
 
                     require_once '../includes/mail/MailService.php';
                     $mailService = new MailService();
-                    $emailBody = "
-                        <h2>Interview Scheduled!</h2>
-                        <p>Dear {$candidate['first_name']},</p>
-                        <p>Great news! Your interview for <strong>{$candidate['job_title']}</strong> at <strong>{$candidate['company_name']}</strong> has been scheduled.</p>
-                        <div style='background:#f8f9fa;padding:15px;border-radius:8px;margin:20px 0;'>
-                            <p><strong>📅 Date & Time:</strong> {$formattedDate}</p>
-                            <p><strong>📍 Mode:</strong> {$modeDisplay}</p>
-                        </div>
-                        <p>Please make sure to be available at the scheduled time.</p>
-                        <br>
-                        <p>Best of luck!<br>HR Team at {$candidate['company_name']}</p>
-                    ";
+
+                    ob_start();
+                    include '../includes/mail/templates/interview_scheduled.php';
+                    $emailBody = ob_get_clean();
+
                     $mailService->send($candidate['email'], $candidate['first_name'], "Interview Scheduled - {$candidate['job_title']}", $emailBody);
                 }
             } catch (Exception $e) {
