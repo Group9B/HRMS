@@ -3,6 +3,7 @@ header('Content-Type: application/json');
 session_start();
 require_once '../config/db.php';
 require_once '../includes/functions.php';
+require_once '../includes/overtime_helper.php';
 
 $response = ['success' => false, 'message' => 'An unknown error occurred.'];
 
@@ -123,6 +124,24 @@ switch ($action) {
         }
         break;
 
+    case 'get_overtime':
+        // HR or Admins only - fetch overtime for preview
+        requireRole([3, 2, 1]);
+        $employeeId = (int) ($_GET['employee_id'] ?? 0);
+        $period = trim($_GET['period'] ?? '');
+
+        if ($employeeId <= 0 || $period === '') {
+            $response['message'] = 'Missing employee_id or period.';
+            break;
+        }
+
+        $overtimeData = calculateOvertimeForPeriod($mysqli, $employeeId, $period);
+        $response = [
+            'success' => true,
+            'data' => $overtimeData
+        ];
+        break;
+
     case 'preview_payslip':
         // HR or Admins only
         requireRole([3, 2, 1]);
@@ -158,6 +177,25 @@ switch ($action) {
             break;
         }
         $tpl = $tplRes['data'][0];
+
+        // Auto-calculate overtime and add to earnings if applicable
+        $overtimeData = calculateOvertimeForPeriod($mysqli, $employeeId, $period);
+        if ($overtimeData['overtime_hours'] > 0 && $overtimeData['overtime_amount'] > 0) {
+            // Check if overtime already exists in earnings
+            $hasOvertime = false;
+            foreach ($earnings as $e) {
+                if (stripos($e['name'] ?? '', 'overtime') !== false) {
+                    $hasOvertime = true;
+                    break;
+                }
+            }
+            if (!$hasOvertime) {
+                $earnings[] = [
+                    'name' => 'Overtime (' . $overtimeData['overtime_hours'] . ' hrs)',
+                    'amount' => $overtimeData['overtime_amount']
+                ];
+            }
+        }
 
         $gross = 0.0;
         foreach ($earnings as $it) {
@@ -244,6 +282,25 @@ switch ($action) {
             break;
         }
         $tpl = $tplRes['data'][0];
+
+        // Auto-calculate overtime and add to earnings if applicable
+        $overtimeData = calculateOvertimeForPeriod($mysqli, $employeeId, $period);
+        if ($overtimeData['overtime_hours'] > 0 && $overtimeData['overtime_amount'] > 0) {
+            // Check if overtime already exists in earnings
+            $hasOvertime = false;
+            foreach ($earnings as $e) {
+                if (stripos($e['name'] ?? '', 'overtime') !== false) {
+                    $hasOvertime = true;
+                    break;
+                }
+            }
+            if (!$hasOvertime) {
+                $earnings[] = [
+                    'name' => 'Overtime (' . $overtimeData['overtime_hours'] . ' hrs)',
+                    'amount' => $overtimeData['overtime_amount']
+                ];
+            }
+        }
 
         $gross = 0.0;
         foreach ($earnings as $it) {

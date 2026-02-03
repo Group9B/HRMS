@@ -1,454 +1,521 @@
-  <?php
-  session_start();
-  require_once '../config/db.php';
-  require_once '../includes/functions.php';
+<?php
+session_start();
+require_once '../config/db.php';
+require_once '../includes/functions.php';
 
-  requireAuth();
+requireAuth();
 
-  // Allow HR Manager, Company Admin, Super Admin
-  $user = getCurrentUser($mysqli);
-  $role_id = $_SESSION['role_id'];
+// Allow HR Manager, Company Admin, Super Admin
+$user = getCurrentUser($mysqli);
+$role_id = $_SESSION['role_id'];
 
-  if (!in_array($role_id, [1, 2, 3], true)) {
-    header('Location: /hrms/pages/unauthorized.php');
-    exit;
-  }
-  require_once '../components/layout/header.php';
-  ?>
-  <div class="d-flex">
-    <?php require_once '../components/layout/sidebar.php'; ?>
-    <div class="p-3 p-md-4" style="flex: 1;">
-    
-      <div class="row">
-        <div class="col-12">
-          <div class="card mb-4">
-            <div class="card-header">Generate Payslip</div>
-            <div class="card-body">
-              <form id="generateForm" class="row g-3">
-                <div class="col-md-4">
-                  <label class="form-label">Employee</label>
-                  <select id="employeeSelect" class="form-select" required></select>
-                </div>
-                <div class="col-md-2">
-                  <label class="form-label">Period (YYYY-MM)</label>
-                  <input type="month" id="periodInput" class="form-control" required value="<?= date('Y-m') ?>">
-                </div>
-                <div class="col-md-2">
-                  <label class="form-label">Currency</label>
-                  <input type="text" id="currencyInput" class="form-control" value="INR">
-                </div>
-                <div class="col-md-2">
-                  <label class="form-label">Gross</label>
-                  <input type="number" step="0.01" id="grossInput" class="form-control" required>
-                </div>
-                <div class="col-md-2">
-                  <label class="form-label">Base Deductions</label>
-                  <input type="number" step="0.01" id="deductionsInput" class="form-control" value="0">
-                </div>
-                <div class="col-md-4" id="leaveDeductionSection" style="display: none;">
-                  <label class="form-label">Leave Deduction <i class="ti ti-info-circle text-muted"
-                      data-bs-toggle="tooltip" title="Deduction for excess leave days taken"></i></label>
-                  <div class="input-group">
-                    <span class="input-group-text bg-warning-subtle" id="excessDaysDisplay">0 excess days</span>
-                    <input type="number" step="0.01" id="leaveRateInput" class="form-control" placeholder="Rate/day"
-                      value="0">
-                  </div>
-                  <small class="text-muted">Total Deduction: ₹<span id="leaveDeductionTotal"
-                      class="fw-bold">0</span></small>
-                  <input type="hidden" id="excessDaysHidden" value="0">
-                </div>
-                <div class="col-12">
-                  <label class="form-label">Optional Components (select to include)</label>
-                  <div class="row g-2">
-                    <div class="col-md-2">
-                      <div class="form-check">
-                        <input class="form-check-input opt-comp" type="checkbox" id="optPf" data-type="deduction"
-                          data-label="PF" data-target="#optPfAmt">
-                        <label class="form-check-label" for="optPf">PF</label>
-                      </div>
-                      <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optPfAmt"
-                        placeholder="0.00" disabled>
-                    </div>
-                    <div class="col-md-2">
-                      <div class="form-check">
-                        <input class="form-check-input opt-comp" type="checkbox" id="optEsi" data-type="deduction"
-                          data-label="ESI" data-target="#optEsiAmt">
-                        <label class="form-check-label" for="optEsi">ESI</label>
-                      </div>
-                      <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optEsiAmt"
-                        placeholder="0.00" disabled>
-                    </div>
-                    <div class="col-md-2">
-                      <div class="form-check">
-                        <input class="form-check-input opt-comp" type="checkbox" id="optInsurance" data-type="deduction"
-                          data-label="Insurance" data-target="#optInsuranceAmt">
-                        <label class="form-check-label" for="optInsurance">Insurance</label>
-                      </div>
-                      <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optInsuranceAmt"
-                        placeholder="0.00" disabled>
-                    </div>
-                    <div class="col-md-2">
-                      <div class="form-check">
-                        <input class="form-check-input opt-comp" type="checkbox" id="optGratuity" data-type="deduction"
-                          data-label="Gratuity" data-target="#optGratuityAmt">
-                        <label class="form-check-label" for="optGratuity">Gratuity</label>
-                      </div>
-                      <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optGratuityAmt"
-                        placeholder="0.00" disabled>
-                    </div>
-                    <div class="col-md-2">
-                      <div class="form-check">
-                        <input class="form-check-input opt-comp" type="checkbox" id="optBonus" data-type="earning"
-                          data-label="Bonus" data-target="#optBonusAmt">
-                        <label class="form-check-label" for="optBonus">Bonus</label>
-                      </div>
-                      <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optBonusAmt"
-                        placeholder="0.00" disabled>
-                    </div>
-                    <div class="col-md-2">
-                      <div class="form-check">
-                        <input class="form-check-input opt-comp" type="checkbox" id="optShares" data-type="earning"
-                          data-label="Shares" data-target="#optSharesAmt">
-                        <label class="form-check-label" for="optShares">Shares</label>
-                      </div>
-                      <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optSharesAmt"
-                        placeholder="0.00" disabled>
-                    </div>
-                  </div>
-                  <small class="text-muted">Only one standard template is used; selected components will be included with
-                    their amounts.</small>
-                </div>
-                <div class="col-12 d-flex align-items-center gap-3">
-                  <button type="submit" class="btn btn-primary">Generate Payslip</button>
-                  <div id="generateStatus" class="text-muted"></div>
-                </div>
-              </form>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-header">
-              <h6 class="mb-0">Generated Payslips</h6>
-            </div>
-            <div class="card-body">
-              <div class="table-responsive">
-                <table class="table table-striped w-100" id="payslipsTable" style="width: 100%;">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Employee</th>
-                      <th>Code</th>
-                      <th>Period</th>
-                      <th>Gross</th>
-                      <th>Net</th>
-                      <th>Status</th>
-                      <th>Generated At</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody></tbody>
-                </table>
+if (!in_array($role_id, [1, 2, 3], true)) {
+  header('Location: /hrms/pages/unauthorized.php');
+  exit;
+}
+require_once '../components/layout/header.php';
+?>
+<div class="d-flex">
+  <?php require_once '../components/layout/sidebar.php'; ?>
+  <div class="p-3 p-md-4" style="flex: 1;">
+
+    <div class="row">
+      <div class="col-12">
+        <div class="card mb-4">
+          <div class="card-header">Generate Payslip</div>
+          <div class="card-body">
+            <form id="generateForm" class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">Employee</label>
+                <select id="employeeSelect" class="form-select" required></select>
               </div>
+              <div class="col-md-2">
+                <label class="form-label">Period (YYYY-MM)</label>
+                <input type="month" id="periodInput" class="form-control" required value="<?= date('Y-m') ?>">
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">Currency</label>
+                <input type="text" id="currencyInput" class="form-control" value="INR">
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">Gross</label>
+                <input type="number" step="0.01" id="grossInput" class="form-control" required>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">Base Deductions</label>
+                <input type="number" step="0.01" id="deductionsInput" class="form-control" value="0">
+              </div>
+              <div class="col-md-4" id="leaveDeductionSection" style="display: none;">
+                <label class="form-label">Leave Deduction <i class="ti ti-info-circle text-muted"
+                    data-bs-toggle="tooltip" title="Deduction for excess leave days taken"></i></label>
+                <div class="input-group">
+                  <span class="input-group-text bg-warning-subtle" id="excessDaysDisplay">0 excess days</span>
+                  <input type="number" step="0.01" id="leaveRateInput" class="form-control" placeholder="Rate/day"
+                    value="0">
+                </div>
+                <small class="text-muted">Total Deduction: ₹<span id="leaveDeductionTotal"
+                    class="fw-bold">0</span></small>
+                <input type="hidden" id="excessDaysHidden" value="0">
+              </div>
+              <div class="col-md-4" id="overtimeSection" style="display: none;">
+                <label class="form-label">Overtime <i class="ti ti-info-circle text-muted" data-bs-toggle="tooltip"
+                    title="Automatically calculated from attendance records"></i></label>
+                <div class="input-group">
+                  <span class="input-group-text bg-success-subtle" id="overtimeHoursDisplay">0 hrs</span>
+                  <input type="text" id="overtimeAmountDisplay" class="form-control" readonly>
+                </div>
+                <small class="text-muted">Rate: ₹<span id="overtimeRateDisplay">0</span>/hr × 1.5</small>
+                <input type="hidden" id="overtimeHoursHidden" value="0">
+                <input type="hidden" id="overtimeAmountHidden" value="0">
+              </div>
+              <div class="col-12">
+                <label class="form-label">Optional Components (select to include)</label>
+                <div class="row g-2">
+                  <div class="col-md-2">
+                    <div class="form-check">
+                      <input class="form-check-input opt-comp" type="checkbox" id="optPf" data-type="deduction"
+                        data-label="PF" data-target="#optPfAmt">
+                      <label class="form-check-label" for="optPf">PF</label>
+                    </div>
+                    <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optPfAmt"
+                      placeholder="0.00" disabled>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="form-check">
+                      <input class="form-check-input opt-comp" type="checkbox" id="optEsi" data-type="deduction"
+                        data-label="ESI" data-target="#optEsiAmt">
+                      <label class="form-check-label" for="optEsi">ESI</label>
+                    </div>
+                    <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optEsiAmt"
+                      placeholder="0.00" disabled>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="form-check">
+                      <input class="form-check-input opt-comp" type="checkbox" id="optInsurance" data-type="deduction"
+                        data-label="Insurance" data-target="#optInsuranceAmt">
+                      <label class="form-check-label" for="optInsurance">Insurance</label>
+                    </div>
+                    <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optInsuranceAmt"
+                      placeholder="0.00" disabled>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="form-check">
+                      <input class="form-check-input opt-comp" type="checkbox" id="optGratuity" data-type="deduction"
+                        data-label="Gratuity" data-target="#optGratuityAmt">
+                      <label class="form-check-label" for="optGratuity">Gratuity</label>
+                    </div>
+                    <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optGratuityAmt"
+                      placeholder="0.00" disabled>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="form-check">
+                      <input class="form-check-input opt-comp" type="checkbox" id="optBonus" data-type="earning"
+                        data-label="Bonus" data-target="#optBonusAmt">
+                      <label class="form-check-label" for="optBonus">Bonus</label>
+                    </div>
+                    <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optBonusAmt"
+                      placeholder="0.00" disabled>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="form-check">
+                      <input class="form-check-input opt-comp" type="checkbox" id="optShares" data-type="earning"
+                        data-label="Shares" data-target="#optSharesAmt">
+                      <label class="form-check-label" for="optShares">Shares</label>
+                    </div>
+                    <input type="number" step="0.01" class="form-control form-control-sm mt-1" id="optSharesAmt"
+                      placeholder="0.00" disabled>
+                  </div>
+                </div>
+                <small class="text-muted">Only one standard template is used; selected components will be included with
+                  their amounts.</small>
+              </div>
+              <div class="col-12 d-flex align-items-center gap-3">
+                <button type="submit" class="btn btn-primary">Generate Payslip</button>
+                <div id="generateStatus" class="text-muted"></div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h6 class="mb-0">Generated Payslips</h6>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-striped w-100" id="payslipsTable" style="width: 100%;">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Employee</th>
+                    <th>Code</th>
+                    <th>Period</th>
+                    <th>Gross</th>
+                    <th>Net</th>
+                    <th>Status</th>
+                    <th>Generated At</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <?php require_once '../components/layout/footer.php'; ?>
+</div>
+<?php require_once '../components/layout/footer.php'; ?>
 
-      <script>
-        $(function () {
-          const $tbody = $('#payslipsTable tbody');
-          const $employeeSelect = $('#employeeSelect');
-          const $generateForm = $('#generateForm');
-          const $generateStatus = $('#generateStatus');
-          // removed template creation controls
+<script>
+  $(function () {
+    const $tbody = $('#payslipsTable tbody');
+    const $employeeSelect = $('#employeeSelect');
+    const $generateForm = $('#generateForm');
+    const $generateStatus = $('#generateStatus');
+    // removed template creation controls
 
-          const formatMoney = (value) => {
-            const num = Number(value);
-            return Number.isFinite(num) ? num.toFixed(2) : '0.00';
-          };
+    const formatMoney = (value) => {
+      const num = Number(value);
+      return Number.isFinite(num) ? num.toFixed(2) : '0.00';
+    };
 
-          const getEffectiveStatus = (status) => {
-            const normalized = (status || '').toLowerCase().trim();
-            return normalized || 'generated';
-          };
+    const getEffectiveStatus = (status) => {
+      const normalized = (status || '').toLowerCase().trim();
+      return normalized || 'generated';
+    };
 
-          const renderStatusBadge = (status) => {
-            const normalized = getEffectiveStatus(status);
-            const map = {
-              sent: { color: 'success', label: 'Sent' },
-              generated: { color: 'warning', label: 'Generated' },
-              pending: { color: 'info', label: 'Pending' }
-            };
-            const meta = map[normalized] || map['generated'];
-            return `<span class="badge bg-${meta.color}-subtle text-${meta.color}-emphasis">${escapeHTML(meta.label)}</span>`;
-          };
+    const renderStatusBadge = (status) => {
+      const normalized = getEffectiveStatus(status);
+      const map = {
+        sent: { color: 'success', label: 'Sent' },
+        generated: { color: 'warning', label: 'Generated' },
+        pending: { color: 'info', label: 'Pending' }
+      };
+      const meta = map[normalized] || map['generated'];
+      return `<span class="badge bg-${meta.color}-subtle text-${meta.color}-emphasis">${escapeHTML(meta.label)}</span>`;
+    };
 
-          const renderActionButtons = (row) => {
-            const sendBtn = `<button class="btn btn-sm btn-outline-primary send-btn" data-id="${escapeHTML(row.id)}" title="Mark as sent">Send</button>`;
-            const emailBtn = `<button class="btn btn-sm btn-outline-info email-btn" data-id="${escapeHTML(row.id)}" title="Send to employee via email"><i class="ti ti-mail"></i></button>`;
-            return `${sendBtn} ${emailBtn}`;
-          };
+    const renderActionButtons = (row) => {
+      const sendBtn = `<button class="btn btn-sm btn-outline-primary send-btn" data-id="${escapeHTML(row.id)}" title="Mark as sent">Send</button>`;
+      const emailBtn = `<button class="btn btn-sm btn-outline-info email-btn" data-id="${escapeHTML(row.id)}" title="Send to employee via email"><i class="ti ti-mail"></i></button>`;
+      return `${sendBtn} ${emailBtn}`;
+    };
 
-          function loadPayslips() {
-            SkeletonFactory.showTable('payslipsTable', 5, 9);
-            if ($.fn.DataTable.isDataTable('#payslipsTable')) {
-              $('#payslipsTable').DataTable().destroy();
-            }
+    function loadPayslips() {
+      SkeletonFactory.showTable('payslipsTable', 5, 9);
+      if ($.fn.DataTable.isDataTable('#payslipsTable')) {
+        $('#payslipsTable').DataTable().destroy();
+      }
 
-            $('#payslipsTable').DataTable({
-              autoWidth: false,
-              scrollX: false,
-              initComplete: function () { SkeletonFactory.hideTable('payslipsTable'); },
-              responsive: true,
-              ajax: {
-                url: '/hrms/api/api_payroll.php?action=get_company_payslips',
-                dataSrc: 'data',
-                error: function () {
-                  SkeletonFactory.hideTable('payslipsTable');
-                  $('#payslipsTable tbody').html('<tr><td colspan="9" class="text-center text-muted">Failed to load payslips.</td></tr>');
-                }
-              },
-              columns: [
-                { data: 'id' },
-                { data: null, render: (d, t, r) => (r.first_name || '') + ' ' + (r.last_name || '') },
-                { data: 'employee_code' },
-                { data: 'period' },
-                { data: 'gross_salary', render: (d) => formatMoney(d) },
-                { data: 'net_salary', render: (d) => formatMoney(d) },
-                { data: 'status', render: (d) => renderStatusBadge(d) },
-                { data: 'generated_at' },
-                {
-                  data: null,
-                  orderable: false,
-                  render: (d, t, r) => renderActionButtons(r)
-                }
-              ],
-              order: [[0, 'desc']]
-            });
+      $('#payslipsTable').DataTable({
+        autoWidth: false,
+        scrollX: false,
+        initComplete: function () { SkeletonFactory.hideTable('payslipsTable'); },
+        responsive: true,
+        ajax: {
+          url: '/hrms/api/api_payroll.php?action=get_company_payslips',
+          dataSrc: 'data',
+          error: function () {
+            SkeletonFactory.hideTable('payslipsTable');
+            $('#payslipsTable tbody').html('<tr><td colspan="9" class="text-center text-muted">Failed to load payslips.</td></tr>');
           }
+        },
+        columns: [
+          { data: 'id' },
+          { data: null, render: (d, t, r) => (r.first_name || '') + ' ' + (r.last_name || '') },
+          { data: 'employee_code' },
+          { data: 'period' },
+          { data: 'gross_salary', render: (d) => formatMoney(d) },
+          { data: 'net_salary', render: (d) => formatMoney(d) },
+          { data: 'status', render: (d) => renderStatusBadge(d) },
+          { data: 'generated_at' },
+          {
+            data: null,
+            orderable: false,
+            render: (d, t, r) => renderActionButtons(r)
+          }
+        ],
+        order: [[0, 'desc']]
+      });
+    }
 
-          function loadEmployees() {
-            $.getJSON('/hrms/api/api_employees.php?action=get_employees', function (res) {
-              if (res && res.success && res.data) {
-                const opts = res.data.map(function (e) {
-                  const name = (e.first_name || '') + ' ' + (e.last_name || '');
-                  const salary = e.salary || 0;
-                  return '<option value="' + e.id + '" data-salary="' + salary + '">' + name + ' (' + (e.employee_code || '') + ')</option>';
-                }).join('');
-                $employeeSelect.html('<option value="">Select employee</option>' + opts);
+    function loadEmployees() {
+      $.getJSON('/hrms/api/api_employees.php?action=get_employees', function (res) {
+        if (res && res.success && res.data) {
+          const opts = res.data.map(function (e) {
+            const name = (e.first_name || '') + ' ' + (e.last_name || '');
+            const salary = e.salary || 0;
+            return '<option value="' + e.id + '" data-salary="' + salary + '">' + name + ' (' + (e.employee_code || '') + ')</option>';
+          }).join('');
+          $employeeSelect.html('<option value="">Select employee</option>' + opts);
+        } else {
+          $employeeSelect.html('<option value="">Failed to load</option>');
+        }
+      });
+    }
+
+    // Fetch excess leave days when employee is selected
+    function fetchExcessLeaves(employeeId) {
+      const $section = $('#leaveDeductionSection');
+      const $daysDisplay = $('#excessDaysDisplay');
+      const $daysHidden = $('#excessDaysHidden');
+      const $rateInput = $('#leaveRateInput');
+      const $total = $('#leaveDeductionTotal');
+
+      if (!employeeId) {
+        $section.hide();
+        $daysHidden.val(0);
+        return;
+      }
+
+      $.getJSON('/hrms/api/api_leaves.php?action=get_employee_excess_leaves&employee_id=' + employeeId, function (res) {
+        if (res && res.success && res.data) {
+          const excessDays = res.data.total_excess_days || 0;
+          $daysHidden.val(excessDays);
+
+          if (excessDays > 0) {
+            $daysDisplay.text(excessDays + ' excess day' + (excessDays > 1 ? 's' : ''));
+            $daysDisplay.removeClass('bg-success-subtle').addClass('bg-warning-subtle');
+            $section.show();
+            updateLeaveDeductionTotal();
+          } else {
+            $daysDisplay.text('No excess leaves');
+            $daysDisplay.removeClass('bg-warning-subtle').addClass('bg-success-subtle');
+            $section.show();
+            $total.text('0');
+          }
+        } else {
+          $section.hide();
+        }
+      });
+    }
+
+    // Update leave deduction total when rate changes
+    function updateLeaveDeductionTotal() {
+      const days = parseFloat($('#excessDaysHidden').val()) || 0;
+      const rate = parseFloat($('#leaveRateInput').val()) || 0;
+      const total = days * rate;
+      $('#leaveDeductionTotal').text(total.toFixed(2));
+    }
+
+    // Event handlers for employee selection - fetch excess leaves AND set salary
+    $employeeSelect.on('change', function () {
+      const selectedOption = $(this).find('option:selected');
+      const employeeId = $(this).val();
+      const salary = parseFloat(selectedOption.data('salary')) || 0;
+
+      // Set gross salary from employee's stored salary
+      if (salary > 0) {
+        $('#grossInput').val(salary.toFixed(2));
+
+        // Auto-calculate per-day rate (salary / 30 days)
+        const perDayRate = salary / 30;
+        $('#leaveRateInput').val(perDayRate.toFixed(2));
+      } else {
+        $('#grossInput').val('');
+        $('#leaveRateInput').val('0');
+      }
+
+      fetchExcessLeaves(employeeId);
+    });
+
+    $('#leaveRateInput').on('input change', updateLeaveDeductionTotal);
+
+    // Fetch overtime when employee or period changes
+    function fetchOvertime() {
+      const employeeId = $employeeSelect.val();
+      const period = $('#periodInput').val();
+      const $section = $('#overtimeSection');
+      const $hoursDisplay = $('#overtimeHoursDisplay');
+      const $amountDisplay = $('#overtimeAmountDisplay');
+      const $rateDisplay = $('#overtimeRateDisplay');
+      const $hoursHidden = $('#overtimeHoursHidden');
+      const $amountHidden = $('#overtimeAmountHidden');
+
+      if (!employeeId || !period) {
+        $section.hide();
+        return;
+      }
+
+      $.getJSON('/hrms/api/api_payroll.php?action=get_overtime&employee_id=' + employeeId + '&period=' + period, function (res) {
+        if (res && res.success && res.data) {
+          const data = res.data;
+          $hoursHidden.val(data.overtime_hours || 0);
+          $amountHidden.val(data.overtime_amount || 0);
+
+          if (data.overtime_hours > 0) {
+            $hoursDisplay.text(data.overtime_hours + ' hrs');
+            $hoursDisplay.removeClass('bg-secondary-subtle').addClass('bg-success-subtle');
+            $amountDisplay.val('₹' + (data.overtime_amount || 0).toFixed(2));
+            $rateDisplay.text((data.hourly_rate || 0).toFixed(2));
+            $section.show();
+          } else if (data.error) {
+            $hoursDisplay.text('N/A');
+            $hoursDisplay.removeClass('bg-success-subtle').addClass('bg-secondary-subtle');
+            $amountDisplay.val(data.error);
+            $section.show();
+          } else {
+            $hoursDisplay.text('0 hrs');
+            $amountDisplay.val('No overtime');
+            $section.show();
+          }
+        } else {
+          $section.hide();
+        }
+      }).fail(function () {
+        $section.hide();
+      });
+    }
+
+    // Trigger overtime fetch when employee changes
+    $employeeSelect.on('change', function () {
+      fetchOvertime();
+    });
+
+    // Trigger overtime fetch when period changes
+    $('#periodInput').on('change', function () {
+      fetchOvertime();
+    });
+
+    function collectSelectedComponents() {
+      const earnings = [];
+      const deductions = [];
+      $('.opt-comp').each(function () {
+        const $cb = $(this);
+        const target = $($cb.data('target'));
+        const label = $cb.data('label');
+        const type = $cb.data('type');
+        if ($cb.is(':checked')) {
+          const amt = parseFloat(target.val() || '0') || 0;
+          if (amt > 0) {
+            if (type === 'earning') earnings.push({ name: label, amount: amt });
+            if (type === 'deduction') deductions.push({ name: label, amount: amt });
+          }
+        }
+      });
+      return { earnings, deductions };
+    }
+
+    $('.opt-comp').on('change input', function () {
+      const targetSel = $(this).data('target');
+      $(targetSel).prop('disabled', !$(this).is(':checked'));
+    });
+
+    $generateForm.on('submit', function (e) {
+      e.preventDefault();
+      const employee_id = parseInt($employeeSelect.val() || '0', 10);
+      const period = $('#periodInput').val();
+      const currency = $('#currencyInput').val() || 'INR';
+      const gross = parseFloat($('#grossInput').val() || '0');
+      const baseDeductions = parseFloat($('#deductionsInput').val() || '0');
+
+      // Calculate leave deduction
+      const excessDays = parseFloat($('#excessDaysHidden').val() || '0');
+      const leaveRate = parseFloat($('#leaveRateInput').val() || '0');
+      const leaveDeduction = excessDays * leaveRate;
+
+      if (!employee_id || !period) { return; }
+      $generateStatus.text('Generating...');
+      const form = new FormData();
+      form.append('action', 'generate_payslip');
+      form.append('employee_id', employee_id);
+      form.append('period', period);
+      form.append('currency', currency);
+      const selected = collectSelectedComponents();
+      const earnings = [{ name: 'Gross', amount: gross }, ...selected.earnings];
+
+      // Build deductions array with leave deduction
+      let deductionsArr = [];
+      if (baseDeductions > 0) deductionsArr.push({ name: 'Base Deductions', amount: baseDeductions });
+      if (leaveDeduction > 0) deductionsArr.push({ name: 'Leave Deduction (' + excessDays + ' days)', amount: leaveDeduction });
+      deductionsArr = deductionsArr.concat(selected.deductions);
+
+      const submitBtn = $generateForm.find('button[type="submit"]');
+      const restoreBtn = UIController.showButtonLoading(submitBtn[0], 'Generating...');
+
+      form.append('earnings', JSON.stringify(earnings));
+      form.append('deductions', JSON.stringify(deductionsArr));
+      fetch('/hrms/api/api_payroll.php', { method: 'POST', body: form })
+        .then(r => r.json()).then(function (res) {
+          if (res && res.success) {
+            $generateStatus.text('Generated payslip #' + res.data.payslip_id);
+            // Optimistically update table without full reload if data returned
+            if (res.data && res.data.payslip) {
+              const p = res.data.payslip;
+              const empName = (p.first_name || '') + ' ' + (p.last_name || '');
+              const badge = renderStatusBadge(p.status);
+              const actions = renderActionButtons(p);
+              const row = '<tr>' +
+                '<td>' + p.id + '</td>' +
+                '<td>' + empName + '</td>' +
+                '<td>' + (p.employee_code || '') + '</td>' +
+                '<td>' + (p.period || '') + '</td>' +
+                '<td>' + formatMoney(p.gross_salary) + '</td>' +
+                '<td>' + formatMoney(p.net_salary) + '</td>' +
+                '<td>' + badge + '</td>' +
+                '<td>' + (p.generated_at || '') + '</td>' +
+                '<td>' + actions + '</td>' +
+                '</tr>';
+              if ($.fn.DataTable.isDataTable('#payslipsTable')) {
+                const dt = $('#payslipsTable').DataTable();
+                dt.row.add($(row)).draw(false);
               } else {
-                $employeeSelect.html('<option value="">Failed to load</option>');
+                $tbody.prepend(row);
               }
-            });
-          }
-
-          // Fetch excess leave days when employee is selected
-          function fetchExcessLeaves(employeeId) {
-            const $section = $('#leaveDeductionSection');
-            const $daysDisplay = $('#excessDaysDisplay');
-            const $daysHidden = $('#excessDaysHidden');
-            const $rateInput = $('#leaveRateInput');
-            const $total = $('#leaveDeductionTotal');
-
-            if (!employeeId) {
-              $section.hide();
-              $daysHidden.val(0);
-              return;
-            }
-
-            $.getJSON('/hrms/api/api_leaves.php?action=get_employee_excess_leaves&employee_id=' + employeeId, function (res) {
-              if (res && res.success && res.data) {
-                const excessDays = res.data.total_excess_days || 0;
-                $daysHidden.val(excessDays);
-
-                if (excessDays > 0) {
-                  $daysDisplay.text(excessDays + ' excess day' + (excessDays > 1 ? 's' : ''));
-                  $daysDisplay.removeClass('bg-success-subtle').addClass('bg-warning-subtle');
-                  $section.show();
-                  updateLeaveDeductionTotal();
-                } else {
-                  $daysDisplay.text('No excess leaves');
-                  $daysDisplay.removeClass('bg-warning-subtle').addClass('bg-success-subtle');
-                  $section.show();
-                  $total.text('0');
-                }
-              } else {
-                $section.hide();
-              }
-            });
-          }
-
-          // Update leave deduction total when rate changes
-          function updateLeaveDeductionTotal() {
-            const days = parseFloat($('#excessDaysHidden').val()) || 0;
-            const rate = parseFloat($('#leaveRateInput').val()) || 0;
-            const total = days * rate;
-            $('#leaveDeductionTotal').text(total.toFixed(2));
-          }
-
-          // Event handlers for employee selection - fetch excess leaves AND set salary
-          $employeeSelect.on('change', function () {
-            const selectedOption = $(this).find('option:selected');
-            const employeeId = $(this).val();
-            const salary = parseFloat(selectedOption.data('salary')) || 0;
-
-            // Set gross salary from employee's stored salary
-            if (salary > 0) {
-              $('#grossInput').val(salary.toFixed(2));
-
-              // Auto-calculate per-day rate (salary / 30 days)
-              const perDayRate = salary / 30;
-              $('#leaveRateInput').val(perDayRate.toFixed(2));
             } else {
-              $('#grossInput').val('');
-              $('#leaveRateInput').val('0');
+              loadPayslips();
             }
-
-            fetchExcessLeaves(employeeId);
-          });
-
-          $('#leaveRateInput').on('input change', updateLeaveDeductionTotal);
-
-          function collectSelectedComponents() {
-            const earnings = [];
-            const deductions = [];
-            $('.opt-comp').each(function () {
-              const $cb = $(this);
-              const target = $($cb.data('target'));
-              const label = $cb.data('label');
-              const type = $cb.data('type');
-              if ($cb.is(':checked')) {
-                const amt = parseFloat(target.val() || '0') || 0;
-                if (amt > 0) {
-                  if (type === 'earning') earnings.push({ name: label, amount: amt });
-                  if (type === 'deduction') deductions.push({ name: label, amount: amt });
-                }
-              }
-            });
-            return { earnings, deductions };
+          } else {
+            $generateStatus.text('Failed to generate');
           }
+        }).catch(function () { $generateStatus.text('Error generating'); })
+        .finally(() => restoreBtn());
+    });
 
-          $('.opt-comp').on('change input', function () {
-            const targetSel = $(this).data('target');
-            $(targetSel).prop('disabled', !$(this).is(':checked'));
-          });
+    // Send (Release) button handler
+    $tbody.on('click', '.send-btn', function () {
+      const id = parseInt($(this).data('id'), 10);
+      if (!id) return;
+      if (!confirm('Mark payslip #' + id + ' as Sent (Release)? This will NOT send an email.')) return;
+      sendPayslipAction(id, false);
+    });
 
-          $generateForm.on('submit', function (e) {
-            e.preventDefault();
-            const employee_id = parseInt($employeeSelect.val() || '0', 10);
-            const period = $('#periodInput').val();
-            const currency = $('#currencyInput').val() || 'INR';
-            const gross = parseFloat($('#grossInput').val() || '0');
-            const baseDeductions = parseFloat($('#deductionsInput').val() || '0');
+    // Email button handler
+    $tbody.on('click', '.email-btn', function () {
+      const id = parseInt($(this).data('id'), 10);
+      if (!id) return;
+      if (!confirm('Email payslip #' + id + ' to employee?')) return;
+      sendPayslipAction(id, true);
+    });
 
-            // Calculate leave deduction
-            const excessDays = parseFloat($('#excessDaysHidden').val() || '0');
-            const leaveRate = parseFloat($('#leaveRateInput').val() || '0');
-            const leaveDeduction = excessDays * leaveRate;
+    function sendPayslipAction(id, isEmail) {
+      const form = new FormData();
+      form.append('action', 'send_payslip');
+      form.append('payslip_id', id);
+      form.append('to_employee', '1');
+      form.append('to_manager', '0');
+      if (isEmail) {
+        form.append('is_email_action', '1');
+      }
 
-            if (!employee_id || !period) { return; }
-            $generateStatus.text('Generating...');
-            const form = new FormData();
-            form.append('action', 'generate_payslip');
-            form.append('employee_id', employee_id);
-            form.append('period', period);
-            form.append('currency', currency);
-            const selected = collectSelectedComponents();
-            const earnings = [{ name: 'Gross', amount: gross }, ...selected.earnings];
-
-            // Build deductions array with leave deduction
-            let deductionsArr = [];
-            if (baseDeductions > 0) deductionsArr.push({ name: 'Base Deductions', amount: baseDeductions });
-            if (leaveDeduction > 0) deductionsArr.push({ name: 'Leave Deduction (' + excessDays + ' days)', amount: leaveDeduction });
-            deductionsArr = deductionsArr.concat(selected.deductions);
-
-            const submitBtn = $generateForm.find('button[type="submit"]');
-            const restoreBtn = UIController.showButtonLoading(submitBtn[0], 'Generating...');
-
-            form.append('earnings', JSON.stringify(earnings));
-            form.append('deductions', JSON.stringify(deductionsArr));
-            fetch('/hrms/api/api_payroll.php', { method: 'POST', body: form })
-              .then(r => r.json()).then(function (res) {
-                if (res && res.success) {
-                  $generateStatus.text('Generated payslip #' + res.data.payslip_id);
-                  // Optimistically update table without full reload if data returned
-                  if (res.data && res.data.payslip) {
-                    const p = res.data.payslip;
-                    const empName = (p.first_name || '') + ' ' + (p.last_name || '');
-                    const badge = renderStatusBadge(p.status);
-                    const actions = renderActionButtons(p);
-                    const row = '<tr>' +
-                      '<td>' + p.id + '</td>' +
-                      '<td>' + empName + '</td>' +
-                      '<td>' + (p.employee_code || '') + '</td>' +
-                      '<td>' + (p.period || '') + '</td>' +
-                      '<td>' + formatMoney(p.gross_salary) + '</td>' +
-                      '<td>' + formatMoney(p.net_salary) + '</td>' +
-                      '<td>' + badge + '</td>' +
-                      '<td>' + (p.generated_at || '') + '</td>' +
-                      '<td>' + actions + '</td>' +
-                      '</tr>';
-                    if ($.fn.DataTable.isDataTable('#payslipsTable')) {
-                      const dt = $('#payslipsTable').DataTable();
-                      dt.row.add($(row)).draw(false);
-                    } else {
-                      $tbody.prepend(row);
-                    }
-                  } else {
-                    loadPayslips();
-                  }
-                } else {
-                  $generateStatus.text('Failed to generate');
-                }
-              }).catch(function () { $generateStatus.text('Error generating'); })
-              .finally(() => restoreBtn());
-          });
-
-          // Send (Release) button handler
-          $tbody.on('click', '.send-btn', function () {
-            const id = parseInt($(this).data('id'), 10);
-            if (!id) return;
-            if (!confirm('Mark payslip #' + id + ' as Sent (Release)? This will NOT send an email.')) return;
-            sendPayslipAction(id, false);
-          });
-
-          // Email button handler
-          $tbody.on('click', '.email-btn', function () {
-            const id = parseInt($(this).data('id'), 10);
-            if (!id) return;
-            if (!confirm('Email payslip #' + id + ' to employee?')) return;
-            sendPayslipAction(id, true);
-          });
-
-          function sendPayslipAction(id, isEmail) {
-            const form = new FormData();
-            form.append('action', 'send_payslip');
-            form.append('payslip_id', id);
-            form.append('to_employee', '1');
-            form.append('to_manager', '0');
-            if (isEmail) {
-              form.append('is_email_action', '1');
-            }
-
-            fetch('/hrms/api/api_payroll.php', { method: 'POST', body: form })
-              .then(r => r.json()).then(function (res) {
-                if (res && res.success) {
-                  showToast(res.message || 'Action completed', 'success');
-                  const dt = $('#payslipsTable').DataTable();
-                  dt.ajax.reload(null, false);
-                } else {
-                  showToast('Failed: ' + (res.message || 'Unknown error'), 'error');
-                }
-              }).catch(function () { showToast('Error processing request', 'error'); });
+      fetch('/hrms/api/api_payroll.php', { method: 'POST', body: form })
+        .then(r => r.json()).then(function (res) {
+          if (res && res.success) {
+            showToast(res.message || 'Action completed', 'success');
+            const dt = $('#payslipsTable').DataTable();
+            dt.ajax.reload(null, false);
+          } else {
+            showToast('Failed: ' + (res.message || 'Unknown error'), 'error');
           }
+        }).catch(function () { showToast('Error processing request', 'error'); });
+    }
 
-          // removed "Send to Mail" ad-hoc button
+    // removed "Send to Mail" ad-hoc button
 
-          loadPayslips();
-          loadEmployees();
+    loadPayslips();
+    loadEmployees();
 
-          // template creation removed
-        });
-      </script>
+    // template creation removed
+  });
+</script>
