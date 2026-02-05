@@ -1,31 +1,14 @@
--- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Generation Time: Dec 27, 2025 at 06:32 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
-
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
-
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
---
--- Database: `hrms_db`
---
-
--- --------------------------------------------------------
-
---
--- Table structure for table `activity_logs`
---
+CREATE DATABASE IF NOT EXISTS `original_template` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `original_template`;
 
 CREATE TABLE `activity_logs` (
   `id` int(11) NOT NULL,
@@ -36,12 +19,6 @@ CREATE TABLE `activity_logs` (
   `user_agent` varchar(255) DEFAULT NULL COMMENT 'Browser or device info',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `attendance`
---
 
 CREATE TABLE `attendance` (
   `id` int(11) NOT NULL,
@@ -54,12 +31,6 @@ CREATE TABLE `attendance` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `audit_logs`
---
-
 CREATE TABLE `audit_logs` (
   `id` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL,
@@ -67,12 +38,6 @@ CREATE TABLE `audit_logs` (
   `details` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `candidates`
---
 
 CREATE TABLE `candidates` (
   `id` int(11) NOT NULL,
@@ -88,12 +53,6 @@ CREATE TABLE `candidates` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `companies`
---
-
 CREATE TABLE `companies` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
@@ -103,23 +62,11 @@ CREATE TABLE `companies` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `company_holiday_settings`
---
-
 CREATE TABLE `company_holiday_settings` (
   `id` int(11) NOT NULL,
   `company_id` int(11) NOT NULL,
   `saturday_policy` enum('none','2nd_4th','1st_3rd','all') NOT NULL DEFAULT 'none'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `departments`
---
 
 CREATE TABLE `departments` (
   `id` int(11) NOT NULL,
@@ -128,24 +75,12 @@ CREATE TABLE `departments` (
   `description` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `designations`
---
-
 CREATE TABLE `designations` (
   `id` int(11) NOT NULL,
   `department_id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
   `description` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `documents`
---
 
 CREATE TABLE `documents` (
   `id` int(11) NOT NULL,
@@ -161,12 +96,6 @@ CREATE TABLE `documents` (
   `uploaded_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `email_logs`
---
-
 CREATE TABLE `email_logs` (
   `id` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL COMMENT 'Recipient user (if applicable)',
@@ -181,12 +110,6 @@ CREATE TABLE `email_logs` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `email_templates`
---
-
 CREATE TABLE `email_templates` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL COMMENT 'Template name (e.g. Welcome, Leave Approved)',
@@ -199,12 +122,6 @@ CREATE TABLE `email_templates` (
   `updated_by` int(11) DEFAULT NULL,
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `employees`
---
 
 CREATE TABLE `employees` (
   `id` int(11) NOT NULL,
@@ -221,14 +138,9 @@ CREATE TABLE `employees` (
   `shift_id` int(11) DEFAULT NULL,
   `date_of_joining` date DEFAULT NULL,
   `status` enum('active','inactive') DEFAULT 'active',
+  `salary` decimal(12,2) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `feedback`
---
 
 CREATE TABLE `feedback` (
   `id` int(11) NOT NULL,
@@ -240,123 +152,11 @@ CREATE TABLE `feedback` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `global_holidays`
---
-
 CREATE TABLE `global_holidays` (
   `id` int(11) NOT NULL,
   `holiday_name` varchar(255) NOT NULL,
   `holiday_date` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `global_holidays`
---
-
-INSERT INTO `global_holidays` (`id`, `holiday_name`, `holiday_date`) VALUES
-(1, 'New Year\'s Day', '2025-01-01'),
-(2, 'Guru Govind Singh Jayanti', '2025-01-06'),
-(3, 'Makar Sankranti', '2025-01-14'),
-(6, 'Republic Day', '2025-01-26'),
-(7, 'Vasant Panchami', '2025-02-02'),
-(8, 'Guru Ravidas Jayanti', '2025-02-12'),
-(9, 'Shivaji Jayanti', '2025-02-19'),
-(10, 'Maharishi Dayanand Saraswati Jayanti', '2025-02-23'),
-(11, 'Maha Shivaratri/Shivaratri', '2025-02-26'),
-(12, 'Ramadan Start', '2025-03-02'),
-(13, 'Holika Dahana', '2025-03-13'),
-(14, 'Holi', '2025-03-14'),
-(16, 'Jamat Ul-Vida', '2025-03-28'),
-(17, 'Ugadi', '2025-03-30'),
-(20, 'Ramzan Id', '2025-03-31'),
-(21, 'Rama Navami', '2025-04-06'),
-(22, 'Mahavir Jayanti', '2025-04-10'),
-(23, 'Vaisakhi', '2025-04-13'),
-(24, 'Ambedkar Jayanti', '2025-04-14'),
-(26, 'Bahag Bihu/Vaisakhadi', '2025-04-15'),
-(27, 'Good Friday', '2025-04-18'),
-(28, 'Easter Day', '2025-04-20'),
-(29, 'Birthday of Rabindranath', '2025-05-09'),
-(30, 'Buddha Purnima/Vesak', '2025-05-12'),
-(31, 'Bakrid', '2025-06-07'),
-(32, 'Rath Yatra', '2025-06-27'),
-(33, 'Muharram/Ashura', '2025-07-06'),
-(34, 'Raksha Bandhan (Rakhi)', '2025-08-09'),
-(35, 'Independence Day', '2025-08-15'),
-(38, 'Janmashtami', '2025-08-16'),
-(39, 'Ganesh Chaturthi/Vinayaka Chaturthi', '2025-08-27'),
-(40, 'Milad un-Nabi', '2025-09-05'),
-(42, 'First Day of Sharad Navratri', '2025-09-22'),
-(43, 'First Day of Durga Puja Festivities', '2025-09-28'),
-(44, 'Maha Saptami', '2025-09-29'),
-(45, 'Maha Ashtami', '2025-09-30'),
-(46, 'Maha Navami', '2025-10-01'),
-(47, 'Mahatma Gandhi Jayanti', '2025-10-02'),
-(49, 'Maharishi Valmiki Jayanti', '2025-10-07'),
-(50, 'Karaka Chaturthi (Karva Chauth)', '2025-10-10'),
-(51, 'Diwali/Deepavali', '2025-10-20'),
-(53, 'Govardhan Puja', '2025-10-22'),
-(54, 'Bhai Duj', '2025-10-23'),
-(55, 'Chhat Puja (Pratihar Sashthi/Surya Sashthi)', '2025-10-28'),
-(56, 'Guru Nanak Jayanti', '2025-11-05'),
-(57, 'Guru Tegh Bahadur\'s Martyrdom Day', '2025-11-24'),
-(58, 'Christmas Eve', '2025-12-24'),
-(59, 'Christmas', '2025-12-25'),
-(60, 'New Year\'s Day', '2026-01-01'),
-(61, 'Hazarat Ali\'s Birthday', '2026-01-03'),
-(62, 'Makar Sankranti', '2026-01-14'),
-(64, 'Vasant Panchami', '2026-01-23'),
-(65, 'Republic Day', '2026-01-26'),
-(66, 'Guru Ravidas Jayanti', '2026-02-01'),
-(67, 'Maharishi Dayanand Saraswati Jayanti', '2026-02-12'),
-(68, 'Maha Shivaratri', '2026-02-15'),
-(69, 'Ramadan Start (tentative)', '2026-02-19'),
-(71, 'Holika Dahana', '2026-03-03'),
-(72, 'Holi', '2026-03-04'),
-(73, 'Gudi Padwa', '2026-03-19'),
-(75, 'Jamat Ul-Vida', '2026-03-20'),
-(76, 'Ramzan Id (tentative)', '2026-03-21'),
-(77, 'Rama Navami', '2026-03-26'),
-(78, 'Mahavir Jayanti', '2026-03-31'),
-(79, 'Good Friday', '2026-04-03'),
-(80, 'Easter Day', '2026-04-05'),
-(81, 'Ambedkar Jayanti', '2026-04-14'),
-(84, 'Bahag Bihu', '2026-04-15'),
-(85, 'Buddha Purnima', '2026-05-01'),
-(86, 'Birthday of Rabindranath', '2026-05-09'),
-(87, 'Bakrid (tentative)', '2026-05-27'),
-(88, 'Muharram/Ashura (tentative)', '2026-06-26'),
-(89, 'Rath Yatra', '2026-07-16'),
-(90, 'Independence Day', '2026-08-15'),
-(91, 'Milad un-Nabi (tentative)', '2026-08-26'),
-(93, 'Raksha Bandhan', '2026-08-28'),
-(94, 'Janmashtami (Smarta)', '2026-09-04'),
-(96, 'Ganesh Chaturthi', '2026-09-14'),
-(97, 'Mahatma Gandhi Jayanti', '2026-10-02'),
-(98, 'First Day of Sharad Navratri', '2026-10-11'),
-(99, 'First Day of Durga Puja Festivities', '2026-10-17'),
-(100, 'Maha Saptami', '2026-10-18'),
-(101, 'Maha Ashtami', '2026-10-19'),
-(102, 'Dussehra', '2026-10-20'),
-(103, 'Maharishi Valmiki Jayanti', '2026-10-26'),
-(104, 'Karaka Chaturthi', '2026-10-29'),
-(105, 'Naraka Chaturdasi', '2026-11-08'),
-(107, 'Govardhan Puja', '2026-11-09'),
-(108, 'Bhai Duj', '2026-11-11'),
-(109, 'Chhat Puja (Pratihar Sashthi/Surya Sashthi)', '2026-11-15'),
-(110, 'Guru Tegh Bahadur\'s Martyrdom Day', '2026-11-24'),
-(112, 'Hazarat Ali\'s Birthday', '2026-12-23'),
-(113, 'Christmas Eve', '2026-12-24'),
-(114, 'Christmas', '2026-12-25');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `holidays`
---
 
 CREATE TABLE `holidays` (
   `id` int(11) NOT NULL,
@@ -364,12 +164,6 @@ CREATE TABLE `holidays` (
   `holiday_name` varchar(100) NOT NULL,
   `holiday_date` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `interviews`
---
 
 CREATE TABLE `interviews` (
   `id` int(11) NOT NULL,
@@ -382,12 +176,6 @@ CREATE TABLE `interviews` (
   `result` enum('pending','selected','rejected') DEFAULT 'pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `jobs`
---
 
 CREATE TABLE `jobs` (
   `id` int(11) NOT NULL,
@@ -402,12 +190,6 @@ CREATE TABLE `jobs` (
   `status` enum('open','closed') DEFAULT 'open'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `job_applications`
---
-
 CREATE TABLE `job_applications` (
   `id` int(11) NOT NULL,
   `candidate_id` int(11) NOT NULL,
@@ -416,12 +198,6 @@ CREATE TABLE `job_applications` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `status` enum('pending','shortlisted','interviewed','offered','hired','rejected') DEFAULT 'pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `leaves`
---
 
 CREATE TABLE `leaves` (
   `id` int(11) NOT NULL,
@@ -435,12 +211,6 @@ CREATE TABLE `leaves` (
   `approved_by` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `leave_balances`
---
-
 CREATE TABLE `leave_balances` (
   `id` int(11) NOT NULL,
   `employee_id` int(11) NOT NULL,
@@ -450,12 +220,6 @@ CREATE TABLE `leave_balances` (
   `used_days` decimal(4,1) NOT NULL DEFAULT 0.0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `leave_policies`
---
-
 CREATE TABLE `leave_policies` (
   `id` int(11) NOT NULL,
   `company_id` int(11) NOT NULL,
@@ -463,12 +227,6 @@ CREATE TABLE `leave_policies` (
   `days_per_year` int(11) NOT NULL,
   `is_accruable` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Can be carried over/encashed'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `notifications`
---
 
 CREATE TABLE `notifications` (
   `id` int(11) NOT NULL,
@@ -483,12 +241,6 @@ CREATE TABLE `notifications` (
   `read_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `payroll`
---
-
 CREATE TABLE `payroll` (
   `id` int(11) NOT NULL,
   `employee_id` int(11) NOT NULL,
@@ -502,12 +254,6 @@ CREATE TABLE `payroll` (
   `status` enum('pending','processed','paid') DEFAULT 'pending',
   `processed_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `payslips`
---
 
 CREATE TABLE `payslips` (
   `id` int(11) NOT NULL,
@@ -527,12 +273,6 @@ CREATE TABLE `payslips` (
   `pdf_path` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `payslip_templates`
---
-
 CREATE TABLE `payslip_templates` (
   `id` int(11) NOT NULL,
   `company_id` int(11) DEFAULT NULL COMMENT 'NULL = global template',
@@ -547,27 +287,19 @@ CREATE TABLE `payslip_templates` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `performance`
---
+INSERT INTO `payslip_templates` (`id`, `company_id`, `name`, `subject`, `body_html`, `placeholders`, `is_active`, `created_by`, `created_at`, `updated_by`, `updated_at`) VALUES
+(1, NULL, 'Default Payslip', 'Your payslip for {{period}}', '<div style=\"font-family:Arial,sans-serif; padding:16px\">\n  <h2>{{company_name}}</h2>\n  <h3>Payslip - {{period}}</h3>\n  <p><strong>Employee:</strong> {{employee_name}} ({{employee_code}})</p>\n  <p><strong>Department:</strong> {{department_name}} | <strong>Designation:</strong> {{designation_name}}</p>\n  <hr/>\n  <h4>Earnings</h4>\n  <table width=\"100%\" cellspacing=\"0\" cellpadding=\"6\" border=\"1\">\n    <tr><th align=\"left\">Component</th><th align=\"right\">Amount</th></tr>\n    {{earnings_rows}}\n  </table>\n  <h4 style=\"margin-top:16px\">Deductions</h4>\n  <table width=\"100%\" cellspacing=\"0\" cellpadding=\"6\" border=\"1\">\n    <tr><th align=\"left\">Component</th><th align=\"right\">Amount</th></tr>\n    {{deductions_rows}}\n  </table>\n  <hr/>\n  <p><strong>Gross:</strong> {{currency}} {{gross_salary}} &nbsp; | &nbsp; <strong>Net Pay:</strong> {{currency}} {{net_salary}}</p>\n  <p><small>Generated on {{generated_at}}</small></p>\n</div>', '[\"company_name\", \"period\", \"employee_name\", \"employee_code\", \"department_name\", \"designation_name\", \"earnings_rows\", \"deductions_rows\", \"gross_salary\", \"net_salary\", \"currency\", \"generated_at\"]', 1, NULL, '2025-09-16 10:01:56', NULL, '2025-09-16 10:01:56');
 
 CREATE TABLE `performance` (
   `id` int(11) NOT NULL,
   `employee_id` int(11) NOT NULL,
   `evaluator_id` int(11) DEFAULT NULL,
+  `approved_by` int(11) DEFAULT NULL COMMENT 'User ID of the approver',
   `period` varchar(7) NOT NULL,
   `score` int(11) NOT NULL,
   `remarks` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `policies`
---
 
 CREATE TABLE `policies` (
   `id` int(11) NOT NULL,
@@ -578,36 +310,20 @@ CREATE TABLE `policies` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `roles`
---
-
 CREATE TABLE `roles` (
   `id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
   `description` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `roles`
---
-
 INSERT INTO `roles` (`id`, `name`, `description`) VALUES
-(1, 'Super Admin', 'System-wide administrator'),
-(2, 'Company Admin', 'Company-level administrator'),
-(3, 'HR Manager', 'Manages HR operations'),
+(1, 'Admin', 'System-wide administrator'),
+(2, 'Company Owner', 'Company-level administrator'),
+(3, 'Human Resource', 'Manages HR operations'),
 (4, 'Employee', 'Regular employee'),
 (5, 'Auditor', 'Read-only access for audits'),
 (6, 'Manager', 'Department Manager'),
-(7, 'candidate', 'This role is for the candidate who applies for job role in company');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `shifts`
---
+(7, 'Candidate', 'This role is for the candidate who applies for job role in company');
 
 CREATE TABLE `shifts` (
   `id` int(11) NOT NULL,
@@ -617,12 +333,6 @@ CREATE TABLE `shifts` (
   `end_time` time NOT NULL,
   `description` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `support_tickets`
---
 
 CREATE TABLE `support_tickets` (
   `id` int(11) NOT NULL,
@@ -635,12 +345,6 @@ CREATE TABLE `support_tickets` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `system_settings`
---
-
 CREATE TABLE `system_settings` (
   `id` int(11) NOT NULL,
   `setting_key` varchar(100) NOT NULL COMMENT 'Unique key for the setting',
@@ -651,10 +355,6 @@ CREATE TABLE `system_settings` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `system_settings`
---
-
 INSERT INTO `system_settings` (`id`, `setting_key`, `setting_value`, `description`, `updated_by`, `updated_at`, `created_at`) VALUES
 (1, 'site_name', 'StaffSync', 'Name of Our Application', 1, '2025-08-15 00:04:43', '2025-08-15 00:04:43'),
 (2, 'company_email', 'groupno9.it.@gmail.com', 'The default email for system notifications.', 1, '2025-08-15 00:04:43', '2025-08-15 00:04:43'),
@@ -662,15 +362,10 @@ INSERT INTO `system_settings` (`id`, `setting_key`, `setting_value`, `descriptio
 (6, 'maintenance_mode', '0', 'Temporarily disable access for non-admin users.', 1, '2025-12-24 13:14:31', '2025-08-15 00:19:12'),
 (7, 'Upload Size Limit', '5242880', 'Maximum File Upload Size.', NULL, '2025-08-15 00:21:14', '2025-08-15 00:21:14');
 
--- --------------------------------------------------------
-
---
--- Table structure for table `tasks`
---
-
 CREATE TABLE `tasks` (
   `id` int(11) NOT NULL,
   `employee_id` int(11) NOT NULL,
+  `team_id` int(11) DEFAULT NULL,
   `title` varchar(100) NOT NULL,
   `description` text DEFAULT NULL,
   `assigned_by` int(11) DEFAULT NULL,
@@ -678,12 +373,6 @@ CREATE TABLE `tasks` (
   `status` enum('pending','in_progress','completed','cancelled') DEFAULT 'pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `teams`
---
 
 CREATE TABLE `teams` (
   `id` int(11) NOT NULL,
@@ -696,12 +385,6 @@ CREATE TABLE `teams` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `team_members`
---
-
 CREATE TABLE `team_members` (
   `id` int(11) NOT NULL,
   `team_id` int(11) NOT NULL,
@@ -711,11 +394,20 @@ CREATE TABLE `team_members` (
   `assigned_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `todo_list`
---
+CREATE TABLE `team_performance` (
+  `id` int(11) NOT NULL,
+  `team_id` int(11) NOT NULL,
+  `period` varchar(7) NOT NULL,
+  `score` int(11) NOT NULL,
+  `collaboration_score` int(11) DEFAULT NULL,
+  `achievements` text DEFAULT NULL,
+  `challenges` text DEFAULT NULL,
+  `remarks` text DEFAULT NULL,
+  `evaluated_by` int(11) DEFAULT NULL,
+  `approved_by` int(11) DEFAULT NULL COMMENT 'User ID of the approver',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `todo_list` (
   `id` int(11) NOT NULL,
@@ -724,12 +416,6 @@ CREATE TABLE `todo_list` (
   `is_completed` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `users`
---
 
 CREATE TABLE `users` (
   `id` int(11) NOT NULL,
@@ -742,18 +428,8 @@ CREATE TABLE `users` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `users`
---
-
 INSERT INTO `users` (`id`, `company_id`, `role_id`, `username`, `email`, `password`, `status`, `created_at`) VALUES
-(1, NULL, 1, 'admin', 'super_admin@mail.com', '$2y$10$4oXGSu5Ip7f2oJFXksjqA.927pO76waLG1YCGuyiQNj6QMoqrJW/W', 'active', '2025-09-06 06:34:45');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `user_preferences`
---
+(1, NULL, 1, 'admin', 'admin@mail.com', '$2y$10$4oXGSu5Ip7f2oJFXksjqA.927pO76waLG1YCGuyiQNj6QMoqrJW/W', 'active', '2025-09-06 06:34:45');
 
 CREATE TABLE `user_preferences` (
   `id` int(11) NOT NULL,
@@ -764,93 +440,54 @@ CREATE TABLE `user_preferences` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Indexes for dumped tables
---
 
---
--- Indexes for table `activity_logs`
---
 ALTER TABLE `activity_logs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_user_id` (`user_id`);
 
---
--- Indexes for table `attendance`
---
 ALTER TABLE `attendance`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `unique_employee_date` (`employee_id`,`date`),
   ADD KEY `employee_id` (`employee_id`);
 
---
--- Indexes for table `audit_logs`
---
 ALTER TABLE `audit_logs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`);
 
---
--- Indexes for table `candidates`
---
 ALTER TABLE `candidates`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_candidates_user` (`user_id`);
 
---
--- Indexes for table `companies`
---
 ALTER TABLE `companies`
   ADD PRIMARY KEY (`id`);
 
---
--- Indexes for table `company_holiday_settings`
---
 ALTER TABLE `company_holiday_settings`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `company_id` (`company_id`);
 
---
--- Indexes for table `departments`
---
 ALTER TABLE `departments`
   ADD PRIMARY KEY (`id`),
   ADD KEY `company_id` (`company_id`);
 
---
--- Indexes for table `designations`
---
 ALTER TABLE `designations`
   ADD PRIMARY KEY (`id`),
   ADD KEY `department_id` (`department_id`);
 
---
--- Indexes for table `documents`
---
 ALTER TABLE `documents`
   ADD PRIMARY KEY (`id`);
 
---
--- Indexes for table `email_logs`
---
 ALTER TABLE `email_logs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_user_id` (`user_id`),
   ADD KEY `idx_template_id` (`template_id`),
   ADD KEY `idx_status` (`status`);
 
---
--- Indexes for table `email_templates`
---
 ALTER TABLE `email_templates`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `name` (`name`),
   ADD KEY `created_by` (`created_by`),
   ADD KEY `updated_by` (`updated_by`);
 
---
--- Indexes for table `employees`
---
 ALTER TABLE `employees`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `employee_code` (`employee_code`),
@@ -859,9 +496,6 @@ ALTER TABLE `employees`
   ADD KEY `designation_id` (`designation_id`),
   ADD KEY `shift_id` (`shift_id`);
 
---
--- Indexes for table `feedback`
---
 ALTER TABLE `feedback`
   ADD PRIMARY KEY (`id`),
   ADD KEY `employee_id` (`employee_id`),
@@ -871,86 +505,53 @@ ALTER TABLE `feedback`
   ADD KEY `idx_type` (`type`),
   ADD KEY `idx_status` (`status`);
 
---
--- Indexes for table `global_holidays`
---
 ALTER TABLE `global_holidays`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `holiday_date` (`holiday_date`);
 
---
--- Indexes for table `holidays`
---
 ALTER TABLE `holidays`
   ADD PRIMARY KEY (`id`),
   ADD KEY `company_id` (`company_id`);
 
---
--- Indexes for table `interviews`
---
 ALTER TABLE `interviews`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_interviews_candidate` (`candidate_id`),
   ADD KEY `fk_interviews_job` (`job_id`),
   ADD KEY `fk_interviews_interviewer` (`interviewer_id`);
 
---
--- Indexes for table `jobs`
---
 ALTER TABLE `jobs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_jobs_company` (`company_id`),
   ADD KEY `fk_jobs_department` (`department_id`);
 
---
--- Indexes for table `job_applications`
---
 ALTER TABLE `job_applications`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_job_applications_candidate` (`candidate_id`),
   ADD KEY `fk_job_applications_job` (`job_id`);
 
---
--- Indexes for table `leaves`
---
 ALTER TABLE `leaves`
   ADD PRIMARY KEY (`id`),
   ADD KEY `employee_id` (`employee_id`),
   ADD KEY `approved_by` (`approved_by`);
 
---
--- Indexes for table `leave_balances`
---
 ALTER TABLE `leave_balances`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `unique_employee_policy_year` (`employee_id`,`leave_policy_id`,`year`),
   ADD KEY `leave_policy_id` (`leave_policy_id`);
 
---
--- Indexes for table `leave_policies`
---
 ALTER TABLE `leave_policies`
   ADD PRIMARY KEY (`id`),
   ADD KEY `company_id` (`company_id`);
 
---
--- Indexes for table `notifications`
---
 ALTER TABLE `notifications`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_user_id` (`user_id`),
   ADD KEY `idx_is_read` (`is_read`);
 
---
--- Indexes for table `payroll`
---
 ALTER TABLE `payroll`
   ADD PRIMARY KEY (`id`),
   ADD KEY `employee_id` (`employee_id`);
 
---
--- Indexes for table `payslips`
---
 ALTER TABLE `payslips`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_company_id` (`company_id`),
@@ -960,9 +561,6 @@ ALTER TABLE `payslips`
   ADD KEY `idx_status` (`status`),
   ADD KEY `payslips_ibfk_generated_by` (`generated_by`);
 
---
--- Indexes for table `payslip_templates`
---
 ALTER TABLE `payslip_templates`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_company_id` (`company_id`),
@@ -970,70 +568,44 @@ ALTER TABLE `payslip_templates`
   ADD KEY `idx_created_by` (`created_by`),
   ADD KEY `idx_updated_by` (`updated_by`);
 
---
--- Indexes for table `performance`
---
 ALTER TABLE `performance`
   ADD PRIMARY KEY (`id`),
   ADD KEY `employee_id` (`employee_id`),
   ADD KEY `evaluator_id` (`evaluator_id`);
 
---
--- Indexes for table `policies`
---
 ALTER TABLE `policies`
   ADD PRIMARY KEY (`id`),
   ADD KEY `company_id` (`company_id`);
 
---
--- Indexes for table `roles`
---
 ALTER TABLE `roles`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `name` (`name`);
 
---
--- Indexes for table `shifts`
---
 ALTER TABLE `shifts`
   ADD PRIMARY KEY (`id`),
   ADD KEY `company_id` (`company_id`);
 
---
--- Indexes for table `support_tickets`
---
 ALTER TABLE `support_tickets`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`);
 
---
--- Indexes for table `system_settings`
---
 ALTER TABLE `system_settings`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `setting_key` (`setting_key`),
   ADD KEY `updated_by` (`updated_by`);
 
---
--- Indexes for table `tasks`
---
 ALTER TABLE `tasks`
   ADD PRIMARY KEY (`id`),
   ADD KEY `employee_id` (`employee_id`),
-  ADD KEY `assigned_by` (`assigned_by`);
+  ADD KEY `assigned_by` (`assigned_by`),
+  ADD KEY `fk_tasks_team_id` (`team_id`);
 
---
--- Indexes for table `teams`
---
 ALTER TABLE `teams`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_company_id` (`company_id`),
   ADD KEY `idx_created_by` (`created_by`),
   ADD KEY `idx_updated_by` (`updated_by`);
 
---
--- Indexes for table `team_members`
---
 ALTER TABLE `team_members`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `unique_team_employee` (`team_id`,`employee_id`),
@@ -1041,16 +613,16 @@ ALTER TABLE `team_members`
   ADD KEY `idx_employee_id` (`employee_id`),
   ADD KEY `idx_assigned_by` (`assigned_by`);
 
---
--- Indexes for table `todo_list`
---
+ALTER TABLE `team_performance`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `team_id` (`team_id`),
+  ADD KEY `evaluated_by` (`evaluated_by`),
+  ADD KEY `approved_by` (`approved_by`);
+
 ALTER TABLE `todo_list`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`);
 
---
--- Indexes for table `users`
---
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `username` (`username`),
@@ -1058,463 +630,253 @@ ALTER TABLE `users`
   ADD KEY `company_id` (`company_id`),
   ADD KEY `role_id` (`role_id`);
 
---
--- Indexes for table `user_preferences`
---
 ALTER TABLE `user_preferences`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `unique_user_preference` (`user_id`,`preference_key`),
   ADD KEY `idx_user_id` (`user_id`);
 
---
--- AUTO_INCREMENT for dumped tables
---
 
---
--- AUTO_INCREMENT for table `activity_logs`
---
 ALTER TABLE `activity_logs`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `attendance`
---
 ALTER TABLE `attendance`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `audit_logs`
---
 ALTER TABLE `audit_logs`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `candidates`
---
 ALTER TABLE `candidates`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `companies`
---
 ALTER TABLE `companies`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `company_holiday_settings`
---
 ALTER TABLE `company_holiday_settings`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `departments`
---
 ALTER TABLE `departments`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `designations`
---
 ALTER TABLE `designations`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `documents`
---
 ALTER TABLE `documents`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `email_logs`
---
 ALTER TABLE `email_logs`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `email_templates`
---
 ALTER TABLE `email_templates`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `employees`
---
 ALTER TABLE `employees`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `feedback`
---
 ALTER TABLE `feedback`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `global_holidays`
---
 ALTER TABLE `global_holidays`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=115;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `holidays`
---
 ALTER TABLE `holidays`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `interviews`
---
 ALTER TABLE `interviews`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `jobs`
---
 ALTER TABLE `jobs`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `job_applications`
---
 ALTER TABLE `job_applications`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `leaves`
---
 ALTER TABLE `leaves`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `leave_balances`
---
 ALTER TABLE `leave_balances`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `leave_policies`
---
 ALTER TABLE `leave_policies`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `notifications`
---
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `payroll`
---
 ALTER TABLE `payroll`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `payslips`
---
 ALTER TABLE `payslips`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `payslip_templates`
---
 ALTER TABLE `payslip_templates`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
---
--- AUTO_INCREMENT for table `performance`
---
 ALTER TABLE `performance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
---
--- AUTO_INCREMENT for table `policies`
---
 ALTER TABLE `policies`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `roles`
---
 ALTER TABLE `roles`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
---
--- AUTO_INCREMENT for table `shifts`
---
 ALTER TABLE `shifts`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `support_tickets`
---
 ALTER TABLE `support_tickets`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `system_settings`
---
 ALTER TABLE `system_settings`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
---
--- AUTO_INCREMENT for table `tasks`
---
 ALTER TABLE `tasks`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `teams`
---
 ALTER TABLE `teams`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `team_members`
---
 ALTER TABLE `team_members`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `todo_list`
---
+ALTER TABLE `team_performance`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 ALTER TABLE `todo_list`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `users`
---
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
---
--- AUTO_INCREMENT for table `user_preferences`
---
 ALTER TABLE `user_preferences`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
---
--- Constraints for dumped tables
---
 
---
--- Constraints for table `activity_logs`
---
 ALTER TABLE `activity_logs`
   ADD CONSTRAINT `activity_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `attendance`
---
 ALTER TABLE `attendance`
   ADD CONSTRAINT `attendance_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `audit_logs`
---
 ALTER TABLE `audit_logs`
   ADD CONSTRAINT `audit_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `candidates`
---
 ALTER TABLE `candidates`
   ADD CONSTRAINT `fk_candidates_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `company_holiday_settings`
---
 ALTER TABLE `company_holiday_settings`
   ADD CONSTRAINT `company_holiday_settings_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `departments`
---
 ALTER TABLE `departments`
   ADD CONSTRAINT `departments_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `designations`
---
 ALTER TABLE `designations`
   ADD CONSTRAINT `designations_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `email_logs`
---
 ALTER TABLE `email_logs`
   ADD CONSTRAINT `email_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `email_logs_ibfk_2` FOREIGN KEY (`template_id`) REFERENCES `email_templates` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `email_templates`
---
 ALTER TABLE `email_templates`
   ADD CONSTRAINT `email_templates_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `email_templates_ibfk_2` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `employees`
---
 ALTER TABLE `employees`
   ADD CONSTRAINT `employees_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `employees_ibfk_2` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `employees_ibfk_3` FOREIGN KEY (`designation_id`) REFERENCES `designations` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `employees_ibfk_4` FOREIGN KEY (`shift_id`) REFERENCES `shifts` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `feedback`
---
 ALTER TABLE `feedback`
   ADD CONSTRAINT `feedback_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `feedback_ibfk_2` FOREIGN KEY (`submitted_by`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `holidays`
---
 ALTER TABLE `holidays`
   ADD CONSTRAINT `holidays_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `interviews`
---
 ALTER TABLE `interviews`
   ADD CONSTRAINT `fk_interviews_candidate` FOREIGN KEY (`candidate_id`) REFERENCES `candidates` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_interviews_interviewer` FOREIGN KEY (`interviewer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_interviews_job` FOREIGN KEY (`job_id`) REFERENCES `jobs` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `jobs`
---
 ALTER TABLE `jobs`
   ADD CONSTRAINT `fk_jobs_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_jobs_department` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `job_applications`
---
 ALTER TABLE `job_applications`
   ADD CONSTRAINT `fk_job_applications_candidate` FOREIGN KEY (`candidate_id`) REFERENCES `candidates` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_job_applications_job` FOREIGN KEY (`job_id`) REFERENCES `jobs` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `leaves`
---
 ALTER TABLE `leaves`
   ADD CONSTRAINT `leaves_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `leaves_ibfk_2` FOREIGN KEY (`approved_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `leave_balances`
---
 ALTER TABLE `leave_balances`
   ADD CONSTRAINT `leave_balances_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `leave_balances_ibfk_2` FOREIGN KEY (`leave_policy_id`) REFERENCES `leave_policies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `leave_policies`
---
 ALTER TABLE `leave_policies`
   ADD CONSTRAINT `leave_policies_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `notifications`
---
 ALTER TABLE `notifications`
   ADD CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `payroll`
---
 ALTER TABLE `payroll`
   ADD CONSTRAINT `payroll_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `payslips`
---
 ALTER TABLE `payslips`
   ADD CONSTRAINT `payslips_ibfk_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `payslips_ibfk_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `payslips_ibfk_generated_by` FOREIGN KEY (`generated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `payslips_ibfk_template` FOREIGN KEY (`template_id`) REFERENCES `payslip_templates` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `payslip_templates`
---
 ALTER TABLE `payslip_templates`
   ADD CONSTRAINT `payslip_templates_ibfk_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `payslip_templates_ibfk_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `payslip_templates_ibfk_updated_by` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `performance`
---
 ALTER TABLE `performance`
   ADD CONSTRAINT `performance_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `performance_ibfk_2` FOREIGN KEY (`evaluator_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `policies`
---
 ALTER TABLE `policies`
   ADD CONSTRAINT `policies_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `shifts`
---
 ALTER TABLE `shifts`
   ADD CONSTRAINT `shifts_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `support_tickets`
---
 ALTER TABLE `support_tickets`
   ADD CONSTRAINT `support_tickets_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `system_settings`
---
 ALTER TABLE `system_settings`
   ADD CONSTRAINT `system_settings_ibfk_1` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `tasks`
---
 ALTER TABLE `tasks`
+  ADD CONSTRAINT `fk_tasks_team_id` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `tasks_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `tasks_ibfk_2` FOREIGN KEY (`assigned_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `teams`
---
 ALTER TABLE `teams`
   ADD CONSTRAINT `teams_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `teams_ibfk_2` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `teams_ibfk_3` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `team_members`
---
 ALTER TABLE `team_members`
   ADD CONSTRAINT `team_members_ibfk_1` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `team_members_ibfk_2` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `team_members_ibfk_3` FOREIGN KEY (`assigned_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `todo_list`
---
+ALTER TABLE `team_performance`
+  ADD CONSTRAINT `team_performance_ibfk_1` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `team_performance_ibfk_2` FOREIGN KEY (`evaluated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `team_performance_ibfk_3` FOREIGN KEY (`approved_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
 ALTER TABLE `todo_list`
   ADD CONSTRAINT `todo_list_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `users`
---
 ALTER TABLE `users`
   ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `users_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
 
---
--- Constraints for table `user_preferences`
---
 ALTER TABLE `user_preferences`
   ADD CONSTRAINT `user_preferences_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
