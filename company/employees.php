@@ -2,15 +2,12 @@
 require_once '../config/db.php';
 require_once '../includes/functions.php';
 $title = "Employee Management";
-
-// --- SECURITY & SESSION ---
-if (!isLoggedIn() || !in_array($_SESSION['role_id'], [2, 3,])) { // Company Admin or HR Manager
+if (!isLoggedIn() || !in_array($_SESSION['role_id'], [2, 3,])) { 
     redirect("/hrms/pages/unauthorized.php");
 }
 $company_id = $_SESSION['company_id'];
 $is_c_admin = $_SESSION['role_id'] === 2;
 
-// --- INITIAL DATA FETCHING for MODAL DROPDOWNS ---
 $all_users = query($mysqli, "SELECT id, username FROM users WHERE company_id = ? AND id != ? ORDER BY username ASC", [$company_id, $_SESSION['user_id']])['data'] ?? [];
 $departments = query($mysqli, "SELECT id, name FROM departments WHERE company_id = ? ORDER BY name ASC", [$company_id])['data'] ?? [];
 $shifts = query($mysqli, "SELECT id, name, start_time, end_time FROM shifts WHERE company_id = ? ORDER BY name ASC", [$company_id])['data'] ?? [];
@@ -183,8 +180,15 @@ require_once '../components/layout/header.php';
         employeeModal = new bootstrap.Modal('#employeeModal');
         createUserModal = new bootstrap.Modal('#createUserModal');
 
+        // Show skeleton
+        SkeletonFactory.showTable('employeesTable', 5, 6);
+
         employeesTable = $('#employeesTable').DataTable({
-            bautoWidth: false,
+            autoWidth: false,
+            initComplete: function () {
+                SkeletonFactory.hideTable('employeesTable');
+                toggleEmptyState();
+            },
 
             responsive: true,
             processing: true,
@@ -208,19 +212,18 @@ require_once '../components/layout/header.php';
                 },
                 { data: 'status', render: (d) => `<span class="badge bg-${d === 'active' ? 'success-subtle text-success-emphasis' : 'danger-subtle text-danger-emphasis'}">${capitalize(d)}</span>` },
                 {
-                    data: null, orderable: false, render: (d, t, r) => {
-                        return createActionDropdown(
-                            {
-                                onEdit: () => prepareEditModal(r),
-                                <?php if ($is_c_admin): ?>
-                                                     onDelete: () => deleteEmployee(r.id)
-                                <?php endif; ?>
-                            },
-                            {
-                                editTooltip: 'Edit',
-                                deleteTooltip: 'Delete'
-                            }
-                        );
+                    data: null,
+                    orderable: false,
+                    render: (d, t, r) => {
+                        const actions = { onEdit: () => prepareEditModal(r) };
+                        <?php if ($is_c_admin): ?>
+                        actions.onDelete = () => deleteEmployee(r.id);
+                        <?php endif; ?>
+
+                        return createActionDropdown(actions, {
+                            editTooltip: 'Edit',
+                            deleteTooltip: 'Delete'
+                        });
                     }
                 }
             ],
@@ -233,7 +236,9 @@ require_once '../components/layout/header.php';
                     }
                 });
             }
-        }); $('#employeeForm').on('submit', handleEmployeeFormSubmit);
+        });
+
+        $('#employeeForm').on('submit', handleEmployeeFormSubmit);
         $('#createUserForm').on('submit', handleCreateUserFormSubmit);
         $('#checkUsernameBtn').on('click', checkUsernameAvailability);
 
@@ -252,6 +257,9 @@ require_once '../components/layout/header.php';
      * Toggle empty state visibility based on table data
      */
     function toggleEmptyState() {
+        // If skeleton is still visible, skip toggling to prevent both showing
+        if (document.getElementById('employeesTable-skeleton')) return;
+
         const rowCount = employeesTable.rows().count();
         const emptyState = $('#emptyState');
         const tableResponsive = $('.table-responsive');
@@ -483,6 +491,9 @@ require_once '../components/layout/header.php';
         }
         formData.delete('user_id_select');
 
+        const submitBtn = $(this).find('button[type="submit"]');
+        const restoreBtn = UIController.showButtonLoading(submitBtn[0], 'Saving...');
+
         fetch('/hrms/api/api_employees.php', { method: 'POST', body: formData })
             .then(res => res.json()).then(data => {
                 if (data.success) {
@@ -495,7 +506,8 @@ require_once '../components/layout/header.php';
             .catch(error => {
                 console.error('Error:', error);
                 showToast('An error occurred while saving the employee.', 'error');
-            });
+            })
+            .finally(() => restoreBtn());
     }
 
     /**
@@ -603,6 +615,9 @@ require_once '../components/layout/header.php';
             return;
         }
 
+        const submitBtn = $(this).find('button[type="submit"]');
+        const restoreBtn = UIController.showButtonLoading(submitBtn[0], 'Creating...');
+
         fetch('/hrms/api/api_company_users.php', { method: 'POST', body: new FormData(this) })
             .then(res => res.json()).then(data => {
                 if (data.success) {
@@ -616,7 +631,8 @@ require_once '../components/layout/header.php';
                     const newOption = new Option(newUser.username, newUser.id, true, true);
                     $('#userIdSelect').append(newOption).trigger('change');
                 } else { showToast(data.message, 'error'); }
-            });
+            })
+            .finally(() => restoreBtn());
     }
 
     function prepareAddModal() {

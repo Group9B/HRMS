@@ -61,6 +61,34 @@ switch ($action) {
         ];
         break;
 
+    case 'get_recent_feedback':
+        // Get recent feedback for manager/HR/Owner
+        if (in_array($role_id, [2, 3, 6])) {
+            // Get department_id for the current user (if manager)
+            $dept_result = query($mysqli, "SELECT department_id FROM employees WHERE user_id = ?", [$user_id]);
+            $department_id = $dept_result['success'] && !empty($dept_result['data']) ? $dept_result['data'][0]['department_id'] : 0;
+
+            // For now, logic replicates the original PHP page logic: filter by department for everyone? 
+            // The original code used $department_id which came from the logged in user's employee record.
+            // "WHERE f.status = 'pending' AND e.department_id = ?"
+            // This implies even HR/Owner only see feedback for their 'assigned' department (which might be 0 or specific).
+            // We will stick to the exact same logic.
+
+            $recent_feedback = query($mysqli, "
+                SELECT f.*, e.first_name, e.last_name
+                FROM feedback f
+                JOIN employees e ON f.employee_id = e.id
+                WHERE f.status = 'pending' AND e.department_id = ?
+                ORDER BY f.created_at DESC
+                LIMIT 5
+            ", [$department_id])['data'] ?? [];
+
+            $response = ['success' => true, 'data' => $recent_feedback];
+        } else {
+            $response = ['success' => true, 'data' => []];
+        }
+        break;
+
     case 'mark_read':
         $notification_id = (int) ($_POST['notification_id'] ?? 0);
 

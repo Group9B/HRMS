@@ -17,21 +17,42 @@ $user_id = $_SESSION['user_id'];
 
 switch ($action) {
     case 'get_profile_data':
-        // This single, efficient query fetches all necessary data for the profile page
+        $targetUserId = $user_id; // Default to current user
+        $targetEmployeeId = null;
+
+        if (isset($_REQUEST['emp_id'])) {
+            $targetEmployeeId = (int) $_REQUEST['emp_id'];
+        }
+
+        // Prepare query
+        // We need to handle lookup by employee_id (if provided) or user_id (default)
+        $whereClause = "e.user_id = ?";
+        $params = [$targetUserId];
+
+        if ($targetEmployeeId) {
+            $whereClause = "e.id = ?";
+            $params = [$targetEmployeeId];
+        }
+
         $sql = "
             SELECT 
                 e.*, 
                 u.username, 
                 u.email,
+                u.id as user_id,
                 d.name as department_name,
-                des.name as designation_name
+                des.name as designation_name,
+                s.name as shift_name,
+                s.start_time,
+                s.end_time
             FROM employees e
             JOIN users u ON e.user_id = u.id
             LEFT JOIN departments d ON e.department_id = d.id
             LEFT JOIN designations des ON e.designation_id = des.id
-            WHERE e.user_id = ?
+            LEFT JOIN shifts s ON e.shift_id = s.id
+            WHERE $whereClause
         ";
-        $result = query($mysqli, $sql, [$user_id]);
+        $result = query($mysqli, $sql, $params);
 
         if ($result['success'] && !empty($result['data'])) {
             $response = ['success' => true, 'data' => $result['data'][0]];

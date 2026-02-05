@@ -557,7 +557,7 @@ switch ($action) {
         // Get all payslips for the employee
         $sql = "
             SELECT p.*, e.first_name, e.last_name, e.employee_code
-            FROM payroll p
+            FROM payslips p
             JOIN employees e ON p.employee_id = e.id
             WHERE p.employee_id = ?
             ORDER BY p.period DESC

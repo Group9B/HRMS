@@ -28,7 +28,7 @@ require_once '../components/layout/header.php';
                 </h2>
                 <div id="statsCollapse" class="accordion-collapse collapse" data-bs-parent="#dashboardAccordion">
                     <div class="accordion-body">
-                        <div class="row">
+                        <div class="row" id="dashboardStatsRow">
                             <div class="col-xl-3 col-md-6 mb-3">
                                 <div class="card shadow-sm bg-primary-subtle">
                                     <div class="card-body">
@@ -110,7 +110,7 @@ require_once '../components/layout/header.php';
                                     <div class="card-header">
                                         <h6 class="m-0 font-weight-bold">Applications by Status</h6>
                                     </div>
-                                    <div class="card-body" style="height: 300px;">
+                                    <div class="card-body" id="appStatusChartBody" style="height: 300px;">
                                         <canvas id="applicationStatusChart"></canvas>
                                     </div>
                                 </div>
@@ -120,7 +120,7 @@ require_once '../components/layout/header.php';
                                     <div class="card-header">
                                         <h6 class="m-0 font-weight-bold">Job Status Overview</h6>
                                     </div>
-                                    <div class="card-body" style="height: 300px;">
+                                    <div class="card-body" id="jobStatusChartBody" style="height: 300px;">
                                         <canvas id="jobStatusChart"></canvas>
                                     </div>
                                 </div>
@@ -434,9 +434,15 @@ require_once '../components/layout/header.php';
         loadShortlistedCandidates();
         loadScheduledInterviews();
 
+        // Show skeleton loading
+        SkeletonFactory.showTable('jobsTable', 5, 6);
+
         tables.jobs = $('#jobsTable').DataTable({
             ajax: { url: '/hrms/api/api_recruitment.php?action=get_jobs', dataSrc: 'data' },
             responsive: true,
+            initComplete: function () {
+                SkeletonFactory.hideTable('jobsTable');
+            },
             columns: [
                 { data: 'title' }, { data: 'department_name', defaultContent: 'N/A' },
                 { data: 'location', defaultContent: 'N/A' },
@@ -483,10 +489,27 @@ require_once '../components/layout/header.php';
     let jobStatusChartInstance = null;
 
     function loadDashboardData() {
+        const container = '#dashboardStatsRow';
+        const chart1Body = '#appStatusChartBody';
+        const chart2Body = '#jobStatusChartBody';
+
+        // Show skeleton loading state
+        SkeletonFactory.show(container, 'stat-card', 4);
+        SkeletonFactory.replace(chart1Body, 'rect', { size: 'sk-rect-xl', animation: 'pulse' });
+        SkeletonFactory.replace(chart2Body, 'rect', { size: 'sk-rect-xl', animation: 'pulse' });
+
         fetch('/hrms/api/api_recruitment.php?action=get_dashboard_stats')
             .then(res => res.json())
-            .then(result => {
+            .then(async result => {
                 console.log('Dashboard stats:', result);
+
+                // Wait for minimum duration then hide skeletons (restores original HTML)
+                await Promise.all([
+                    SkeletonFactory.hide(container),
+                    SkeletonFactory.restore(chart1Body),
+                    SkeletonFactory.restore(chart2Body)
+                ]);
+
                 if (result.success) {
                     const stats = result.data;
                     $('#totalJobs').text(stats.total_jobs || 0);
@@ -564,31 +587,41 @@ require_once '../components/layout/header.php';
                     console.error('Failed to load dashboard stats:', result.message);
                 }
             })
-            .catch(err => console.error('Error loading dashboard:', err));
+            .catch(async err => {
+                console.error('Error loading dashboard:', err);
+                await Promise.all([
+                    SkeletonFactory.hide(container),
+                    SkeletonFactory.hide(chart1Body),
+                    SkeletonFactory.hide(chart2Body)
+                ]);
+            });
     }
 
     function loadShortlistedCandidates() {
+        $('#shortlistedAccordionItem').show();
+        SkeletonFactory.showTable('shortlistedTable', 3, 4);
+
         fetch('/hrms/api/api_recruitment.php?action=get_shortlisted_candidates')
             .then(res => res.json())
-            .then(result => {
+            .then(async result => {
+                await SkeletonFactory.hideTable('shortlistedTable');
                 if (result.success && result.data.length > 0) {
                     $('#shortlistedAccordionItem').show();
-                    if (!$.fn.DataTable.isDataTable('#shortlistedTable')) {
-                        $('#shortlistedTable').DataTable({
-                            data: result.data,
-                            columns: [
-                                { data: null, render: (d, t, r) => `<strong>${r.first_name} ${r.last_name}</strong><br><small>${r.email}</small>` },
-                                { data: 'phone', defaultContent: 'N/A' },
-                                { data: 'job_title', defaultContent: 'N/A' },
-                                { data: 'applied_at', render: d => new Date(d).toLocaleDateString() },
-                                {
-                                    data: null, orderable: false, render: (d, t, r) =>
-                                        `<button class="btn btn-sm btn-primary" onclick='prepareInterviewModal(${r.application_id}, "${r.first_name} ${r.last_name}")'>Schedule Interview</button>`
-                                }
-                            ],
-                            destroy: true
-                        });
-                    }
+                    $('#shortlistedAccordionItem').show();
+                    $('#shortlistedTable').DataTable({
+                        data: result.data,
+                        columns: [
+                            { data: null, render: (d, t, r) => `<strong>${r.first_name} ${r.last_name}</strong><br><small>${r.email}</small>` },
+                            { data: 'phone', defaultContent: 'N/A' },
+                            { data: 'job_title', defaultContent: 'N/A' },
+                            { data: 'applied_at', render: d => new Date(d).toLocaleDateString() },
+                            {
+                                data: null, orderable: false, render: (d, t, r) =>
+                                    `<button class="btn btn-sm btn-primary" onclick='prepareInterviewModal(${r.application_id}, "${r.first_name} ${r.last_name}")'>Schedule Interview</button>`
+                            }
+                        ],
+                        destroy: true
+                    });
                 } else {
                     $('#shortlistedAccordionItem').hide();
                 }
@@ -596,40 +629,52 @@ require_once '../components/layout/header.php';
     }
 
     function loadScheduledInterviews() {
+        $('#interviewsAccordionItem').show();
+        SkeletonFactory.showTable('interviewsTable', 3, 6);
+
         fetch('/hrms/api/api_recruitment.php?action=get_scheduled_interviews')
             .then(res => res.json())
-            .then(result => {
+            .then(async result => {
+                await SkeletonFactory.hideTable('interviewsTable');
                 console.log('Scheduled interviews:', result);
                 if (result.success && result.data.length > 0) {
                     $('#interviewsAccordionItem').show();
-                    if (!$.fn.DataTable.isDataTable('#interviewsTable')) {
-                        $('#interviewsTable').DataTable({
-                            data: result.data,
-                            columns: [
-                                { data: null, render: (d, t, r) => `<strong>${r.first_name} ${r.last_name}</strong><br><small>${r.email}</small>` },
-                                { data: 'job_title', defaultContent: 'N/A' },
-                                { data: 'interview_date', render: d => new Date(d).toLocaleString() },
-                                { data: 'mode', render: d => `<span class="badge ${d === 'online' ? 'bg-info' : 'bg-secondary'}">${capitalize(d)}</span>` },
-                                { data: null, render: (d, t, r) => `${r.interviewer_first_name} ${r.interviewer_last_name}` },
-                                {
-                                    data: null, orderable: false, className: 'text-end', render: (d, t, r) => {
-                                        return `<div class="btn-group btn-group-sm" role="group">
-                                            <button type="button" class="btn btn-outline-primary" onclick='markInterviewComplete(${r.interview_id}, "${r.first_name} ${r.last_name}")' title="Mark as Completed">
-                                                <i class="ti ti-check"></i> Complete
-                                            </button>
-                                            <button type="button" class="btn btn-outline-warning" onclick='rescheduleInterview(${r.interview_id})' title="Reschedule">
-                                                <i class="ti ti-calendar"></i> Reschedule
-                                            </button>
-                                            <button type="button" class="btn btn-outline-danger" onclick='cancelInterview(${r.interview_id})' title="Cancel">
-                                                <i class="ti ti-x"></i> Cancel
-                                            </button>
-                                        </div>`;
+                    $('#interviewsAccordionItem').show();
+                    $('#interviewsTable').DataTable({
+                        data: result.data,
+                        columns: [
+                            { data: null, render: (d, t, r) => `<strong>${r.first_name} ${r.last_name}</strong><br><small>${r.email}</small>` },
+                            { data: 'job_title', defaultContent: 'N/A' },
+                            { data: 'interview_date', render: d => new Date(d).toLocaleString() },
+                            { data: 'mode', render: d => `<span class="badge ${d === 'online' ? 'bg-info' : 'bg-secondary'}">${capitalize(d)}</span>` },
+                            {
+                                data: 'status',
+                                render: d => d === 'completed'
+                                    ? '<span class="badge bg-success">Completed</span>'
+                                    : '<span class="badge bg-warning">Scheduled</span>'
+                            },
+                            { data: null, render: (d, t, r) => `${r.interviewer_first_name} ${r.interviewer_last_name}` },
+                            {
+                                data: null, orderable: false, className: 'text-end', render: (d, t, r) => {
+                                    if (r.status === 'completed') {
+                                        return '<button class="btn btn-sm btn-outline-secondary" disabled><i class="ti ti-check"></i> Done</button>';
                                     }
+                                    return `<div class="btn-group btn-group-sm" role="group">
+                                        <button type="button" class="btn btn-outline-primary" onclick='markInterviewComplete(${r.interview_id}, "${r.first_name} ${r.last_name}")' title="Mark as Completed">
+                                            <i class="ti ti-check"></i> Complete
+                                        </button>
+                                        <button type="button" class="btn btn-outline-warning" onclick='rescheduleInterview(${r.interview_id})' title="Reschedule">
+                                            <i class="ti ti-calendar"></i> Reschedule
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger" onclick='cancelInterview(${r.interview_id})' title="Cancel">
+                                            <i class="ti ti-x"></i> Cancel
+                                        </button>
+                                    </div>`;
                                 }
-                            ],
-                            destroy: true
-                        });
-                    }
+                            }
+                        ],
+                        destroy: true
+                    });
                 } else {
                     $('#interviewsAccordionItem').hide();
                 }
@@ -844,11 +889,20 @@ require_once '../components/layout/header.php';
 
     function viewApplicants(jobId, jobTitle) {
         $('#applicantsModalLabel').text(`Applicants for: ${jobTitle}`);
+
+        // Show skeleton
+        SkeletonFactory.showTable('applicantsTable', 5, 5);
+
         if ($.fn.DataTable.isDataTable('#applicantsTable')) {
-            tables.applicants.ajax.url(`/hrms/api/api_recruitment.php?action=get_applications&job_id=${jobId}`).load();
+            tables.applicants.ajax.url(`/hrms/api/api_recruitment.php?action=get_applications&job_id=${jobId}`).load(() => {
+                SkeletonFactory.hideTable('applicantsTable');
+            });
         } else {
             tables.applicants = $('#applicantsTable').DataTable({
                 ajax: { url: `/hrms/api/api_recruitment.php?action=get_applications&job_id=${jobId}`, dataSrc: 'data' },
+                initComplete: function () {
+                    SkeletonFactory.hideTable('applicantsTable');
+                },
                 columns: [
                     { data: null, render: (d, t, r) => `<strong>${r.first_name} ${r.last_name}</strong><br><small>${r.email}</small>` },
                     { data: 'phone', defaultContent: 'N/A' },

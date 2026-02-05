@@ -417,8 +417,14 @@ require_once '../components/layout/header.php';
         function initTableForType(type) {
             if (tables[type]) return; // Already initialized
 
+            SkeletonFactory.showTable(`${type}sTable`, 5, 4);
+
             const columns = getTableColumns(type);
             tables[type] = $(`#${type}sTable`).DataTable({
+                initComplete: function () {
+                    SkeletonFactory.hideTable(`${type}sTable`);
+                    this.api().columns.adjust();
+                },
                 responsive: true,
                 autoWidth: false,
                 ajax: { url: `/hrms/api/organization.php?action=get_${type}s`, dataSrc: 'data' },
@@ -725,6 +731,9 @@ require_once '../components/layout/header.php';
                 form.find('[name="end_time"]').val(end24);
             }
 
+            const submitBtn = form.find('button[type="submit"]');
+            const restoreBtn = UIController.showButtonLoading(submitBtn[0], 'Saving...');
+
             fetch('/hrms/api/organization.php', { method: 'POST', body: new FormData(this) })
                 .then(res => res.json()).then(data => {
                     if (data.success) {
@@ -732,17 +741,22 @@ require_once '../components/layout/header.php';
                         modals.org.hide();
                         if (type === 'department') {
                             refreshDepartments();
-                            tables.designation.ajax.reload();
+                            // If designation table is initialized, reload it
+                            if (tables.designation) tables.designation.ajax.reload();
                         }
-                        Object.values(tables).forEach(table => table.ajax.reload());
+                        // Reload current table
+                        if (tables[type]) tables[type].ajax.reload();
                     } else { showToast(data.message, 'error'); }
-                });
+                })
+                .finally(() => restoreBtn());
         }
 
         function deleteItem(type, id) {
             showConfirmationModal(
                 `Are you sure you want to delete this ${type}?`,
                 () => {
+                    // We don't have a specific button element here to show loading on, so we just show toast/loader if needed.
+                    // But typically showConfirmationModal handles the UI.
                     const formData = new FormData();
                     formData.append('action', `delete_${type}`);
                     formData.append('id', id);
@@ -750,10 +764,10 @@ require_once '../components/layout/header.php';
                         .then(res => res.json()).then(data => {
                             if (data.success) {
                                 showToast(data.message, 'success');
-                                tables[type].ajax.reload();
+                                if (tables[type]) tables[type].ajax.reload();
                                 if (type === 'department') {
                                     refreshDepartments();
-                                    tables.designation.ajax.reload();
+                                    if (tables.designation) tables.designation.ajax.reload();
                                 }
                             } else { showToast(data.message, 'error'); }
                         });
