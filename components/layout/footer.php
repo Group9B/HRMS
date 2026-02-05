@@ -6,6 +6,8 @@
 <script src="/hrms/assets/js/datatable_responsive.js"></script>
 <script src="/hrms/assets/js/datatable_bootstrap_responsive.js"></script>
 <script src="/hrms/assets/js/chart.js"></script>
+<script src="/hrms/assets/js/skeleton-factory.js"></script>
+<script src="/hrms/assets/js/ui-controller.js"></script>
 <script src="/hrms/assets/js/main.js"></script>
 <script src="/hrms/assets/js/notifications.js"></script>
 <?php

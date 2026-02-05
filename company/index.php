@@ -14,74 +14,7 @@ if ($_SESSION['role_id'] !== 2) {
 // Get the company_id from the logged-in user's session
 $company_id = $_SESSION['company_id'];
 
-// --- DATA FETCHING (Scoped to the Company Admin's Company) ---
-
-// Stat Card: Total Employees
-$employees_result = query($mysqli, "SELECT COUNT(e.id) as count FROM employees e JOIN departments d ON e.department_id = d.id WHERE d.company_id = ? AND e.status = 'active'", [$company_id]);
-$total_employees = $employees_result['success'] ? $employees_result['data'][0]['count'] : 0;
-
-// Stat Card: Total Departments
-$departments_result = query($mysqli, "SELECT COUNT(id) as count FROM departments WHERE company_id = ?", [$company_id]);
-$total_departments = $departments_result['success'] ? $departments_result['data'][0]['count'] : 0;
-
-// Stat Card: Pending Leave Requests
-$pending_leaves_result = query($mysqli, "SELECT COUNT(l.id) as count FROM leaves l JOIN employees e ON l.employee_id = e.id JOIN departments d ON e.department_id = d.id WHERE d.company_id = ? AND l.status = 'pending'", [$company_id]);
-$pending_leaves = $pending_leaves_result['success'] ? $pending_leaves_result['data'][0]['count'] : 0;
-
-
-// Stat Card: Employees on Leave Today
-$today = date('Y-m-d');
-$on_leave_query = "
-    SELECT COUNT(a.id) as count 
-    FROM attendance a 
-    JOIN employees e ON a.employee_id = e.id 
-    JOIN departments d ON e.department_id = d.id 
-    WHERE a.date = ? AND a.status = 'leave' AND d.company_id = ?
-";
-$on_leave_result = query($mysqli, $on_leave_query, [$today, $company_id]);
-$on_leave_today = $on_leave_result['success'] ? $on_leave_result['data'][0]['count'] : 0;
-
-// Recent Hires List
-$recent_hires_query = "
-    SELECT e.first_name, e.last_name, e.date_of_joining, des.name as designation_name
-    FROM employees e
-    JOIN departments d ON e.department_id = d.id
-    LEFT JOIN designations des ON e.designation_id = des.id
-    WHERE d.company_id = ?
-    ORDER BY e.date_of_joining DESC
-    LIMIT 5
-";
-$recent_hires_result = query($mysqli, $recent_hires_query, [$company_id]);
-$recent_hires = $recent_hires_result['success'] ? $recent_hires_result['data'] : [];
-
-// Chart Data: New hires in the last 3 months
-$hires_chart_query = "
-    SELECT DATE_FORMAT(e.date_of_joining, '%b %Y') AS month, COUNT(e.id) AS hires_count
-    FROM employees e
-    JOIN departments d ON e.department_id = d.id
-    WHERE d.company_id = ? AND e.date_of_joining >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
-    GROUP BY month
-    ORDER BY e.date_of_joining ASC
-";
-$hires_chart_result = query($mysqli, $hires_chart_query, [$company_id]);
-$chart_labels = [];
-$chart_data = [];
-if ($hires_chart_result['success']) {
-    foreach ($hires_chart_result['data'] as $row) {
-        $chart_labels[] = $row['month'];
-        $chart_data[] = $row['hires_count'];
-    }
-}
-
 // --- UI Component Data ---
-
-// Define the stat cards
-$stat_cards = [
-    ['label' => 'Active Employees', 'value' => $total_employees, 'icon' => 'users', 'color' => 'primary'],
-    ['label' => 'Departments', 'value' => $total_departments, 'icon' => 'sitemap', 'color' => 'info'],
-    ['label' => 'Pending Leaves', 'value' => $pending_leaves, 'icon' => 'hourglass-empty', 'color' => 'danger'],
-    ['label' => 'On Leave Today', 'value' => $on_leave_today, 'icon' => 'user-clock', 'color' => 'warning']
-];
 
 // Define the quick actions
 $quick_actions = [
@@ -111,40 +44,13 @@ require_once '../components/layout/header.php';
                             Employee</a>
                     </div>
                     <div class="card-body">
-                        <?php if (empty($chart_data)): ?>
-                            <div class="text-center text-muted p-5">
-                                <i class="ti ti-chart-line"
-                                    style="font-size: 3rem; opacity: 0.3; display: block; margin-bottom: 1rem;"></i>
-                                <p>No hiring data available yet.</p>
-                                <a href="employees.php" class="btn btn-primary btn-sm">Start Adding Employees</a>
-                            </div>
-                        <?php else: ?>
-                            <div class="mb-4" style="position: relative; height:250px">
-                                <canvas id="hiresChart"></canvas>
-                            </div>
-                            <hr>
-                            <div class="recent-companies-list">
-                                <?php if (!empty($recent_hires)): ?>
-                                    <?php foreach ($recent_hires as $hire): ?>
-                                        <div class="list-item">
-                                            <div>
-                                                <div class="company-name">
-                                                    <?= htmlspecialchars(ucwords($hire['first_name'] . ' ' . $hire['last_name'])); ?>
-                                                </div>
-                                                <div class="user-count text-muted">
-                                                    <?= htmlspecialchars($hire['designation_name'] ?? 'N/A'); ?>
-                                                </div>
-                                            </div>
-                                            <div class="created-at text-muted">
-                                                Hired on <?= date('F j, Y', strtotime($hire['date_of_joining'])); ?>
-                                            </div>
-                                        </div>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <div class="text-center text-muted p-4">No recent hires to display.</div>
-                                <?php endif; ?>
-                            </div>
-                        <?php endif; ?>
+                        <div class="mb-4" id="hiresChartParent" style="position: relative; height:250px">
+                            <canvas id="hiresChart"></canvas>
+                        </div>
+                        <hr>
+                        <div class="recent-companies-list" id="recentHiresList">
+                            <!-- List items will be rendered here -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -163,29 +69,71 @@ require_once '../components/layout/header.php';
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Render stat cards using modular function
-        const stats = [
-            { label: 'Active Employees', value: <?= $total_employees ?>, color: 'primary', icon: 'users' },
-            { label: 'Departments', value: <?= $total_departments ?>, color: 'info', icon: 'sitemap' },
-            { label: 'Pending Leaves', value: <?= $pending_leaves ?>, color: 'danger', icon: 'hourglass-empty' },
-            { label: 'On Leave Today', value: <?= $on_leave_today ?>, color: 'warning', icon: 'calendar-off' }
-        ];
-
-        renderStatCards('companyStatsContainer', stats);
-
         // Initialize To-Do List
         initializeTodoList('#todo-form', '#todo-list');
 
-        // Initialize Hires Chart
+        // Load Dashboard Data with Skeletons
+        loadDashboardData();
+    });
+
+    async function loadDashboardData() {
+        const statsContainer = '#companyStatsContainer';
+        const chartContainer = '#hiresChartParent';
+        const listContainer = '#recentHiresList';
+
+        // Show skeletons
+        SkeletonFactory.show(statsContainer, 'stat-card', 4);
+        SkeletonFactory.replace(chartContainer, 'rect', { size: 'sk-rect-xl', animation: 'pulse' });
+        SkeletonFactory.show(listContainer, 'list-item', 5);
+
+        try {
+            const response = await fetch('/hrms/api/api_dashboard.php?action=get_dashboard_data');
+            const result = await response.json();
+
+            // 2. Wait for minimum duration then hide/restore
+            await Promise.all([
+                SkeletonFactory.hide(statsContainer),
+                SkeletonFactory.restore(chartContainer),
+                SkeletonFactory.hide(listContainer)
+            ]);
+
+            if (result.success) {
+                const data = result.data;
+
+                // Render Stats
+                renderStatCards('companyStatsContainer', data.stats);
+
+                // Render Chart
+                renderChart(data.chart);
+
+                // Render Recent Hires
+                renderRecentHires(listContainer, data.recent_hires);
+            } else {
+                console.error(result.message);
+                showToast(result.message, 'error');
+            }
+
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+            await Promise.all([
+                SkeletonFactory.hide(statsContainer),
+                SkeletonFactory.restore(chartContainer),
+                SkeletonFactory.hide(listContainer)
+            ]);
+            showToast('Failed to load dashboard data', 'error');
+        }
+    }
+
+    function renderChart(chartData) {
         const ctx = document.getElementById('hiresChart');
         if (ctx) {
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: <?= json_encode($chart_labels) ?>,
+                    labels: chartData.labels,
                     datasets: [{
                         label: 'New Hires',
-                        data: <?= json_encode($chart_data) ?>,
+                        data: chartData.data,
                         fill: true,
                         borderColor: 'rgb(75, 192, 192)',
                         backgroundColor: 'rgba(75, 192, 192, 0.2)',
@@ -196,23 +144,64 @@ require_once '../components/layout/header.php';
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            display: false // Hides the legend
-                        }
+                        legend: { display: false }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
-                            ticks: {
-                                stepSize: 1,
-                                precision: 0 // Ensures integer values on the axis
-                            }
+                            ticks: { stepSize: 1, precision: 0 }
                         }
                     }
                 }
             });
         }
-    });
+    }
+
+    function renderRecentHires(containerSelector, hires) {
+        const container = document.querySelector(containerSelector);
+        if (!hires || hires.length === 0) {
+            container.innerHTML = `
+            <div class="text-center text-muted p-4">
+                <i class="ti ti-users" style="font-size: 2rem; opacity: 0.5; display: block; margin-bottom: 0.5rem"></i>
+                No recent hires to display.
+            </div>`;
+            return;
+        }
+
+        let html = '';
+        hires.forEach(hire => {
+            const date = new Date(hire.date_of_joining).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
+
+            // Use shared avatar generator (falls back gracefully if data missing)
+            const avatarSource = {
+                id: hire.user_id*6 || hire.employee_id*3 || `${hire.first_name}${hire.last_name}`,
+                username: hire.username || `${hire.first_name}.${hire.last_name}`
+            };
+            const avatar = generateAvatarData(avatarSource);
+            console.log(avatar);
+            html += `
+            <div class="list-item d-flex align-items-center p-3 border-bottom">
+                <div class="avatar text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold; background-color: ${avatar.color};">
+                    ${avatar.initials}
+                </div>
+                <div class="flex-grow-1">
+                    <div class="company-name font-weight-bold">
+                        ${hire.first_name} ${hire.last_name}
+                    </div>
+                    <div class="user-count text-muted small">
+                        ${hire.designation_name || 'N/A'}
+                    </div>
+                </div>
+                <div class="created-at text-muted small">
+                    Hired on ${date}
+                </div>
+            </div>
+        `;
+        });
+        container.innerHTML = html;
+    }
 </script>
 
 <?php require_once '../components/layout/footer.php'; ?>

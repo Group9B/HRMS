@@ -16,6 +16,11 @@ $company_id = $_SESSION['company_id'];
 $user_id = $_SESSION['user_id'];
 $action = $_REQUEST['action'] ?? '';
 
+// Skeleton Loading: Simulate network latency for development testing
+if (defined('SKELETON_DEV_DELAY') && SKELETON_DEV_DELAY > 0) {
+    usleep(SKELETON_DEV_DELAY * 1000); // Convert ms to microseconds
+}
+
 // --- Validation Functions ---
 function validateJobTitle($title)
 {
@@ -583,9 +588,8 @@ switch ($action) {
         $response = ['success' => true, 'data' => $result['data'] ?? []];
         break;
 
-    case 'get_scheduled_interviews':
         $sql = "SELECT i.id as interview_id, c.first_name, c.last_name, c.email, j.title as job_title, 
-                       i.interview_date, i.mode, e.first_name as interviewer_first_name, e.last_name as interviewer_last_name 
+                       i.interview_date, i.mode, i.status, e.first_name as interviewer_first_name, e.last_name as interviewer_last_name 
                 FROM interviews i 
                 JOIN candidates c ON i.candidate_id = c.id 
                 JOIN jobs j ON i.job_id = j.id 
@@ -614,6 +618,8 @@ switch ($action) {
         $result = query($mysqli, "UPDATE interviews SET status = 'completed' WHERE id = ?", [$interview_id]);
         if ($result['success']) {
             $response = ['success' => true, 'message' => 'Interview marked as completed.'];
+        } else {
+            $response['message'] = 'Database error: ' . ($result['error'] ?? 'Unknown error');
         }
         break;
 

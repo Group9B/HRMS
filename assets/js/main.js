@@ -628,3 +628,19 @@ const initToolTip = () => {
 		(tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
 	);
 };
+
+/**
+ * Backward compatibility alias for legacy code using the old Skeleton utility.
+ * New code should use SkeletonFactory and UIController instead.
+ * 
+ * @deprecated Use SkeletonFactory instead
+ */
+const Skeleton = {
+    show: (selector, type, count, options) => SkeletonFactory.show(selector, type, count, options),
+    hide: (selector, newContent) => SkeletonFactory.hide(selector, newContent),
+    create: (type, count, options) => SkeletonFactory.create(type, count, options),
+    replace: (selector, type, options) => SkeletonFactory.replace(selector, type, options),
+    restore: (selector) => SkeletonFactory.restore(selector),
+    showTable: (tableId, rows, columns) => SkeletonFactory.showTable(tableId, rows, columns),
+    hideTable: (tableId) => SkeletonFactory.hideTable(tableId)
+};

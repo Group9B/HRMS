@@ -65,7 +65,7 @@ require_once '../components/layout/header.php';
                                     <div class="card-header">
                                         <h6 class="m-0 font-weight-bold">Attendance by Status</h6>
                                     </div>
-                                    <div class="card-body" style="height: 300px;">
+                                    <div class="card-body" style="height: 300px;" id="statusChartBody">
                                         <canvas id="attendanceStatusChart"></canvas>
                                     </div>
                                 </div>
@@ -75,7 +75,7 @@ require_once '../components/layout/header.php';
                                     <div class="card-header">
                                         <h6 class="m-0 font-weight-bold">Department Attendance %</h6>
                                     </div>
-                                    <div class="card-body" style="height: 300px;">
+                                    <div class="card-body" style="height: 300px;" id="deptChartBody">
                                         <canvas id="departmentAttendanceChart"></canvas>
                                     </div>
                                 </div>
@@ -87,7 +87,7 @@ require_once '../components/layout/header.php';
                                     <div class="card-header">
                                         <h6 class="m-0 font-weight-bold">Attendance Distribution</h6>
                                     </div>
-                                    <div class="card-body" style="height: 300px;">
+                                    <div class="card-body" style="height: 300px;" id="distChartBody">
                                         <canvas id="attendanceDistributionChart"></canvas>
                                     </div>
                                 </div>
@@ -97,7 +97,7 @@ require_once '../components/layout/header.php';
                                     <div class="card-header">
                                         <h6 class="m-0 font-weight-bold">Daily Trend</h6>
                                     </div>
-                                    <div class="card-body" style="height: 300px;">
+                                    <div class="card-body" style="height: 300px;" id="trendChartBody">
                                         <canvas id="dailyTrendChart"></canvas>
                                     </div>
                                 </div>
@@ -107,7 +107,7 @@ require_once '../components/layout/header.php';
                                     <div class="card-header">
                                         <h6 class="m-0 font-weight-bold">Top Employees (Attendance)</h6>
                                     </div>
-                                    <div class="card-body" style="height: 300px;">
+                                    <div class="card-body" style="height: 300px;" id="topEmpChartBody">
                                         <canvas id="topEmployeesChart"></canvas>
                                     </div>
                                 </div>
@@ -118,10 +118,8 @@ require_once '../components/layout/header.php';
             </div>
         </div>
 
-        <div id="loadingSpinner" class="text-center p-5">
-            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"><span
-                    class="visually-hidden">Loading...</span></div>
-        </div>
+        <!-- Spinner removed -->
+        <div id="loadingSpinner" class="text-center p-5" style="display:none"></div>
         <div class="attendance-grid" id="departmentGrid" style="display:none;"></div>
         <div class="attendance-grid" id="employeeGrid" style="display:none;"></div>
         <div id="noResults" class="alert alert-info text-center" style="display:none;"><i
@@ -273,14 +271,38 @@ require_once '../components/layout/header.php';
     function loadAttendanceData() {
         const monthString = currentMonth.toISOString().slice(0, 7);
         $('#currentMonth').text(currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' }));
-        $('#loadingSpinner').show();
+
+        // Skeleton Loading
+        SkeletonFactory.show('#dashboardStats', 'stat-card', 4);
+        SkeletonFactory.replace('#statusChartBody', 'rect', { size: 'sk-rect-xl', animation: 'pulse' });
+        SkeletonFactory.replace('#deptChartBody', 'rect', { size: 'sk-rect-xl', animation: 'pop' }); // varied animation
+        SkeletonFactory.replace('#distChartBody', 'rect', { size: 'sk-rect-xl', animation: 'shimmer' });
+        SkeletonFactory.replace('#trendChartBody', 'rect', { size: 'sk-rect-xl' });
+        SkeletonFactory.replace('#topEmpChartBody', 'rect', { size: 'sk-rect-xl' });
+
+        // For grids, we don't know if we will show them until data loads, but we can show stats skeleton
+        // Actually, we can show a placeholder grid or just let stats load first since they are key.
+
         $('#departmentGrid, #employeeGrid, #noResults').hide();
         currentViewMode = 'departments';
         selectedDepartmentId = null;
         $('#backToDepartments').hide();
 
+        const restoreSkeletons = async () => {
+            await Promise.all([
+                SkeletonFactory.hide('#dashboardStats'),
+                SkeletonFactory.restore('#statusChartBody'),
+                SkeletonFactory.restore('#deptChartBody'),
+                SkeletonFactory.restore('#distChartBody'),
+                SkeletonFactory.restore('#trendChartBody'),
+                SkeletonFactory.restore('#topEmpChartBody')
+            ]);
+        };
+
         fetch(`/hrms/api/api_attendance.php?action=get_attendance_data&month=${monthString}`)
-            .then(res => res.json()).then(result => {
+            .then(res => res.json()).then(async result => {
+                await restoreSkeletons();
+
                 if (result.error || !result.employees) { showToast(result.error || 'Failed to load data.', 'error'); $('#noResults').show(); return; }
                 allAttendanceData = result;
 
@@ -306,8 +328,11 @@ require_once '../components/layout/header.php';
                 renderDashboard(result.summary);
                 renderDepartmentCards(result);
                 $('#employeeSearch').val('');
-            }).catch(err => { showToast('A network error occurred.', 'error'); $('#noResults').show(); })
-            .finally(() => { $('#loadingSpinner').hide(); });
+            }).catch(async err => {
+                await restoreSkeletons();
+                showToast('A network error occurred.', 'error');
+                $('#noResults').show();
+            });
     }
 
 

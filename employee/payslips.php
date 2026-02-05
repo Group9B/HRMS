@@ -12,17 +12,8 @@ if ($_SESSION['role_id'] !== 4) {
 
 $user_id = $_SESSION['user_id'];
 
-// Get employee details
-$employee_result = query($mysqli, "SELECT id, first_name, last_name FROM employees WHERE user_id = ?", [$user_id]);
-if (!$employee_result['success'] || empty($employee_result['data'])) {
-    redirect('/hrms/pages/unauthorized.php');
-}
-$employee = $employee_result['data'][0];
-$employee_id = $employee['id'];
-
-// Get payslips
-$payslips_result = query($mysqli, "SELECT p.id, p.period, p.status, p.gross_salary, p.net_salary FROM payslips p WHERE p.employee_id = ? ORDER BY p.period DESC", [$employee_id]);
-$payslips = $payslips_result['success'] ? $payslips_result['data'] : [];
+// Get employee details for context if needed (optional since API handles it)
+// We keep basic permission check or context if needed, but data fetching is moved to client.
 
 require_once '../components/layout/header.php';
 ?>
@@ -39,45 +30,27 @@ require_once '../components/layout/header.php';
                 <h6 class="m-0 font-weight-bold">Salary Details</h6>
             </div>
             <div class="card-body">
-                <?php if (empty($payslips)): ?>
-                    <div class="text-center py-5">
-                        <i class="ti ti-receipt fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No payslips found</h5>
-                        <p class="text-muted">Your salary details will appear here once processed.</p>
-                    </div>
-                <?php else: ?>
-                    <div class="table-responsive">
-                        <table class="table table-hover" id="payslipsTable">
-                            <thead>
-                                <tr>
-                                    <th>Period</th>
-                                    <th>Gross</th>
-                                    <th>Net</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($payslips as $payslip): ?>
-                                    <tr>
-                                        <td><?= htmlspecialchars($payslip['period']) ?></td>
-                                        <td>₹<?= number_format($payslip['gross_salary'], 2) ?></td>
-                                        <td><strong>₹<?= number_format($payslip['net_salary'], 2) ?></strong></td>
-                                        <td>
-                                            <span
-                                                class="badge text-bg-<?= $payslip['status'] === 'paid' ? 'success' : ($payslip['status'] === 'processed' ? 'info' : 'warning') ?>">
-                                                <?= ucfirst($payslip['status']) ?>
-                                            </span>
-                                        </td>
-                                        <td><button class="btn btn-sm btn-outline-primary"
-                                                onclick="viewPayslip(<?= (int) $payslip['id'] ?>)"><i class="ti ti-eye"></i>
-                                                View</button></td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php endif; ?>
+                <div class="table-responsive">
+                    <table class="table table-hover" id="payslipsTable">
+                        <thead>
+                            <tr>
+                                <th>Period</th>
+                                <th>Gross</th>
+                                <th>Net</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payslipsTableBody">
+                            <!-- Skeletons / Data will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="noDataMessage" class="text-center py-5 d-none">
+                    <i class="ti ti-receipt fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No payslips found</h5>
+                    <p class="text-muted">Your salary details will appear here once processed.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -108,25 +81,89 @@ require_once '../components/layout/header.php';
 
 <script>
     $(function () {
-        $('#payslipsTable').DataTable({
-            responsive: true,
-            order: [[0, 'desc']]
-        });
+        loadPayslips();
     });
 
+    function loadPayslips() {
+        const tableId = 'payslipsTable';
+        const tbody = document.getElementById('payslipsTableBody');
+
+        // Show Skeleton
+        SkeletonFactory.showTable(tableId, 5, 5);
+
+        fetch('/hrms/api/api_payroll.php?action=get_payslips')
+            .then(res => res.json())
+            .then(result => {
+                // Hide Skeleton (clears tbody)
+                SkeletonFactory.hideTable(tableId);
+
+                if (result.success && result.data && result.data.length > 0) {
+                    let html = '';
+                    result.data.forEach(payslip => {
+                        const statusColor = payslip.status === 'paid' ? 'success' : (payslip.status === 'processed' ? 'info' : 'warning');
+                        // Format currency
+                        const gross = new Intl.NumberFormat('en-IN', { style: 'currency', currency: payslip.currency || 'INR' }).format(payslip.gross_salary);
+                        const net = new Intl.NumberFormat('en-IN', { style: 'currency', currency: payslip.currency || 'INR' }).format(payslip.net_salary);
+
+                        html += `
+                            <tr>
+                                <td>${payslip.period}</td>
+                                <td>${gross}</td>
+                                <td><strong>${net}</strong></td>
+                                <td><span class="badge text-bg-${statusColor}">${capitalize(payslip.status)}</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewPayslip(${payslip.id})">
+                                        <i class="ti ti-eye"></i> View
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    tbody.innerHTML = html;
+
+                    // Initialize DataTable
+                    $('#payslipsTable').DataTable({
+                        responsive: true,
+                        order: [[0, 'desc']],
+                        retrieve: true
+                    });
+                } else {
+                    document.getElementById('payslipsTable').closest('.table-responsive').classList.add('d-none');
+                    document.getElementById('noDataMessage').classList.remove('d-none');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                SkeletonFactory.hideTable(tableId);
+                showToast('Failed to load payslips', 'error');
+            });
+    }
+
     function viewPayslip(payslipId) {
+        // Show loading state in modal if needed, or simple toast
+        $('#payslipModal').modal('show');
+        document.getElementById('payslipContent').innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 text-muted">Loading payslip...</p>
+            </div>
+        `;
+
         fetch(`/hrms/api/api_payroll.php?action=get_payslip&id=${payslipId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     const ps = data.data;
                     document.getElementById('payslipContent').innerHTML = ps.html;
-                    $('#payslipModal').modal('show');
                 } else {
+                    document.getElementById('payslipContent').innerHTML = `<div class="alert alert-danger">Failed to load payslip.</div>`;
                     showToast('Failed to load payslip', 'error');
                 }
             })
-            .catch(() => showToast('Failed to load payslip', 'error'));
+            .catch(() => {
+                document.getElementById('payslipContent').innerHTML = `<div class="alert alert-danger">Error loading payslip.</div>`;
+                showToast('Failed to load payslip', 'error');
+            });
     }
 
     function printPayslip() {

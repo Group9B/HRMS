@@ -95,13 +95,15 @@ require_once '../components/layout/header.php';
         // Check balance when leave type changes
         $('#leaveTypeSelect').on('change', checkLeaveBalance);
         if (hasMyRequestsTab) {
+            SkeletonFactory.showTable('myRequestsTable', 5, 5);
             myRequestsTable = $('#myRequestsTable').DataTable({
+                initComplete: function() { SkeletonFactory.hideTable('myRequestsTable'); },
                 responsive: true, ajax: { url: '/hrms/api/api_leaves.php?action=get_my_leaves', dataSrc: 'data' },
                 columns: [
                     { data: 'leave_type' },
                     { data: null, render: (d, t, r) => `${formatDate(r.start_date)} to ${formatDate(r.end_date)}` },
                     { data: null, render: (d, t, r) => {
-                        const saturPolicy = document.querySelector('[data-saturday-policy]').dataset.saturdayPolicy;
+                        const saturPolicy = document.querySelector('[data-saturday-policy]')?.dataset?.saturdayPolicy || 'none';
                         return getActualLeaveDays(r.start_date, r.end_date, saturPolicy);
                     }},
                     { data: 'status', render: (d) => `<span class="badge bg-${getStatusClass(d)}-subtle text-${getStatusClass(d)}-emphasis">${capitalize(d)}</span>` },
@@ -110,17 +112,22 @@ require_once '../components/layout/header.php';
             });
         }
         if (canApprove) {
+            SkeletonFactory.showTable('approveRequestsTable', 5, 7);
             approveRequestsTable = $('#approveRequestsTable').DataTable({
+                initComplete: function() { SkeletonFactory.hideTable('approveRequestsTable'); },
                 responsive: true, ajax: { url: '/hrms/api/api_leaves.php?action=get_pending_requests', dataSrc: 'data' },
                 columns: [
                     { data: null, render: (d, t, r) => `<a href="/hrms/employee/profile.php?emp_id=${r.emp_id}" class="text-decoration-none text-body">${escapeHTML(r.first_name)} ${escapeHTML(r.last_name)}<i class="ti ti-arrow-up-right"></i></a>` },
                     { data: 'leave_type' },
                     { data: null, render: (d, t, r) => `${formatDate(r.start_date)} to ${formatDate(r.end_date)}` },
                     { data: null, render: (d, t, r) => {
-                        const saturPolicy = document.querySelector('[data-saturday-policy]').dataset.saturdayPolicy;
+                        const saturPolicy = document.querySelector('[data-saturday-policy]')?.dataset?.saturdayPolicy || 'none';
                         return getActualLeaveDays(r.start_date, r.end_date, saturPolicy);
                     }},
-                    { data: 'reason', render: d => `<small>${escapeHTML(d) || 'N/A'}</small>` },
+                    { data: 'reason', render: d => {
+                        const safeReason = d ? escapeHTML(d) : 'N/A';
+                        return `<small>${safeReason}</small>`;
+                    } },
                     { data: 'status', render: d => `<span class="badge bg-${getStatusClass(d)}-subtle bg-opacity-10 text-${getStatusClass(d)}-emphasis">${capitalize(d)}</span>` },
                     { data: null, orderable: false, render: (d, t, r) => r.status === 'pending' ? `<div class="btn-group btn-group-sm"><button class="btn btn-outline-success approve-leave-btn" data-leave-id="${escapeHTML(r.id)}" data-action="approved" title="Approve">Approve</button><button class="btn btn-outline-danger reject-leave-btn" data-leave-id="${escapeHTML(r.id)}" data-action="rejected" title="Reject">Reject</button></div>` : 'Actioned' }
                 ], order: [[2, 'asc']]
@@ -129,6 +136,8 @@ require_once '../components/layout/header.php';
         $('#applyLeaveForm').on('submit', function (e) {
             e.preventDefault();
             if (!validateLeaveDates()) return;
+            const submitBtn = $(this).find('button[type="submit"]');
+            const restoreBtn = UIController.showButtonLoading(submitBtn[0], 'Submitting...');
             fetch('/hrms/api/api_leaves.php', { method: 'POST', body: new FormData(this) })
             .then(res => res.json()).then(result => {
                 if (result.success) {
@@ -143,23 +152,33 @@ require_once '../components/layout/header.php';
                     if(approveRequestsTable) approveRequestsTable.ajax.reload();
                     if(hasMyRequestsTab) loadLeaveSummary(); 
                 } else { showToast(result.message, 'error'); }
-            });
+            }).finally(() => restoreBtn());
         });
     });
 
     function loadLeaveSummary() {
         $('#leave-summary-row').empty();
+        SkeletonFactory.show('#leave-summary-row', 'stat-card', 4); // Show skeleton
         fetch('/hrms/api/api_leaves.php?action=get_leave_summary')
-        .then(res => res.json()).then(result => {
+        .then(res => res.json()).then(async result => {
+            const balancesRaw = Array.isArray(result?.data?.balances) ? result.data.balances : [];
+            const balances = balancesRaw.map(b => ({
+                ...b,
+                type: b.type || 'Leave',
+                balance: Number(b.balance) || 0,
+                total: Number(b.total) || 0,
+                used: b.used !== undefined ? Number(b.used) : undefined
+            }));
+
             if(result.success) {
-                const { balances, next_holiday, policy_document } = result.data;
+                const { next_holiday, policy_document } = result.data || {};
                 
                 // Calculate total remaining days
                 const totalRemaining = balances.reduce((sum, b) => sum + b.balance, 0);
                 const totalAllotted = balances.reduce((sum, b) => sum + b.total, 0);
                 
                 // Find Annual Leave for priority display
-                const annualLeave = balances.find(b => b.type.toLowerCase().includes('annual'));
+                const annualLeave = balances.find(b => (b.type || '').toLowerCase().includes('annual'));
                 
                 // Build redesigned summary
                 let summaryHTML = `
@@ -205,8 +224,10 @@ require_once '../components/layout/header.php';
                 
                 // Sort balances: Annual leave first, then by remaining balance (lowest first for urgency)
                 const sortedBalances = [...balances].sort((a, b) => {
-                    const aIsAnnual = a.type.toLowerCase().includes('annual');
-                    const bIsAnnual = b.type.toLowerCase().includes('annual');
+                    const aType = (a.type || '').toLowerCase();
+                    const bType = (b.type || '').toLowerCase();
+                    const aIsAnnual = aType.includes('annual');
+                    const bIsAnnual = bType.includes('annual');
                     if (aIsAnnual && !bIsAnnual) return -1;
                     if (!aIsAnnual && bIsAnnual) return 1;
                     return a.balance - b.balance; // Lower balance = higher priority
@@ -214,9 +235,10 @@ require_once '../components/layout/header.php';
                 
                 sortedBalances.forEach((b, index) => {
                     const used = b.used !== undefined ? b.used : (b.total - b.balance);
-                    const percentageUsed = Math.round((used / b.total) * 100);
+                    const percentageUsed = b.total > 0 ? Math.round((used / b.total) * 100) : 0;
                     const percentageRemaining = 100 - percentageUsed;
-                    const isAnnual = b.type.toLowerCase().includes('annual');
+                    const safeType = b.type || 'Leave';
+                    const isAnnual = safeType.toLowerCase().includes('annual');
                     
                     // Determine urgency level
                     let urgencyClass, urgencyBg, urgencyText, urgencyIcon, microGuidance;
@@ -257,7 +279,7 @@ require_once '../components/layout/header.php';
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <div class="d-flex align-items-center">
                                             ${isAnnual ? `<span class="badge bg-primary-subtle text-primary-emphasis me-2 small">Primary</span>` : ''}
-                                            <h6 class="mb-0 ${isAnnual ? 'fw-bold' : 'fw-medium'} ${!isAnnual ? 'text-muted small' : ''}">${escapeHTML(b.type)}</h6>
+                                            <h6 class="mb-0 ${isAnnual ? 'fw-bold' : 'fw-medium'} ${!isAnnual ? 'text-muted small' : ''}">${escapeHTML(safeType)}</h6>
                                         </div>
                                         ${microGuidance}
                                     </div>
@@ -287,7 +309,7 @@ require_once '../components/layout/header.php';
                     </div>
                 </div>`;
                 
-                $('#leave-summary-row').html(summaryHTML);
+                await SkeletonFactory.hide('#leave-summary-row', summaryHTML);
                 
                 // Add hover effect via JS
                 $('#leave-summary-row .card').hover(
@@ -295,6 +317,11 @@ require_once '../components/layout/header.php';
                     function() { $(this).css('transform', 'translateY(0)'); }
                 );
             }
+            else {
+                SkeletonFactory.hide('#leave-summary-row', '<div class="col-12"><div class="alert alert-warning mb-0">Unable to load leave summary right now.</div></div>');
+            }
+        }).catch(() => {
+            SkeletonFactory.hide('#leave-summary-row', '<div class="col-12"><div class="alert alert-warning mb-0">Unable to load leave summary right now.</div></div>');
         });
     }
 
@@ -312,7 +339,7 @@ require_once '../components/layout/header.php';
         }
         
         // Calculate requested days
-        const saturPolicy = document.querySelector('[data-saturday-policy]')?.dataset.saturdayPolicy || 'none';
+        const saturPolicy = document.querySelector('[data-saturday-policy]')?.dataset?.saturdayPolicy || 'none';
         const requestedDays = getActualLeaveDays(startDate, endDate, saturPolicy);
         
         // Fetch current balance from API
@@ -322,9 +349,9 @@ require_once '../components/layout/header.php';
                 if (result.success && result.data.balances) {
                     const balance = result.data.balances.find(b => b.type === leaveType);
                     if (balance) {
-                        const remaining = balance.balance;
-                        const total = balance.total;
-                        const used = balance.used;
+                        const remaining = Number(balance.balance) || 0;
+                        const total = Number(balance.total) || 0;
+                        const used = Number(balance.used ?? (total - remaining)) || 0;
                         const afterRequest = used + requestedDays;
                         const willExceed = afterRequest > total;
                         
@@ -473,7 +500,7 @@ require_once '../components/layout/header.php';
         // Add balance info for approval confirmation
         if (isApprove && row && row.balance_info) {
             const bal = row.balance_info;
-            const saturPolicy = document.querySelector('[data-saturday-policy]').dataset.saturdayPolicy;
+            const saturPolicy = document.querySelector('[data-saturday-policy]')?.dataset?.saturdayPolicy || 'none';
             const requestDays = getActualLeaveDays(row.start_date, row.end_date, saturPolicy);
             const afterApproval = bal.approved_days + requestDays;
             const willExceed = afterApproval > bal.total_allowed;
@@ -581,7 +608,7 @@ require_once '../components/layout/header.php';
         let actualDays = 0;
         
         // Get Saturday policy from data attribute
-        const saturdayPolicy = document.querySelector('[data-saturday-policy]')?.dataset.saturdayPolicy || 'none';
+        const saturdayPolicy = document.querySelector('[data-saturday-policy]')?.dataset?.saturdayPolicy || 'none';
         
         // Loop through each day
         let currentDate = new Date(startDate);

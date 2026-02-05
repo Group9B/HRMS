@@ -31,6 +31,13 @@ $charset = 'utf8mb4';
 
 define('APP_ROOT', __DIR__ . '/');
 
+/**
+ * Skeleton Loading Development Delay (in milliseconds)
+ * Set to a value like 1000-2000 to test skeleton loading animations
+ * Set to 0 for production
+ */
+define('SKELETON_DEV_DELAY', (int) (getenv('SKELETON_DEV_DELAY') ?: 0));
+
 // Set default timezone to Asia/Kolkata (IST)
 date_default_timezone_set('Asia/Kolkata');
 
