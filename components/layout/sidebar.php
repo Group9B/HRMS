@@ -296,13 +296,6 @@ switch ($_SESSION['role_id']) {
         'permission' => null,
         'submenu' => []
       ],
-      'teams' => [
-        'title' => 'Teams',
-        'icon' => 'ti ti-users-group',
-        'url' => '/hrms/manager/teams.php',
-        'permission' => null,
-        'submenu' => []
-      ],
       'payslips' => [
         'title' => 'Payslips',
         'icon' => 'ti ti-receipt',

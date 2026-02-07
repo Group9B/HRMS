@@ -12,7 +12,7 @@ $company_id = $_SESSION['company_id'];
 $team_id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
 if ($team_id <= 0) {
-    redirect("/hrms/manager/teams.php");
+    redirect("/hrms/manager/team_management.php");
 }
 
 // Get manager's employee record
@@ -33,7 +33,7 @@ $team_result = query($mysqli, "
 ", [$team_id, $company_id, $user_id]);
 
 if (!$team_result['success'] || empty($team_result['data'])) {
-    redirect("/hrms/manager/teams.php");
+    redirect("/hrms/manager/team_management.php");
 }
 
 $team = $team_result['data'][0];
@@ -72,7 +72,7 @@ require_once '../components/layout/header.php';
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMembersModal">
                     <i class="ti ti-user-plus me-2"></i>Add Members
                 </button>
-                <a href="teams.php" class="btn btn-secondary">
+                <a href="team_management.php" class="btn btn-secondary">
                     <i class="ti ti-arrow-left me-2"></i>Back to Teams
                 </a>
             </div>
@@ -495,7 +495,7 @@ require_once '../components/layout/header.php';
                 .then(data => {
                     if (data.success) {
                         showToast(data.message, 'success');
-                        window.location.href = '/hrms/manager/teams.php';
+                        window.location.href = '/hrms/manager/team_management.php';
                     } else {
                         showToast(data.message, 'error');
                     }
