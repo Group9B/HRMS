@@ -1,4 +1,26 @@
 const themeToggleBtn = document.getElementById("toggleThemeBtn");
+
+/**
+ * Updates the theme toggle icon based on the current data-bs-theme attribute
+ */
+function updateThemeIcon() {
+	const themeBtn = document.getElementById("toggleThemeBtn");
+	if (!themeBtn) return;
+
+	const icon = themeBtn.querySelector("i");
+	if (!icon) return;
+
+	const currentTheme = document.documentElement.getAttribute("data-bs-theme");
+
+	if (currentTheme === "dark") {
+		icon.classList.remove("ti-moon");
+		icon.classList.add("ti-sun");
+	} else {
+		icon.classList.remove("ti-sun");
+		icon.classList.add("ti-moon");
+	}
+}
+
 if (themeToggleBtn) {
 	themeToggleBtn.addEventListener("click", () => {
 		const html = document.documentElement;
@@ -9,11 +31,24 @@ if (themeToggleBtn) {
 		localStorage.setItem("theme", newTheme);
 	});
 }
+
 document.addEventListener("DOMContentLoaded", () => {
 	const savedTheme = localStorage.getItem("theme");
 	if (savedTheme) {
 		document.documentElement.setAttribute("data-bs-theme", savedTheme);
 	}
+
+	// Set initial icon state and watch for changes
+	updateThemeIcon();
+	const observer = new MutationObserver((mutations) => {
+		mutations.forEach((mutation) => {
+			if (mutation.attributeName === "data-bs-theme") {
+				updateThemeIcon();
+			}
+		});
+	});
+	observer.observe(document.documentElement, { attributes: true });
+
 	initializePasswordToggle("passwordInput", "togglePassword");
 	initializeSidebarToggle("sidebar", "sidebarToggle", "backdrop");
 });
@@ -128,7 +163,7 @@ function initializeSidebarToggle(sidebarId, toggleBtnId, backdropId) {
 function showToast(message, type = "success") {
 	if (!$("#toast-container").length) {
 		$("body").append(
-			'<div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3"></div>'
+			'<div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3"></div>',
 		);
 	}
 
@@ -163,8 +198,8 @@ function showToast(message, type = "success") {
 
 	const toastHTML = `
 		<div id="${toastId}" class="toast align-items-center ${textClass} ${
-		chosen.bg
-	} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+			chosen.bg
+		} border-0" role="alert" aria-live="assertive" aria-atomic="true">
 			<div class="d-flex">
 				<div class="toast-body d-flex align-items-start gap-2">
 					<i class="${chosen.icon} mt-1"></i>
@@ -252,7 +287,7 @@ function initializeTodoList(formSelector, listSelector) {
 					});
 				} else {
 					todoList.append(
-						'<li class="list-group-item text-muted text-center">No tasks yet. Add one above!</li>'
+						'<li class="list-group-item text-muted text-center">No tasks yet. Add one above!</li>',
 					);
 				}
 			});
@@ -266,7 +301,7 @@ function initializeTodoList(formSelector, listSelector) {
 			() => {
 				this.reset();
 				loadTodos();
-			}
+			},
 		);
 	});
 
@@ -278,7 +313,7 @@ function initializeTodoList(formSelector, listSelector) {
 		formData.append("task_id", li.data("id"));
 		formData.append("is_completed", 1);
 		fetch("/hrms/api/todo.php", { method: "POST", body: formData }).then(
-			() => loadTodos()
+			() => loadTodos(),
 		);
 	});
 
@@ -315,7 +350,7 @@ function escapeHTML(str) {
 				">": "&gt;",
 				'"': "&quot;",
 				"'": "&#039;",
-			}[m])
+			})[m],
 	);
 }
 
@@ -430,7 +465,7 @@ function showConfirmationModal(
 	callback,
 	title = "Confirm Action",
 	btnText = "Confirm",
-	btnClass = "btn-danger"
+	btnClass = "btn-danger",
 ) {
 	if (!confirmationModalInstance) {
 		console.error("Confirmation modal not initialized");
@@ -622,25 +657,29 @@ function renderStatCards(containerId, stats) {
 
 const initToolTip = () => {
 	const tooltipTriggerList = document.querySelectorAll(
-		'[data-bs-toggle="tooltip"]'
+		'[data-bs-toggle="tooltip"]',
 	);
 	const tooltipList = [...tooltipTriggerList].map(
-		(tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
+		(tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl),
 	);
 };
 
 /**
  * Backward compatibility alias for legacy code using the old Skeleton utility.
  * New code should use SkeletonFactory and UIController instead.
- * 
+ *
  * @deprecated Use SkeletonFactory instead
  */
 const Skeleton = {
-    show: (selector, type, count, options) => SkeletonFactory.show(selector, type, count, options),
-    hide: (selector, newContent) => SkeletonFactory.hide(selector, newContent),
-    create: (type, count, options) => SkeletonFactory.create(type, count, options),
-    replace: (selector, type, options) => SkeletonFactory.replace(selector, type, options),
-    restore: (selector) => SkeletonFactory.restore(selector),
-    showTable: (tableId, rows, columns) => SkeletonFactory.showTable(tableId, rows, columns),
-    hideTable: (tableId) => SkeletonFactory.hideTable(tableId)
+	show: (selector, type, count, options) =>
+		SkeletonFactory.show(selector, type, count, options),
+	hide: (selector, newContent) => SkeletonFactory.hide(selector, newContent),
+	create: (type, count, options) =>
+		SkeletonFactory.create(type, count, options),
+	replace: (selector, type, options) =>
+		SkeletonFactory.replace(selector, type, options),
+	restore: (selector) => SkeletonFactory.restore(selector),
+	showTable: (tableId, rows, columns) =>
+		SkeletonFactory.showTable(tableId, rows, columns),
+	hideTable: (tableId) => SkeletonFactory.hideTable(tableId),
 };
