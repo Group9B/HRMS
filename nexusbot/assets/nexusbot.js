@@ -4,6 +4,21 @@
  */
 
 class NexusBot {
+	/**
+	 * Escapes HTML special characters to prevent XSS.
+	 * @param {string} str - The string to escape.
+	 * @returns {string} The escaped string.
+	 */
+	escapeHtml(str) {
+		if (str === null || str === undefined) return "";
+		return String(str)
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;")
+			.replace(/'/g, "&#039;");
+	}
+
 	constructor() {
 		this.apiUrl = "/hrms/nexusbot/api.php";
 		this.isOpen = false;
@@ -692,13 +707,13 @@ class NexusBot {
 		let tasksHtml = data.tasks
 			.map(
 				(t) => `
-            <div class="nexus-task-item ${t.priority}">
+            <div class="nexus-task-item ${this.escapeHtml(t.priority)}">
                 <div class="d-flex w-100 justify-content-between align-items-center">
-                    <div class="text-truncate" style="max-width: 180px;">${t.title}</div>
-                    <span class="badge bg-${t.status === "completed" ? "success" : "secondary"} x-small">${t.status}</span>
+                    <div class="text-truncate" style="max-width: 180px;">${this.escapeHtml(t.title)}</div>
+                    <span class="badge bg-${t.status === "completed" ? "success" : "secondary"} x-small">${this.escapeHtml(t.status)}</span>
                 </div>
                 <div class="d-flex justify-content-between mt-1 text-muted x-small">
-                    <span><i class="ti ti-calendar"></i> ${t.due_date}</span>
+                    <span><i class="ti ti-calendar"></i> ${this.escapeHtml(t.due_date)}</span>
                     ${t.priority === "high" ? '<span class="text-danger">High Priority</span>' : ""}
                 </div>
             </div>
@@ -725,14 +740,14 @@ class NexusBot {
             <div class="nexus-team-member d-flex justify-content-between align-items-center p-2 border-bottom">
                 <div class="d-flex align-items-center">
                     <div class="avatar x-small me-2 bg-${m.status === "present" ? "success" : "secondary"} text-white rounded-circle flex-shrink-0">
-                        ${m.name.charAt(0)}
+                        ${this.escapeHtml(m.name.charAt(0))}
                     </div>
                     <div>
-                        <div class="fw-bold small">${m.name}</div>
-                        <div class="text-muted x-small">${m.department}</div>
+                        <div class="fw-bold small">${this.escapeHtml(m.name)}</div>
+                        <div class="text-muted x-small">${this.escapeHtml(m.department)}</div>
                     </div>
                 </div>
-                <span class="badge bg-${m.status === "present" ? "success-lt" : "secondary-lt"}">${m.status}</span>
+                <span class="badge bg-${m.status === "present" ? "success-lt" : "secondary-lt"}">${this.escapeHtml(m.status)}</span>
             </div>
         `,
 			)
