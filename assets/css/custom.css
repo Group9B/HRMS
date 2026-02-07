@@ -134,7 +134,9 @@
 
 /* Attendance Page Styles */
 .employee-card {
-	transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+	transition:
+		transform 0.2s ease-in-out,
+		box-shadow 0.2s ease-in-out;
 }
 
 .employee-card:hover {
@@ -309,7 +311,7 @@
 	color: var(--bs-primary-text) !important;
 	border-radius: var(--bs-border-radius) !important;
 	font-size: 3rem !important;
-	transition: all 1s ease-in-out;
+	transition: all 0.1s ease-in-out;
 }
 
 .sidebar-active .nav-link {

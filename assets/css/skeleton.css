@@ -13,36 +13,36 @@
    ========================================================================== */
 
 :root {
-    /* Background colors */
-    --sk-bg: #e2e5e7;
-    --sk-bg-highlight: #f5f5f5;
+	/* Background colors - using Bootstrap variables */
+	--sk-bg: var(--bs-gray-200, #e5e5e5);
+	--sk-bg-highlight: var(--bs-gray-100, #f5f5f5);
 
-    /* Shimmer effect */
-    --sk-shimmer-color: rgba(255, 255, 255, 0.6);
-    --sk-shimmer-angle: 90deg;
+	/* Shimmer effect */
+	--sk-shimmer-color: rgba(255, 255, 255, 0.6);
+	--sk-shimmer-angle: 90deg;
 
-    /* Animation */
-    --sk-speed: 1.5s;
-    --sk-timing: ease-in-out;
+	/* Animation */
+	--sk-speed: 1.5s;
+	--sk-timing: ease-in-out;
 
-    /* Sizes */
-    --sk-radius: 4px;
-    --sk-radius-lg: 8px;
-    --sk-radius-circle: 50%;
+	/* Sizes - using Bootstrap border-radius variables */
+	--sk-radius: var(--bs-border-radius-sm, 0.25rem);
+	--sk-radius-lg: var(--bs-border-radius, 0.375rem);
+	--sk-radius-circle: 50%;
 
-    /* Spacing */
-    --sk-gap: 0.75rem;
-    --sk-line-height: 1em;
+	/* Spacing */
+	--sk-gap: 0.75rem;
+	--sk-line-height: 1em;
 
-    /* Transitions */
-    --sk-fade-duration: 200ms;
+	/* Transitions */
+	--sk-fade-duration: 200ms;
 }
 
 /* Dark Mode Support */
 [data-bs-theme="dark"] {
-    --sk-bg: #3a3f44;
-    --sk-bg-highlight: #4a4f54;
-    --sk-shimmer-color: rgba(255, 255, 255, 0.08);
+	--sk-bg: var(--bs-body, #404040);
+	--sk-bg-highlight: var(--bs-body, #525252);
+	--sk-shimmer-color: rgba(255, 255, 255, 0.08);
 }
 
 /* ==========================================================================
@@ -50,25 +50,24 @@
    ========================================================================== */
 
 @keyframes skeleton-shimmer {
-    0% {
-        background-position: -200% 0;
-    }
+	0% {
+		background-position: -200% 0;
+	}
 
-    100% {
-        background-position: 200% 0;
-    }
+	100% {
+		background-position: 200% 0;
+	}
 }
 
 @keyframes skeleton-pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
 
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.5;
-    }
+	50% {
+		opacity: 0.5;
+	}
 }
 
 /* ==========================================================================
@@ -76,38 +75,40 @@
    ========================================================================== */
 
 .skeleton-shimmer {
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(var(--sk-shimmer-angle),
-            var(--sk-bg) 0%,
-            var(--sk-bg) 40%,
-            var(--sk-shimmer-color) 50%,
-            var(--sk-bg) 60%,
-            var(--sk-bg) 100%);
-    background-size: 200% 100%;
-    animation: skeleton-shimmer var(--sk-speed) var(--sk-timing) infinite;
-    border-radius: var(--sk-radius);
+	position: relative;
+	overflow: hidden;
+	background: linear-gradient(
+		var(--sk-shimmer-angle),
+		var(--sk-bg) 0%,
+		var(--sk-bg) 40%,
+		var(--sk-shimmer-color) 50%,
+		var(--sk-bg) 60%,
+		var(--sk-bg) 100%
+	);
+	background-size: 200% 100%;
+	animation: skeleton-shimmer var(--sk-speed) var(--sk-timing) infinite;
+	border-radius: var(--sk-radius);
 
-    /* Prevent content selection */
-    user-select: none;
-    pointer-events: none;
+	/* Prevent content selection */
+	user-select: none;
+	pointer-events: none;
 }
 
 /* Pulse animation variant */
 .skeleton-pulse {
-    background: var(--sk-bg);
-    animation: skeleton-pulse 1.5s ease-in-out infinite;
-    border-radius: var(--sk-radius);
-    user-select: none;
-    pointer-events: none;
+	background: var(--sk-bg);
+	animation: skeleton-pulse 1.5s ease-in-out infinite;
+	border-radius: var(--sk-radius);
+	user-select: none;
+	pointer-events: none;
 }
 
 /* Static skeleton (no animation) */
 .skeleton-static {
-    background: var(--sk-bg);
-    border-radius: var(--sk-radius);
-    user-select: none;
-    pointer-events: none;
+	background: var(--sk-bg);
+	border-radius: var(--sk-radius);
+	user-select: none;
+	pointer-events: none;
 }
 
 /* ==========================================================================
@@ -116,100 +117,100 @@
 
 /* Text placeholders - scale with typography */
 .sk-text {
-    display: block;
-    height: var(--sk-line-height);
-    width: 100%;
-    margin-bottom: var(--sk-gap);
-    border-radius: var(--sk-radius);
+	display: block;
+	height: var(--sk-line-height);
+	width: 100%;
+	margin-bottom: var(--sk-gap);
+	border-radius: var(--sk-radius);
 }
 
 .sk-text:last-child {
-    margin-bottom: 0;
+	margin-bottom: 0;
 }
 
 /* Text size variants */
 .sk-text-xs {
-    height: 0.625em;
+	height: 0.625em;
 }
 
 .sk-text-sm {
-    height: 0.875em;
+	height: 0.875em;
 }
 
 .sk-text-lg {
-    height: 1.25em;
+	height: 1.25em;
 }
 
 .sk-text-xl {
-    height: 1.5em;
+	height: 1.5em;
 }
 
 .sk-text-2xl {
-    height: 2em;
+	height: 2em;
 }
 
 /* Circle placeholder - perfect for avatars */
 .sk-circle {
-    display: inline-block;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: var(--sk-radius-circle);
-    flex-shrink: 0;
+	display: inline-block;
+	width: 2.5rem;
+	height: 2.5rem;
+	border-radius: var(--sk-radius-circle);
+	flex-shrink: 0;
 }
 
 /* Circle size variants */
 .sk-circle-sm {
-    width: 2rem;
-    height: 2rem;
+	width: 2rem;
+	height: 2rem;
 }
 
 .sk-circle-lg {
-    width: 3rem;
-    height: 3rem;
+	width: 3rem;
+	height: 3rem;
 }
 
 .sk-circle-xl {
-    width: 4rem;
-    height: 4rem;
+	width: 4rem;
+	height: 4rem;
 }
 
 /* Rectangle placeholder - for images, cards, etc. */
 .sk-rect {
-    display: block;
-    width: 100%;
-    height: 8rem;
-    border-radius: var(--sk-radius);
+	display: block;
+	width: 100%;
+	height: 8rem;
+	border-radius: var(--sk-radius);
 }
 
 /* Rectangle size variants */
 .sk-rect-sm {
-    height: 4rem;
+	height: 4rem;
 }
 
 .sk-rect-lg {
-    height: 12rem;
+	height: 12rem;
 }
 
 .sk-rect-xl {
-    height: 16rem;
+	height: 16rem;
 }
 
 /* Button placeholder */
 .sk-button {
-    display: inline-block;
-    width: 6rem;
-    height: 2.375rem;
-    border-radius: var(--sk-radius);
+	display: inline-block;
+	width: 6rem;
+	height: 2.375rem;
+	border-radius: var(--sk-radius);
 }
 
 .sk-button-sm {
-    width: 4rem;
-    height: 1.875rem;
+	width: 4rem;
+	height: 1.875rem;
 }
 
 .sk-button-lg {
-    width: 8rem;
-    height: 2.75rem;
+	width: 8rem;
+	height: 2.75rem;
 }
 
 /* ==========================================================================
@@ -217,48 +218,48 @@
    ========================================================================== */
 
 .sk-w-25 {
-    width: 25%;
+	width: 25%;
 }
 
 .sk-w-33 {
-    width: 33.333%;
+	width: 33.333%;
 }
 
 .sk-w-50 {
-    width: 50%;
+	width: 50%;
 }
 
 .sk-w-66 {
-    width: 66.666%;
+	width: 66.666%;
 }
 
 .sk-w-75 {
-    width: 75%;
+	width: 75%;
 }
 
 .sk-w-100 {
-    width: 100%;
+	width: 100%;
 }
 
 /* Random-looking widths for natural appearance */
 .sk-w-random-1 {
-    width: 87%;
+	width: 87%;
 }
 
 .sk-w-random-2 {
-    width: 73%;
+	width: 73%;
 }
 
 .sk-w-random-3 {
-    width: 92%;
+	width: 92%;
 }
 
 .sk-w-random-4 {
-    width: 64%;
+	width: 64%;
 }
 
 .sk-w-random-5 {
-    width: 81%;
+	width: 81%;
 }
 
 /* ==========================================================================
@@ -266,19 +267,19 @@
    ========================================================================== */
 
 .sk-rounded {
-    border-radius: var(--sk-radius);
+	border-radius: var(--sk-radius);
 }
 
 .sk-rounded-lg {
-    border-radius: var(--sk-radius-lg);
+	border-radius: var(--sk-radius-lg);
 }
 
 .sk-rounded-full {
-    border-radius: var(--sk-radius-circle);
+	border-radius: var(--sk-radius-circle);
 }
 
 .sk-rounded-none {
-    border-radius: 0;
+	border-radius: 0;
 }
 
 /* ==========================================================================
@@ -286,43 +287,43 @@
    ========================================================================== */
 
 .sk-mb-1 {
-    margin-bottom: 0.25rem;
+	margin-bottom: 0.25rem;
 }
 
 .sk-mb-2 {
-    margin-bottom: 0.5rem;
+	margin-bottom: 0.5rem;
 }
 
 .sk-mb-3 {
-    margin-bottom: 0.75rem;
+	margin-bottom: 0.75rem;
 }
 
 .sk-mb-4 {
-    margin-bottom: 1rem;
+	margin-bottom: 1rem;
 }
 
 .sk-mb-5 {
-    margin-bottom: 1.5rem;
+	margin-bottom: 1.5rem;
 }
 
 .sk-mt-1 {
-    margin-top: 0.25rem;
+	margin-top: 0.25rem;
 }
 
 .sk-mt-2 {
-    margin-top: 0.5rem;
+	margin-top: 0.5rem;
 }
 
 .sk-mt-3 {
-    margin-top: 0.75rem;
+	margin-top: 0.75rem;
 }
 
 .sk-mt-4 {
-    margin-top: 1rem;
+	margin-top: 1rem;
 }
 
 .sk-mt-5 {
-    margin-top: 1.5rem;
+	margin-top: 1.5rem;
 }
 
 /* ==========================================================================
@@ -331,41 +332,41 @@
 
 /* Flex container for skeleton items */
 .sk-flex {
-    display: flex;
-    align-items: center;
-    gap: var(--sk-gap);
+	display: flex;
+	align-items: center;
+	gap: var(--sk-gap);
 }
 
 .sk-flex-col {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sk-gap);
+	display: flex;
+	flex-direction: column;
+	gap: var(--sk-gap);
 }
 
 .sk-flex-grow {
-    flex-grow: 1;
+	flex-grow: 1;
 }
 
 .sk-flex-shrink-0 {
-    flex-shrink: 0;
+	flex-shrink: 0;
 }
 
 /* Grid container */
 .sk-grid {
-    display: grid;
-    gap: var(--sk-gap);
+	display: grid;
+	gap: var(--sk-gap);
 }
 
 .sk-grid-2 {
-    grid-template-columns: repeat(2, 1fr);
+	grid-template-columns: repeat(2, 1fr);
 }
 
 .sk-grid-3 {
-    grid-template-columns: repeat(3, 1fr);
+	grid-template-columns: repeat(3, 1fr);
 }
 
 .sk-grid-4 {
-    grid-template-columns: repeat(4, 1fr);
+	grid-template-columns: repeat(4, 1fr);
 }
 
 /* ==========================================================================
@@ -374,67 +375,67 @@
 
 /* Stat card skeleton structure */
 .sk-stat-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 1rem;
 }
 
 .sk-stat-content {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
 }
 
 .sk-stat-icon {
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: var(--sk-radius-circle);
-    flex-shrink: 0;
-    margin-left: 1rem;
+	width: 2.5rem;
+	height: 2.5rem;
+	border-radius: var(--sk-radius-circle);
+	flex-shrink: 0;
+	margin-left: 1rem;
 }
 
 /* Table row skeleton structure */
 .sk-table-row {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--sk-bg);
-    gap: 1rem;
+	display: flex;
+	align-items: center;
+	padding: 0.75rem 1rem;
+	border-bottom: 1px solid var(--sk-bg);
+	gap: 1rem;
 }
 
 .sk-table-cell {
-    flex: 1;
-    min-width: 0;
+	flex: 1;
+	min-width: 0;
 }
 
 /* List item skeleton structure */
 .sk-list-item {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 0;
-    gap: 0.75rem;
-    border-bottom: 1px solid var(--sk-bg);
+	display: flex;
+	align-items: center;
+	padding: 0.75rem 0;
+	gap: 0.75rem;
+	border-bottom: 1px solid var(--sk-bg);
 }
 
 .sk-list-item:last-child {
-    border-bottom: none;
+	border-bottom: none;
 }
 
 /* Card skeleton structure */
 .sk-card {
-    border-radius: var(--sk-radius-lg);
-    overflow: hidden;
+	border-radius: var(--sk-radius-lg);
+	overflow: hidden;
 }
 
 .sk-card-body {
-    padding: 1rem;
+	padding: 1rem;
 }
 
 .sk-card-header {
-    padding: 1rem;
-    border-bottom: 1px solid var(--sk-bg);
+	padding: 1rem;
+	border-bottom: 1px solid var(--sk-bg);
 }
 
 /* ==========================================================================
@@ -442,38 +443,38 @@
    ========================================================================== */
 
 .sk-fade-container {
-    transition: opacity var(--sk-fade-duration) ease-out;
+	transition: opacity var(--sk-fade-duration) ease-out;
 }
 
 .sk-fade-out {
-    opacity: 0;
+	opacity: 0;
 }
 
 .sk-fade-in {
-    opacity: 1;
+	opacity: 1;
 }
 
 /* Fixed height during transition to prevent CLS */
 .sk-fixed-height {
-    overflow: hidden;
-    transition: height var(--sk-fade-duration) ease-out;
+	overflow: hidden;
+	transition: height var(--sk-fade-duration) ease-out;
 }
 
 /* Loading state indicator */
 .sk-loading {
-    position: relative;
+	position: relative;
 }
 
 .sk-loading::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.8);
-    z-index: 10;
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: rgba(255, 255, 255, 0.8);
+	z-index: 10;
 }
 
 [data-bs-theme="dark"] .sk-loading::after {
-    background: rgba(0, 0, 0, 0.5);
+	background: rgba(0, 0, 0, 0.5);
 }
 
 /* ==========================================================================
@@ -482,29 +483,29 @@
 
 /* Hide from screen readers */
 .sk-sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
 }
 
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-    .skeleton-shimmer {
-        animation: none;
-        background: var(--sk-bg);
-    }
+	.skeleton-shimmer {
+		animation: none;
+		background: var(--sk-bg);
+	}
 
-    .skeleton-pulse {
-        animation: none;
-    }
+	.skeleton-pulse {
+		animation: none;
+	}
 
-    .sk-fade-container {
-        transition: none;
-    }
+	.sk-fade-container {
+		transition: none;
+	}
 }
