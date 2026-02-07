@@ -31,7 +31,22 @@
 
 /* Dark customization for the overlay */
 [data-bs-theme="dark"] .sk-loading::after {
-	background: rgba(var(--bs-black-rgb, 0, 0, 0), 0.5);
+	background: rgba(var(--bs-secondary-bg, 0, 0, 0), 0.5);
+}
+
+/* 
+ * Placeholder Color Overrides
+ * Uses theme's secondary text color for natural, accessible contrast.
+ * Matches text color in both light (dark gray) and dark (light gray) modes.
+ */
+.sk-placeholder-bg {
+	opacity: 1; /* Subtle but visible opacity for skeleton blocks */
+}
+
+.sk-loading .card-body {
+	background-color: var(--bs-secondary-bg);
+	border: 2px solid var(--bs-border-color);
+	border-radius: var(--bs-border-radius);
 }
 
 /* 
@@ -53,6 +68,16 @@
 .sk-fixed-height {
 	overflow: hidden;
 	transition: height var(--sk-fade-duration) ease-out;
+}
+
+.placeholder {
+	border-radius: 4px;
+}
+
+[data-bs-theme="dark"] {
+	.sk-placeholder-bg {
+		opacity: 0.2; /* Subtle but visible opacity for skeleton blocks */
+	}
 }
 
 /* Reduced motion preference */

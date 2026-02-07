@@ -2,7 +2,7 @@
  * Pro Skeleton Loading System - Component Factory
  *
  * A powerful factory class for creating skeleton loading placeholders
- * using a template registry pattern for maximum reusability.`
+ * using a template registry pattern for maximum reusability.
  *
  * @version 2.0.0
  * @author HRMS Team
@@ -52,10 +52,10 @@ class SkeletonFactory {
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="w-100 me-3">
-                                    <span class="placeholder ${animClass} col-6 mb-2 bg-secondary"></span>
-                                    <span class="placeholder ${animClass} col-4 d-block bg-secondary" style="height: 1.5rem;"></span>
+                                    <span class="placeholder ${animClass} col-6 mb-2 sk-placeholder-bg"></span>
+                                    <span class="placeholder ${animClass} col-4 d-block sk-placeholder-bg" style="height: 1.5rem;"></span>
                                 </div>
-                                <div class="placeholder ${animClass} rounded-circle bg-secondary" style="width: 3rem; height: 3rem; flex-shrink: 0;"></div>
+                                <div class="placeholder ${animClass} rounded-circle sk-placeholder-bg" style="width: 3rem; height: 3rem; flex-shrink: 0;"></div>
                             </div>
                         </div>
                     </div>
@@ -81,7 +81,7 @@ class SkeletonFactory {
 				const col = cols[i % cols.length];
 				cells += `
                     <td>
-                        <span class="placeholder ${animClass} ${col} bg-secondary"></span>
+                        <span class="placeholder ${animClass} ${col} sk-placeholder-bg"></span>
                     </td>
                 `;
 			}
@@ -98,10 +98,10 @@ class SkeletonFactory {
 			const animClass = SkeletonFactory._getAnimClass(animation);
 			return `
                 <div class="d-flex align-items-center py-3 border-bottom" aria-hidden="true" role="presentation">
-                    <div class="placeholder ${animClass} rounded-circle bg-secondary me-3" style="width: 2.5rem; height: 2.5rem;"></div>
+                    <div class="placeholder ${animClass} rounded-circle sk-placeholder-bg me-3" style="width: 2.5rem; height: 2.5rem;"></div>
                     <div class="flex-grow-1">
-                        <span class="placeholder ${animClass} col-7 mb-1 bg-secondary d-block"></span>
-                        <span class="placeholder ${animClass} col-5 bg-secondary d-block"></span>
+                        <span class="placeholder ${animClass} col-7 mb-1 sk-placeholder-bg d-block"></span>
+                        <span class="placeholder ${animClass} col-5 sk-placeholder-bg d-block"></span>
                     </div>
                 </div>
             `;
@@ -117,10 +117,10 @@ class SkeletonFactory {
 			return `
                 <div class="card shadow-sm" aria-hidden="true" role="presentation">
                     <div class="card-body">
-                        <span class="placeholder ${animClass} col-6 mb-3 bg-secondary d-block" style="height: 1.25em;"></span>
-                        <span class="placeholder ${animClass} col-12 mb-1 bg-secondary d-block"></span>
-                        <span class="placeholder ${animClass} col-10 mb-1 bg-secondary d-block"></span>
-                        <span class="placeholder ${animClass} col-8 bg-secondary d-block"></span>
+                        <span class="placeholder ${animClass} col-6 mb-3 sk-placeholder-bg d-block" style="height: 1.25em;"></span>
+                        <span class="placeholder ${animClass} col-12 mb-1 sk-placeholder-bg d-block"></span>
+                        <span class="placeholder ${animClass} col-10 mb-1 sk-placeholder-bg d-block"></span>
+                        <span class="placeholder ${animClass} col-8 sk-placeholder-bg d-block"></span>
                     </div>
                 </div>
             `;
@@ -141,9 +141,10 @@ class SkeletonFactory {
 			let html = '<div aria-hidden="true" role="presentation">';
 
 			for (let i = 0; i < lines; i++) {
-				const col = i === lines - 1 ? "col-7" : cols[i % cols.length];
+				const col =
+					i === lines - 1 ? "col-7 mb-3" : cols[i % cols.length];
 				const margin = i < lines - 1 ? "mb-2" : "";
-				html += `<span class="placeholder ${animClass} ${col} ${margin} bg-secondary d-block"></span>`;
+				html += `<span class="placeholder ${animClass} ${col} ${margin} sk-placeholder-bg d-block"></span>`;
 			}
 
 			html += "</div>";
@@ -162,7 +163,7 @@ class SkeletonFactory {
 			} = options;
 			const animClass = SkeletonFactory._getAnimClass(animation);
 
-			return `<span class="placeholder ${animClass} ${size} ${width} bg-secondary d-block" aria-hidden="true" role="presentation"></span>`;
+			return `<span class="placeholder ${animClass} ${size} ${width} sk-placeholder-bg d-block" aria-hidden="true" role="presentation"></span>`;
 		},
 
 		/**
@@ -182,7 +183,7 @@ class SkeletonFactory {
 			if (size === "lg") dimension = "3rem";
 			if (size === "xl") dimension = "4rem";
 
-			return `<div class="placeholder ${animClass} rounded-circle bg-secondary" style="width: ${dimension}; height: ${dimension};" aria-hidden="true" role="presentation"></div>`;
+			return `<div class="placeholder ${animClass} rounded-circle sk-placeholder-bg" style="width: ${dimension}; height: ${dimension};" aria-hidden="true" role="presentation"></div>`;
 		},
 
 		/**
@@ -201,7 +202,7 @@ class SkeletonFactory {
 			if (size === "lg") height = "12rem";
 			if (size === "xl") height = "16rem";
 
-			return `<div class="placeholder ${animClass} w-100 bg-secondary rounded" style="height: ${height};" aria-hidden="true" role="presentation"></div>`;
+			return `<div class="placeholder ${animClass} w-100 sk-placeholder-bg rounded" style="height: ${height};" aria-hidden="true" role="presentation"></div>`;
 		},
 
 		/**
@@ -216,10 +217,11 @@ class SkeletonFactory {
 			const animClass = SkeletonFactory._getAnimClass(animation);
 
 			let btnClass =
-				"btn btn-secondary disabled placeholder " + animClass;
+				"btn btn-secondary disabled placeholder sk-placeholder-bg " +
+				animClass;
 			if (size) btnClass += " btn-" + size;
 
-			return `<a href="#" tabindex="-1" class="${btnClass} col-2" aria-hidden="true"></a>`;
+			return `<a href="#" tabindex="-1" class="${btnClass} col-6" aria-hidden="true"></a>`;
 		},
 
 		/**
@@ -253,10 +255,10 @@ class SkeletonFactory {
 			const animClass = SkeletonFactory._getAnimClass(animation);
 			return `
                 <div class="d-flex align-items-center gap-3" aria-hidden="true" role="presentation">
-                    <div class="placeholder ${animClass} rounded-circle bg-secondary" style="width: 4rem; height: 4rem;"></div>
+                    <div class="placeholder ${animClass} rounded-circle sk-placeholder-bg" style="width: 4rem; height: 4rem;"></div>
                     <div class="d-flex flex-column gap-2 flex-grow-1">
-                        <span class="placeholder ${animClass} col-4 bg-secondary" style="height: 1.25rem;"></span>
-                        <span class="placeholder ${animClass} col-3 bg-secondary"></span>
+                        <span class="placeholder ${animClass} col-4 sk-placeholder-bg" style="height: 1.25rem;"></span>
+                        <span class="placeholder ${animClass} col-3 sk-placeholder-bg"></span>
                     </div>
                 </div>
             `;
@@ -271,10 +273,10 @@ class SkeletonFactory {
 			const animClass = SkeletonFactory._getAnimClass(animation);
 			return `
                 <div class="d-flex align-items-start gap-2 py-2 border-bottom" aria-hidden="true" role="presentation">
-                    <div class="placeholder ${animClass} rounded-circle bg-secondary flex-shrink-0" style="width: 2rem; height: 2rem;"></div>
+                    <div class="placeholder ${animClass} rounded-circle sk-placeholder-bg flex-shrink-0" style="width: 2rem; height: 2rem;"></div>
                     <div class="flex-grow-1">
-                        <span class="placeholder ${animClass} col-9 mb-1 bg-secondary d-block"></span>
-                        <span class="placeholder ${animClass} col-4 bg-secondary d-block"></span>
+                        <span class="placeholder ${animClass} col-9 mb-1 sk-placeholder-bg d-block"></span>
+                        <span class="placeholder ${animClass} col-4 sk-placeholder-bg d-block"></span>
                     </div>
                 </div>
             `;
@@ -556,9 +558,6 @@ if (typeof module !== "undefined" && module.exports) {
 (function () {
 	// Wait for jQuery to be ready
 	if (typeof $ === "undefined" || typeof $.fn.dataTable === "undefined") {
-		console.warn(
-			"SkeletonFactory: jQuery DataTables not found. Skeleton loading for tables will not work.",
-		);
 		return;
 	}
 
@@ -571,7 +570,7 @@ if (typeof module !== "undefined" && module.exports) {
 			let cells = "";
 			for (let c = 0; c < columns; c++) {
 				const col = cols[c % cols.length];
-				cells += `<td><span class="placeholder placeholder-wave ${col} bg-secondary d-block"></span></td>`;
+				cells += `<td><span class="placeholder placeholder-wave ${col} sk-placeholder-bg d-block"></span></td>`;
 			}
 			html += `<tr>${cells}</tr>`;
 		}
@@ -584,7 +583,7 @@ if (typeof module !== "undefined" && module.exports) {
 			loadingRecords: createTableSkeletonRows(6, 5),
 			processing: `
                 <div class="d-flex justify-content-center align-items-center p-4">
-                    <div class="placeholder placeholder-wave bg-secondary rounded w-100" style="height: 150px;"></div>
+                    <div class="placeholder placeholder-wave sk-placeholder-bg rounded w-100" style="height: 150px;"></div>
                 </div>
             `,
 			emptyTable: `
