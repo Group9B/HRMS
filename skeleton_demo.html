@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Skeleton Loading Showcase - HRMS</title>
+
+		<!-- CSS Dependencies -->
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
+		/>
+		<link rel="stylesheet" href="/hrms/assets/css/bootstrap.css" />
+		<link rel="stylesheet" href="/hrms/assets/css/custom.css" />
+		<link rel="stylesheet" href="/hrms/assets/css/skeleton.css" />
+
+		<style>
+			.showcase-section {
+				padding: 2rem 0;
+				border-bottom: 1px solid var(--bs-border-color);
+			}
+			.showcase-header {
+				margin-bottom: 1.5rem;
+			}
+			.code-snippet {
+				background: var(--bs-gray-100);
+				padding: 1rem;
+				border-radius: 0.375rem;
+				font-family: monospace;
+				font-size: 0.875rem;
+				margin-top: 1rem;
+			}
+			[data-bs-theme="dark"] .code-snippet {
+				background: var(--bs-gray-800);
+			}
+		</style>
+	</head>
+	<body class="bg-body">
+		<!-- Navbar with Theme Toggle -->
+		<nav class="navbar navbar-expand-lg border-bottom sticky-top bg-body">
+			<div class="container">
+				<a
+					class="navbar-brand d-flex align-items-center gap-2"
+					href="#"
+				>
+					<i class="ti ti-bone fs-2 text-primary"></i>
+					<span class="fw-bold">Skeleton Skeletons</span>
+				</a>
+
+				<div class="d-flex align-items-center gap-3">
+					<div class="form-check form-switch mb-0">
+						<input
+							class="form-check-input"
+							type="checkbox"
+							role="switch"
+							id="animationToggle"
+							checked
+						/>
+						<label class="form-check-label" for="animationToggle">
+							Wave Animation
+						</label>
+					</div>
+
+					<button
+						class="btn btn-outline-secondary rounded-circle p-2"
+						id="themeToggle"
+						aria-label="Toggle theme"
+					>
+						<i class="ti ti-moon fs-4"></i>
+					</button>
+				</div>
+			</div>
+		</nav>
+
+		<div class="container py-4">
+			<div class="row">
+				<div class="col-12 text-center mb-5">
+					<h1 class="display-5 fw-bold mb-3">
+						Skeleton Loader Showcase
+					</h1>
+					<p class="lead text-muted">
+						Preview of all available skeleton states using Bootstrap
+						5 Placeholders.
+					</p>
+					<div class="d-flex justify-content-center gap-2 mt-4">
+						<button
+							class="btn btn-primary"
+							onclick="toggleAllSkeletons()"
+						>
+							Toggle All Loading
+						</button>
+						<button
+							class="btn btn-outline-primary"
+							onclick="resetDemo()"
+						>
+							Reset Demo
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- 1. Stat Cards -->
+			<section class="showcase-section">
+				<div class="showcase-header">
+					<h2>
+						<i class="ti ti-chart-bar me-2"></i>
+						Dashboard Stat Cards
+					</h2>
+					<p class="text-muted">
+						Used for dashboard metrics and quick stats.
+					</p>
+				</div>
+
+				<div class="row" id="container-stat-card">
+					<!-- Skeletons will be injected here -->
+				</div>
+			</section>
+
+			<!-- 2. Table Rows -->
+			<section class="showcase-section">
+				<div class="showcase-header">
+					<h2>
+						<i class="ti ti-table me-2"></i>
+						Data Tables
+					</h2>
+					<p class="text-muted">
+						Skeleton loading state for table rows (5 columns shown).
+					</p>
+				</div>
+
+				<div class="card shadow-sm">
+					<div class="table-responsive">
+						<table class="table align-middle mb-0">
+							<thead>
+								<tr>
+									<th>Name</th>
+									<th>Role</th>
+									<th>Department</th>
+									<th>Status</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+							<tbody id="container-table-row">
+								<!-- Skeletons will be injected here -->
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</section>
+
+			<!-- 3. List Items -->
+			<section class="showcase-section">
+				<div class="showcase-header">
+					<h2>
+						<i class="ti ti-list me-2"></i>
+						List Items
+					</h2>
+					<p class="text-muted">
+						Used for activity logs, employee lists, or simple rows.
+					</p>
+				</div>
+
+				<div class="row">
+					<div class="col-md-6">
+						<div class="card shadow-sm">
+							<div class="card-header bg-transparent">
+								<h5 class="card-title mb-0">Recent Activity</h5>
+							</div>
+							<div class="card-body" id="container-list-item">
+								<!-- Skeletons will be injected here -->
+							</div>
+						</div>
+					</div>
+
+					<div class="col-md-6">
+						<div class="card shadow-sm">
+							<div class="card-header bg-transparent">
+								<h5 class="card-title mb-0">Notifications</h5>
+							</div>
+							<div class="card-body" id="container-notification">
+								<!-- Skeletons will be injected here -->
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- 4. Profile Header -->
+			<section class="showcase-section">
+				<div class="showcase-header">
+					<h2>
+						<i class="ti ti-user-circle me-2"></i>
+						Profile Header
+					</h2>
+					<p class="text-muted">
+						Detailed user profile information loading state.
+					</p>
+				</div>
+
+				<div class="card shadow-sm">
+					<div class="card-body p-4" id="container-profile-header">
+						<!-- Skeletons will be injected here -->
+					</div>
+				</div>
+			</section>
+
+			<!-- 5. Content Cards -->
+			<section class="showcase-section">
+				<div class="showcase-header">
+					<h2>
+						<i class="ti ti-article me-2"></i>
+						Content Cards & Text
+					</h2>
+					<p class="text-muted">Generic content placeholders.</p>
+				</div>
+
+				<div class="row">
+					<div class="col-md-4 mb-4">
+						<div id="container-card"></div>
+					</div>
+
+					<div class="col-md-8">
+						<div class="card shadow-sm h-100">
+							<div class="card-body">
+								<h5 class="card-title mb-4">Article Content</h5>
+								<div id="container-paragraph"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- 6. Atomic Elements -->
+			<section class="showcase-section border-0">
+				<div class="showcase-header">
+					<h2>
+						<i class="ti ti-atom me-2"></i>
+						Atomic Elements
+					</h2>
+					<p class="text-muted">
+						Individual building blocks for custom layouts.
+					</p>
+				</div>
+
+				<div class="card shadow-sm">
+					<div class="card-body">
+						<div class="row g-4 align-items-end">
+							<div class="col-auto text-center">
+								<div
+									id="container-circle-sm"
+									class="mb-2 d-flex justify-content-center"
+								></div>
+								<small class="text-muted">Circle SM</small>
+							</div>
+							<div class="col-auto text-center">
+								<div
+									id="container-circle-md"
+									class="mb-2 d-flex justify-content-center"
+								></div>
+								<small class="text-muted">Circle MD</small>
+							</div>
+							<div class="col-auto text-center">
+								<div
+									id="container-circle-lg"
+									class="mb-2 d-flex justify-content-center"
+								></div>
+								<small class="text-muted">Circle LG</small>
+							</div>
+							<div class="col-auto border-start ps-4">
+								<div id="container-button" class="mb-2"></div>
+								<small class="text-muted">Button</small>
+							</div>
+							<div class="col border-start ps-4">
+								<div id="container-rect" class="mb-2"></div>
+								<small class="text-muted">Rect</small>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+		</div>
+
+		<!-- Scripts -->
+		<script src="/hrms/assets/js/jquery.js"></script>
+		<script src="/hrms/assets/js/bootstrap.js"></script>
+		<script src="/hrms/assets/js/skeleton-factory.js"></script>
+
+		<script>
+			// Init Skeletons
+			function initSkeletons(forcedAnimation = null) {
+				const config = {
+					animation:
+						forcedAnimation ||
+						(document.getElementById("animationToggle").checked
+							? "wave"
+							: "glow"),
+				};
+
+				SkeletonFactory.configure({
+					defaultAnimation: config.animation,
+				});
+
+				// 1. Stat Cards
+				SkeletonFactory.show(
+					"#container-stat-card",
+					"stat-card",
+					4,
+					config,
+				);
+
+				// 2. Table Rows
+				SkeletonFactory.show("#container-table-row", "table-row", 5, {
+					...config,
+					columns: 5,
+				});
+
+				// 3. Lists
+				SkeletonFactory.show(
+					"#container-list-item",
+					"list-item",
+					3,
+					config,
+				);
+				SkeletonFactory.show(
+					"#container-notification",
+					"notification",
+					3,
+					config,
+				);
+
+				// 4. Profile
+				SkeletonFactory.show(
+					"#container-profile-header",
+					"profile-header",
+					1,
+					config,
+				);
+
+				// 5. Content
+				SkeletonFactory.show("#container-card", "card", 1, config);
+				SkeletonFactory.show(
+					"#container-paragraph",
+					"paragraph",
+					5,
+					config,
+				);
+
+				// 6. Atomic
+				SkeletonFactory.show("#container-circle-sm", "circle", 1, {
+					...config,
+					size: "sm",
+				});
+				SkeletonFactory.show("#container-circle-md", "circle", 1, {
+					...config,
+					dim: "3rem",
+				});
+				SkeletonFactory.show("#container-circle-lg", "circle", 1, {
+					...config,
+					size: "xl",
+				});
+				SkeletonFactory.show("#container-button", "button", 1, config);
+				SkeletonFactory.show("#container-rect", "rect", 1, {
+					...config,
+					size: "sm",
+				});
+			}
+
+			// Toggle All Function
+			function toggleAllSkeletons() {
+				// Re-run init to refreshing
+				initSkeletons();
+			}
+
+			// Reset
+			function resetDemo() {
+				initSkeletons();
+			}
+
+			// Theme Toggle Logic
+			const themeBtn = document.getElementById("themeToggle");
+			const themeIcon = themeBtn.querySelector("i");
+			const html = document.documentElement;
+
+			function updateThemeEnv() {
+				const current = html.getAttribute("data-bs-theme");
+				if (current === "dark") {
+					themeIcon.classList.replace("ti-moon", "ti-sun");
+				} else {
+					themeIcon.classList.replace("ti-sun", "ti-moon");
+				}
+			}
+
+			themeBtn.addEventListener("click", () => {
+				const current = html.getAttribute("data-bs-theme");
+				const next = current === "dark" ? "light" : "dark";
+				html.setAttribute("data-bs-theme", next);
+				updateThemeEnv();
+			});
+
+			// Animation Toggle Logic
+			document
+				.getElementById("animationToggle")
+				.addEventListener("change", () => {
+					initSkeletons();
+				});
+
+			// Initial Load
+			document.addEventListener("DOMContentLoaded", () => {
+				initSkeletons();
+				updateThemeEnv();
+			});
+		</script>
+	</body>
+</html>

@@ -74,8 +74,8 @@ $role_color = $role_colors[$role_id] ?? 'secondary';
                     <div class="wrapper-of-btn d-flex align-items-center justify-content-end gap-0">
                         <div class="notifications position-relative">
                             <div class="dropdown">
-                                <button class="btn dropdown-toggle position-relative action border-0 opacity-75"
-                                    type="button" id="notificationButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                <button class="btn dropdown-toggle position-relative action border-0" type="button"
+                                    id="notificationButton" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="ti ti-bell fs-5"></i>
                                     <span id="notificationBadge"
                                         class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
