@@ -6,6 +6,21 @@
  */
 
 class AttendanceCalendar {
+	/**
+	 * Escapes HTML special characters to prevent XSS.
+	 * @param {string} str - The string to escape.
+	 * @returns {string} The escaped string.
+	 */
+	escapeHtml(str) {
+		if (str === null || str === undefined) return "";
+		return String(str)
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;")
+			.replace(/'/g, "&#039;");
+	}
+
 	constructor(config) {
 		this.containerId = config.containerId;
 		this.employeeId = config.employeeId || null;
@@ -410,10 +425,10 @@ class AttendanceCalendar {
             <div class="card-body">
                 <div class="row mb-3">
                     <div class="col">
-                        <h6 class="mb-0 fw-bold text-primary">${emp.name}</h6>
-                        <small class="text-body-secondary">${
+                        <h6 class="mb-0 fw-bold text-primary">${this.escapeHtml(emp.name)}</h6>
+                        <small class="text-body-secondary">${this.escapeHtml(
 							emp.designation || "N/A"
-						}</small>
+						)}</small>
                     </div>
                     <div class="col-auto">
                         <small class="text-muted">Joined: ${new Date(
@@ -499,8 +514,8 @@ class AttendanceCalendar {
 		const workedHours = this.calculateWorkedHours(checkIn, checkOut);
 
 		modalEl.querySelector("#attendanceDayModalLabel").textContent =
-			empName || "Attendance Details";
-		modalEl.querySelector("#attendanceDayDate").textContent = dayLabel;
+			this.escapeHtml(empName) || "Attendance Details";
+		modalEl.querySelector("#attendanceDayDate").textContent = this.escapeHtml(dayLabel);
 		modalEl.querySelector("#attendanceDayStatus").textContent = (
 			status || ""
 		).replace(/\b\w/g, (c) => c.toUpperCase());

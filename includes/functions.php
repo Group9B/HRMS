@@ -303,8 +303,10 @@ function query(mysqli $mysqli, string $sql, array $params = []): array
         }
 
     } catch (Exception $e) {
-        // In a production environment, you might want to log this error instead of exposing it.
-        return ['success' => false, 'error' => $e->getMessage()];
+        // Log the detailed error for debugging
+        error_log('Database Error: ' . $e->getMessage());
+        // Return a generic message to the user
+        return ['success' => false, 'error' => 'A database error occurred. Please try again later.'];
     } finally {
         // Ensure the statement is always closed
         if (isset($stmt)) {
