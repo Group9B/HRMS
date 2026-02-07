@@ -43,21 +43,8 @@ if (!empty($employee_filter)) {
 $where_clause = implode(' AND ', $where_conditions);
 
 // Get tasks
-// Get tasks
-$tasks_result = query($mysqli, "
-    SELECT t.*, e.first_name, e.last_name, e.employee_code,
-           des.name as designation_name, d.name as department_name,
-           teams.name as assigned_team_name, teams.id as assigned_team_id
-    FROM tasks t
-    JOIN employees e ON t.employee_id = e.id
-    LEFT JOIN teams ON t.team_id = teams.id
-    LEFT JOIN designations des ON e.designation_id = des.id
-    LEFT JOIN departments d ON e.department_id = d.id
-    WHERE $where_clause
-    ORDER BY t.created_at DESC
-", $params);
-
-$tasks = $tasks_result['success'] ? $tasks_result['data'] : [];
+// Tasks are now fetched via AJAX
+$tasks = [];
 
 // Get manager's teams for filter
 $manager_teams_result = query($mysqli, "SELECT id, name FROM teams WHERE created_by = ? ORDER BY name ASC", [$user_id]);
@@ -166,117 +153,24 @@ require_once '../components/layout/header.php';
                 <h6 class="m-0 font-weight-bold">Team Tasks</h6>
             </div>
             <div class="card-body">
-                <?php if (!empty($tasks)): ?>
-                    <div class="table-responsive">
-                        <table class="table table-hover" id="tasksTable">
-                            <thead>
-                                <tr>
-                                    <th>Task</th>
-                                    <th>Assigned To</th>
-                                    <th>Team</th>
-                                    <th>Status</th>
-                                    <th>Due Date</th>
-                                    <th>Created</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($tasks as $task): ?>
-                                    <tr>
-                                        <td>
-                                            <div>
-                                                <div class="fw-bold"><?= htmlspecialchars($task['title']) ?></div>
-                                                <small
-                                                    class="text-muted"><?= htmlspecialchars(substr($task['description'] ?: 'No description', 0, 100)) ?><?= strlen($task['description'] ?: '') > 100 ? '...' : '' ?></small>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="avatar-circle me-2">
-                                                    <?= strtoupper(substr($task['first_name'], 0, 1) . substr($task['last_name'], 0, 1)) ?>
-                                                </div>
-                                                <div>
-                                                    <div class="fw-bold">
-                                                        <?= htmlspecialchars($task['first_name'] . ' ' . $task['last_name']) ?>
-                                                    </div>
-                                                    <small
-                                                        class="text-muted"><?= htmlspecialchars($task['employee_code'] ?? 'N/A') ?></small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <?php if (!empty($task['assigned_team_name'])): ?>
-                                                <a href="manage_team_members.php?id=<?= $task['assigned_team_id'] ?>"
-                                                    class="badge bg-light text-primary border border-primary text-decoration-none mb-1">
-                                                    <i
-                                                        class="ti ti-users me-1"></i><?= htmlspecialchars($task['assigned_team_name']) ?>
-                                                </a>
-                                            <?php else: ?>
-                                                <span class="text-muted small">N/A</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <?php
-                                            $status_classes = [
-                                                'pending' => 'warning',
-                                                'in_progress' => 'info',
-                                                'completed' => 'success',
-                                                'cancelled' => 'danger'
-                                            ];
-                                            $status_class = $status_classes[$task['status']] ?? 'secondary';
-                                            ?>
-                                            <span
-                                                class="badge bg-<?= $status_class ?>"><?= ucfirst(str_replace('_', ' ', $task['status'])) ?></span>
-                                        </td>
-                                        <td>
-                                            <?php if ($task['due_date']): ?>
-                                                <?php
-                                                $due_date = new DateTime($task['due_date']);
-                                                $today = new DateTime();
-                                                $is_overdue = $due_date < $today && $task['status'] !== 'completed';
-                                                ?>
-                                                <span class="<?= $is_overdue ? 'text-danger fw-bold' : '' ?>">
-                                                    <?= $due_date->format('M j, Y') ?>
-                                                </span>
-                                                <?php if ($is_overdue): ?>
-                                                    <br><small class="text-danger">Overdue</small>
-                                                <?php endif; ?>
-                                            <?php else: ?>
-                                                <span class="text-muted">No due date</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td><?= date('M j, Y', strtotime($task['created_at'])) ?></td>
-                                        <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary" onclick="viewTask(<?= $task['id'] ?>)"
-                                                    title="View Details">
-                                                    <i class="ti ti-eye"></i>
-                                                </button>
-                                                <button class="btn btn-outline-success" onclick="editTask(<?= $task['id'] ?>)"
-                                                    title="Edit Task">
-                                                    <i class="ti ti-edit"></i>
-                                                </button>
-                                                <?php if ($task['status'] !== 'completed' && $task['status'] !== 'cancelled'): ?>
-                                                    <button class="btn btn-outline-danger" onclick="cancelTask(<?= $task['id'] ?>)"
-                                                        title="Cancel Task">
-                                                        <i class="ti ti-x"></i>
-                                                    </button>
-                                                <?php endif; ?>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php else: ?>
-                    <div class="text-center text-muted p-5">
-                        <i class="ti ti-checklist" style="font-size: 3rem;"></i>
-                        <div class="mb-3"></div>
-                        <h5>No Tasks Found</h5>
-                        <p>No tasks match your current filters.</p>
-                    </div>
-                <?php endif; ?>
+                <div class="table-responsive">
+                    <table class="table table-hover" id="tasksTable">
+                        <thead>
+                            <tr>
+                                <th>Task</th>
+                                <th>Assigned To</th>
+                                <th>Team</th>
+                                <th>Status</th>
+                                <th>Due Date</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Tasks will be loaded here via AJAX -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -453,6 +347,9 @@ require_once '../components/layout/header.php';
 
 <?php require_once '../components/layout/footer.php'; ?>
 <script>
+    // Initialize DataTable variable
+    let tasksTable;
+
     // Render Stats using global function
     const taskStats = [
         { label: 'Pending', value: '<?= $stats['pending'] ?>', color: 'warning', icon: 'clock' },
@@ -463,6 +360,25 @@ require_once '../components/layout/header.php';
     renderStatCards('taskStats', taskStats);
 
     $(document).ready(function () {
+        // Initialize DataTable
+        tasksTable = $('#tasksTable').DataTable({
+            responsive: true,
+            pageLength: 10,
+            order: [[5, 'desc']], // Sort by created date
+            columnDefs: [
+                { orderable: false, targets: 6 } // Disable sorting on Actions column
+            ]
+        });
+
+        // Load tasks initially
+        fetchTasks();
+
+        // Handle Filter Form Submission
+        $('.card-body form').on('submit', function (e) {
+            e.preventDefault();
+            fetchTasks();
+        });
+
         // Handle employee selection to fetch teams
         $('#task_employee').on('change', function () {
             const employeeId = $(this).val();
@@ -492,13 +408,6 @@ require_once '../components/layout/header.php';
                     })
                     .catch(error => console.error('Error fetching teams:', error));
             }
-        });
-
-        // Initialize DataTable
-        $('#tasksTable').DataTable({
-            responsive: true,
-            pageLength: 10,
-            order: [[5, 'desc']] // Sort by created date
         });
 
         // Handle form submission
@@ -603,6 +512,149 @@ require_once '../components/layout/header.php';
         });
     });
 
+    function fetchTasks() {
+        const status = $('#status').val();
+        const employeeId = $('#employee_id').val();
+
+        // Show loading state if needed (optional)
+
+        fetch(`/hrms/api/api_manager.php?action=get_tasks&status=${status}&employee_id=${employeeId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderTasks(data.data);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching tasks:', error);
+                showToast('Failed to load tasks.', 'error');
+            });
+    }
+
+    function renderTasks(tasks) {
+        // Clear existing data in DataTable
+        tasksTable.clear();
+
+        if (tasks.length === 0) {
+            tasksTable.draw();
+            return;
+        }
+
+        tasks.forEach(task => {
+            const hasTeam = task.assigned_team_name && task.assigned_team_name.trim() !== '';
+
+            // Task Info Column
+            const taskInfo = `
+                <div>
+                    <div class="fw-bold">${escapeHtml(task.title)}</div>
+                    <small class="text-muted">${escapeHtml((task.description || 'No description').substring(0, 100))}${task.description && task.description.length > 100 ? '...' : ''}</small>
+                </div>
+            `;
+
+            // Assigned To Column
+            const assignedTo = `
+                <div class="d-flex align-items-center">
+                    <div class="avatar-circle me-2">
+                        ${(task.first_name.charAt(0) + task.last_name.charAt(0)).toUpperCase()}
+                    </div>
+                    <div>
+                        <div class="fw-bold">
+                            ${escapeHtml(task.first_name + ' ' + task.last_name)}
+                        </div>
+                        <small class="text-muted">${escapeHtml(task.employee_code || 'N/A')}</small>
+                    </div>
+                </div>
+            `;
+
+            // Team Column
+            const teamInfo = hasTeam ? `
+                <a href="manage_team_members.php?id=${task.assigned_team_id}"
+                    class="badge bg-light text-primary border border-primary text-decoration-none mb-1">
+                    <i class="ti ti-users me-1"></i>${escapeHtml(task.assigned_team_name)}
+                </a>
+            ` : '<span class="text-muted small">N/A</span>';
+
+            // Status Column
+            const statusLabels = {
+                'pending': 'warning',
+                'in_progress': 'info',
+                'completed': 'success',
+                'cancelled': 'danger'
+            };
+            const statusClass = statusLabels[task.status] || 'secondary';
+            const statusLabel = task.status.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+            const status = `<span class="badge bg-${statusClass}">${statusLabel}</span>`;
+
+            // Due Date Column
+            let dueDate = '<span class="text-muted">No due date</span>';
+            if (task.due_date) {
+                const dateObj = new Date(task.due_date);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // normalize today
+
+                // Simple parsing if format is YYYY-MM-DD
+                const isOverdue = new Date(task.due_date) < new Date() && task.status !== 'completed';
+
+                dueDate = `
+                    <span class="${isOverdue ? 'text-danger fw-bold' : ''}">
+                        ${dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                    ${isOverdue ? '<br><small class="text-danger">Overdue</small>' : ''}
+                `;
+            }
+
+            // Created Date Column
+            const formattedDate = new Date(task.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+            // Actions Column
+            let actions = `
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="viewTask(${task.id})" title="View Details">
+                        <i class="ti ti-eye"></i>
+                    </button>
+                    <button class="btn btn-outline-success" onclick="editTask(${task.id})" title="Edit Task">
+                        <i class="ti ti-edit"></i>
+                    </button>
+            `;
+
+            if (task.status !== 'completed' && task.status !== 'cancelled') {
+                actions += `
+                    <button class="btn btn-outline-danger" onclick="cancelTask(${task.id})" title="Cancel Task">
+                        <i class="ti ti-x"></i>
+                    </button>
+                `;
+            }
+            actions += '</div>';
+
+            // Add row to DataTable
+            tasksTable.row.add([
+                taskInfo,
+                assignedTo,
+                teamInfo,
+                status,
+                dueDate,
+                formattedDate,
+                actions
+            ]);
+        });
+
+        // Redraw table
+        tasksTable.draw();
+    }
+
+    // Helper to escape HTML to prevent XSS
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     function assignTask() {
         const formData = new FormData(document.getElementById('taskForm'));
         formData.append('action', 'assign_task');
@@ -617,7 +669,10 @@ require_once '../components/layout/header.php';
                     showToast(data.message, 'success');
                     $('#addTaskModal').modal('hide');
                     document.getElementById('taskForm').reset();
-                    location.reload();
+                    // Reload tasks via AJAX instead of page reload
+                    fetchTasks();
+                    // Also update stats if needed (would require another API call or incrementing JS stats)
+                    // For now, reloading tasks list is the priority. 
                 } else {
                     showToast(data.message, 'error');
                 }
@@ -648,7 +703,7 @@ require_once '../components/layout/header.php';
                     showToast(data.message, 'success');
                     $('#bulkTaskModal').modal('hide');
                     document.getElementById('bulkTaskForm').reset();
-                    location.reload();
+                    fetchTasks();
                 } else {
                     showToast(data.message, 'error');
                 }
@@ -679,14 +734,14 @@ require_once '../components/layout/header.php';
         <div class="row">
             <div class="col-md-6">
                 <h6>Task Information</h6>
-                <p><strong>Title:</strong> ${task.title}</p>
-                <p><strong>Description:</strong> ${task.description || 'No description provided'}</p>
+                <p><strong>Title:</strong> ${escapeHtml(task.title)}</p>
+                <p><strong>Description:</strong> ${escapeHtml(task.description || 'No description provided')}</p>
                 <p><strong>Status:</strong> <span class="badge bg-${getStatusClass(task.status)}">${task.status.charAt(0).toUpperCase() + task.status.slice(1).replace('_', ' ')}</span></p>
             </div>
             <div class="col-md-6">
                 <h6>Assignment Details</h6>
-                <p><strong>Assigned To:</strong> ${task.first_name} ${task.last_name}</p>
-                <p><strong>Employee Code:</strong> ${task.employee_code || 'N/A'}</p>
+                <p><strong>Assigned To:</strong> ${escapeHtml(task.first_name + ' ' + task.last_name)}</p>
+                <p><strong>Employee Code:</strong> ${escapeHtml(task.employee_code || 'N/A')}</p>
                 <p><strong>Due Date:</strong> ${task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No due date'}</p>
                 <p><strong>Created:</strong> ${new Date(task.created_at).toLocaleString()}</p>
             </div>
@@ -735,7 +790,7 @@ require_once '../components/layout/header.php';
                 if (data.success) {
                     showToast(data.message, 'success');
                     $('#editTaskModal').modal('hide');
-                    location.reload();
+                    fetchTasks();
                 } else {
                     showToast(data.message, 'error');
                 }
@@ -759,7 +814,7 @@ require_once '../components/layout/header.php';
                 .then(data => {
                     if (data.success) {
                         showToast(data.message, 'success');
-                        location.reload();
+                        fetchTasks();
                     } else {
                         showToast(data.message, 'error');
                     }
@@ -779,4 +834,5 @@ require_once '../components/layout/header.php';
         };
         return classes[status] || 'secondary';
     }
+    // Remove standalone renderStatCards call if it was called here? No, I added the const declaration above. 
 </script>

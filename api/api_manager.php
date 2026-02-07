@@ -38,16 +38,16 @@ switch ($action) {
         // Get team statistics
         $stats_result = query($mysqli, "
             SELECT 
-                COUNT(e.id) as total_members,
-                COUNT(CASE WHEN u.status = 'active' THEN 1 END) as active_members,
-                COUNT(CASE WHEN t.status IN ('pending', 'in_progress') THEN 1 END) as pending_tasks,
-                COUNT(CASE WHEN t.status = 'completed' THEN 1 END) as completed_tasks,
-                COUNT(CASE WHEN a.status = 'leave' AND a.date = CURDATE() THEN 1 END) as on_leave_today
+                COUNT(DISTINCT e.id) as total_members,
+                COUNT(DISTINCT CASE WHEN u.status = 'active' THEN e.id END) as active_members,
+                COUNT(DISTINCT CASE WHEN t.status IN ('pending', 'in_progress') THEN t.id END) as pending_tasks,
+                COUNT(DISTINCT CASE WHEN t.status = 'completed' THEN t.id END) as completed_tasks,
+                COUNT(DISTINCT CASE WHEN a.status = 'leave' THEN a.id END) as on_leave_today
             FROM employees e
             JOIN users u ON e.user_id = u.id
+            JOIN team_members tm ON e.id = tm.employee_id
             LEFT JOIN tasks t ON e.id = t.employee_id
             LEFT JOIN attendance a ON e.id = a.employee_id AND a.date = CURDATE()
-            JOIN team_members tm ON e.id = tm.employee_id
             WHERE tm.assigned_by = ?
         ", [$user_id]);
 
@@ -786,11 +786,11 @@ switch ($action) {
                 $error_count = 0;
 
                 foreach ($employee_ids as $employee_id) {
-                    // Check if employee is already in the team
+                    // Check if employee is already in ANY team
                     $check_existing = query($mysqli, "
                         SELECT id FROM team_members 
-                        WHERE team_id = ? AND employee_id = ?
-                    ", [$team_id, $employee_id]);
+                        WHERE employee_id = ?
+                    ", [$employee_id]);
 
                     if ($check_existing['success'] && empty($check_existing['data'])) {
                         // Add member to team
@@ -986,7 +986,7 @@ switch ($action) {
         // Base query to get all employees (Role ID 4 only)
         $sql = "
             SELECT e.id, e.first_name, e.last_name, e.employee_code, e.designation_id, 
-                   des.name as designation_name, d.name as department_name
+                   des.name as designation_name, d.name as department_name, e.date_of_joining
             FROM employees e
             JOIN users u ON e.user_id = u.id
             LEFT JOIN designations des ON e.designation_id = des.id
@@ -997,10 +997,8 @@ switch ($action) {
         $params = [];
 
         // If team_id is provided, exclude employees already in that team
-        if ($team_id > 0) {
-            $sql .= " AND e.id NOT IN (SELECT employee_id FROM team_members WHERE team_id = ?)";
-            $params[] = $team_id;
-        }
+        // Filter out employees who are in ANY team
+        $sql .= " AND e.id NOT IN (SELECT employee_id FROM team_members)";
 
         $sql .= " ORDER BY e.first_name ASC";
 
@@ -1262,6 +1260,56 @@ switch ($action) {
             }
         } else {
             $response['message'] = 'Invalid employee ID.';
+        }
+        break;
+
+    case 'get_tasks':
+        $status_filter = $_GET['status'] ?? 'all';
+        $employee_filter = $_GET['employee_id'] ?? '';
+
+        // Manager context
+        $manager_result = query($mysqli, "SELECT id, department_id FROM employees WHERE user_id = ?", [$user_id]);
+        if (!$manager_result['success'] || empty($manager_result['data'])) {
+            $response['message'] = 'Manager profile not found.';
+            break;
+        }
+        $manager = $manager_result['data'][0];
+        $manager_department_id = $manager['department_id'];
+
+        $where_conditions = ["(e.department_id = ? OR t.assigned_by = ?)"];
+        $params = [$manager_department_id, $user_id];
+
+        if ($status_filter !== 'all') {
+            $where_conditions[] = "t.status = ?";
+            $params[] = $status_filter;
+        }
+
+        if (!empty($employee_filter)) {
+            $where_conditions[] = "t.employee_id = ?";
+            $params[] = $employee_filter;
+        }
+
+        $where_clause = implode(' AND ', $where_conditions);
+
+        $sql = "
+            SELECT t.*, e.first_name, e.last_name, e.employee_code,
+                   des.name as designation_name, d.name as department_name,
+                   teams.name as assigned_team_name, teams.id as assigned_team_id
+            FROM tasks t
+            JOIN employees e ON t.employee_id = e.id
+            LEFT JOIN teams ON t.team_id = teams.id
+            LEFT JOIN designations des ON e.designation_id = des.id
+            LEFT JOIN departments d ON e.department_id = d.id
+            WHERE $where_clause
+            ORDER BY t.created_at DESC
+        ";
+
+        $tasks_result = query($mysqli, $sql, $params);
+
+        if ($tasks_result['success']) {
+            $response = ['success' => true, 'data' => $tasks_result['data']];
+        } else {
+            $response['message'] = 'Failed to fetch tasks.';
         }
         break;
 
