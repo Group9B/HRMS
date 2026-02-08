@@ -269,7 +269,7 @@ switch ($_SESSION['role_id']) {
         'submenu' => []
       ],
       'leaves' => [
-        'title' => 'Approvals',
+        'title' => 'Leaves',
         'icon' => 'ti ti-calendar-check',
         'url' => '/hrms/company/leaves.php',
         'permission' => null,
@@ -285,7 +285,7 @@ switch ($_SESSION['role_id']) {
       'attendance' => [
         'title' => 'Attendance',
         'icon' => 'ti ti-calendar',
-        'url' => '/hrms/manager/attendance.php',
+        'url' => '/hrms/employee/attendance_detail.php',
         'permission' => null,
         'submenu' => []
       ],

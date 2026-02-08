@@ -58,7 +58,9 @@ require_once '../components/layout/header.php';
                     <div class="card shadow-sm mt-3">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h6 class="m-0">Employee Leave Requests</h6>
-                            <a href="/hrms/company/leave_policy.php" class="btn btn-outline-secondary btn-sm"><i class="ti ti-settings me-1"></i> Manage Policies</a>
+                            <?php if (in_array($role_id,[2,3])):?>
+                                <a href="/hrms/company/leave_policy.php" class="btn btn-outline-secondary btn-sm"><i class="ti ti-settings me-1"></i> Manage Policies</a>
+                            <?php endif; ?>
                         </div>
                         <div class="card-body"><table class="table table-hover" id="approveRequestsTable" width="100%"><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead></table></div>
                     </div>

@@ -137,9 +137,8 @@ require_once "../components/layout/header.php";
 
                                     <span class="input-group-text" id="basic-addon1"><i class="ti ti-lock"></i></span>
                                     <input type="password" class="form-control" name="password" id="passwordInput"
-                                        placeholder="Enter password" style="border-right: none;" required>
-                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword"
-                                        style="border-left: none;">
+                                        placeholder="Enter password" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                                         <i class="ti ti-eye fs-4" id="icon"></i>
                                     </button>
                                 </div>

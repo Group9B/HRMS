@@ -49,9 +49,18 @@ switch ($action) {
 
         if ($task_id > 0 && in_array($status, $allowed_statuses)) {
             // Security check: ensure the task belongs to this employee before updating
-            $sql = "UPDATE tasks SET status = ? WHERE id = ? AND employee_id = ?";
-            $result = query($mysqli, $sql, [$status, $task_id, $employee_id]);
-
+            if ($status !== 'completed') {
+                $sql = "UPDATE tasks SET status = ? WHERE id = ? AND employee_id = ?";
+                $result = query($mysqli, $sql, [$status, $task_id, $employee_id]);
+            } else {
+                $sql = "UPDATE tasks SET status = ?, completed_at = ? WHERE id = ? AND employee_id = ?";
+                $result = query($mysqli, $sql, [
+                    $status,
+                    date('Y-m-d H:i:s'),
+                    $task_id,
+                    $employee_id
+                ]);
+            }
             if ($result['success'] && $result['affected_rows'] > 0) {
                 $response = ['success' => true, 'message' => 'Task status updated!'];
             } else {
