@@ -11,10 +11,8 @@
  * - Tabler Icons CSS must be loaded
  */
 
-// Only show if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    return;
-}
+// Allow guests, but set a flag
+$isGuest = !isset($_SESSION['user_id']);
 ?>
 
 <!-- NexusBot Chat Widget CSS -->
@@ -53,50 +51,60 @@ if (!isset($_SESSION['user_id'])) {
     <!-- Quick Actions -->
     <div class="nexus-quick-actions">
         <?php
-        // Dynamic Quick Actions
-        $qa_user_id = $_SESSION['user_id'] ?? 0;
-        $qa_role_id = $_SESSION['role_id'] ?? 0;
+        if ($isGuest) {
+            // Guest Actions - Info Only
+            $actions = [
+                ['icon' => 'ti ti-info-circle', 'label' => 'About StaffSync', 'query' => ' tell me about staffsync features'],
+                ['icon' => 'ti ti-cash', 'label' => 'Pricing', 'query' => 'what are the pricing plans?'],
+                ['icon' => 'ti ti-shield-lock', 'label' => 'Security', 'query' => 'is my data safe?'],
+                ['icon' => 'ti ti-rocket', 'label' => 'Get Started', 'query' => 'how do i sign up?']
+            ];
+        } else {
+            // Logged-in User Actions
+            $qa_user_id = $_SESSION['user_id'] ?? 0;
+            $qa_role_id = $_SESSION['role_id'] ?? 0;
 
-        // Default Actions
-        $actions = [
-            ['icon' => 'ti ti-calendar-check', 'label' => 'Attendance', 'query' => 'Check my attendance'],
-            ['icon' => 'ti ti-beach', 'label' => 'Leave', 'query' => 'Show my leave balance'],
-            ['icon' => 'ti ti-moon-stars', 'label' => 'Theme', 'query' => 'Toggle theme']
-        ];
+            // Default Actions
+            $actions = [
+                ['icon' => 'ti ti-calendar-check', 'label' => 'Attendance', 'query' => 'Check my attendance'],
+                ['icon' => 'ti ti-beach', 'label' => 'Leave', 'query' => 'Show my leave balance'],
+                ['icon' => 'ti ti-moon-stars', 'label' => 'Theme', 'query' => 'Toggle theme']
+            ];
 
-        if ($qa_user_id) {
-            // Check Attendance Status for Clock In/Out
-            // Re-using strict SQL to ensure valid employee link
-            $qa_emp_query = "SELECT id FROM employees WHERE user_id = '$qa_user_id' LIMIT 1";
-            $qa_emp_res = $mysqli->query($qa_emp_query);
-            if ($qa_emp_res && $qa_emp_res->num_rows > 0) {
-                $qa_emp = $qa_emp_res->fetch_assoc();
-                $qa_emp_id = $qa_emp['id'];
-                $today = date('Y-m-d');
+            if ($qa_user_id) {
+                // Check Attendance Status for Clock In/Out
+                // Re-using strict SQL to ensure valid employee link
+                $qa_emp_query = "SELECT id FROM employees WHERE user_id = '$qa_user_id' LIMIT 1";
+                $qa_emp_res = $mysqli->query($qa_emp_query);
+                if ($qa_emp_res && $qa_emp_res->num_rows > 0) {
+                    $qa_emp = $qa_emp_res->fetch_assoc();
+                    $qa_emp_id = $qa_emp['id'];
+                    $today = date('Y-m-d');
 
-                $qa_att_query = "SELECT check_in, check_out FROM attendance WHERE employee_id = '$qa_emp_id' AND date = '$today' LIMIT 1";
-                $qa_att_res = $mysqli->query($qa_att_query);
+                    $qa_att_query = "SELECT check_in, check_out FROM attendance WHERE employee_id = '$qa_emp_id' AND date = '$today' LIMIT 1";
+                    $qa_att_res = $mysqli->query($qa_att_query);
 
-                if ($qa_att_res && $qa_att_res->num_rows > 0) {
-                    $qa_att = $qa_att_res->fetch_assoc();
-                    if ($qa_att['check_in'] && !$qa_att['check_out']) {
-                        // Clocked In -> Show Clock Out
-                        array_unshift($actions, ['icon' => 'ti ti-clock-stop', 'label' => 'Clock Out', 'query' => 'Clock Out']);
+                    if ($qa_att_res && $qa_att_res->num_rows > 0) {
+                        $qa_att = $qa_att_res->fetch_assoc();
+                        if ($qa_att['check_in'] && !$qa_att['check_out']) {
+                            // Clocked In -> Show Clock Out
+                            array_unshift($actions, ['icon' => 'ti ti-clock-stop', 'label' => 'Clock Out', 'query' => 'Clock Out']);
+                        } else {
+                            // Already done for today (Clocked out)
+                            // Maybe show nothing or summary? stick to default
+                        }
                     } else {
-                        // Already done for today (Clocked out)
-                        // Maybe show nothing or summary? stick to default
+                        // Not Clocked In -> Show Clock In
+                        array_unshift($actions, ['icon' => 'ti ti-clock-play', 'label' => 'Clock In', 'query' => 'Clock In']);
                     }
-                } else {
-                    // Not Clocked In -> Show Clock In
-                    array_unshift($actions, ['icon' => 'ti ti-clock-play', 'label' => 'Clock In', 'query' => 'Clock In']);
                 }
             }
-        }
 
-        // Manager Actions
-        if ($qa_role_id == 6) { // Manager
-            $actions[] = ['icon' => 'ti ti-users', 'label' => 'My Team', 'query' => 'Show my team'];
-            $actions[] = ['icon' => 'ti ti-check', 'label' => 'Approvals', 'query' => 'Show pending leave requests'];
+            // Manager Actions
+            if ($qa_role_id == 6) { // Manager
+                $actions[] = ['icon' => 'ti ti-users', 'label' => 'My Team', 'query' => 'Show my team'];
+                $actions[] = ['icon' => 'ti ti-check', 'label' => 'Approvals', 'query' => 'Show pending leave requests'];
+            }
         }
 
         // Render Buttons

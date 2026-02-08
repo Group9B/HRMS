@@ -86,10 +86,10 @@
                 <div class="offcanvas-body">
                     <ul class="navbar-nav justify-content-end flex-grow-1 align-items-center gap-3">
                         <li class="nav-item">
-                            <a class="nav-link text-body fw-semibold" href="#features">Features</a>
+                            <a class="nav-link text-body fw-semibold" href="index.php#features">Features</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-body fw-semibold" href="/hrms/benefits.php">Benefits</a>
+                            <a class="nav-link text-primary fw-bold" href="#">Benefits</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-body fw-semibold" href="/hrms/subscription/purchase.php">Pricing</a>
@@ -120,268 +120,36 @@
         <div class="container">
             <div class="row align-items-center g-5">
                 <div class="col-lg-6 text-center text-lg-start">
-                    <div class="badge bg-primary bg-opacity-10 text-primary mb-3 px-3 py-2 rounded-pill fw-semibold"
+                    <div class="badge bg-success bg-opacity-10 text-success mb-3 px-3 py-2 rounded-pill fw-semibold"
                         data-aos="fade-up">
-                        <i class="ti ti-star me-2"></i> #1 HR Management Software
+                        <i class="ti ti-sparkles me-2"></i> Unlocking Potential
                     </div>
                     <h1 class="display-4 fw-bold text-body-emphasis mb-4 lh-tight" data-aos="fade-up"
                         data-aos-delay="100">
-                        The Smartest Way to Manage Your <span class="text-primary">Workforce</span>
+                        Why Choose <span class="text-primary">StaffSync?</span>
                     </h1>
                     <p class="lead text-secondary mb-5 pe-lg-5" data-aos="fade-up" data-aos-delay="200">
-                        Simplify attendance, payroll, and performance management with StaffSync.
-                        Designed for modern businesses to automate HR processes and focus on people.
+                        Transform your HR operations from administrative burdens into strategic advantages.
+                        Discover the magnet that attracts and retains top talent.
                     </p>
                     <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start"
                         data-aos="fade-up" data-aos-delay="300">
                         <a href="/hrms/register.php"
                             class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm fw-semibold">
-                            Get Started
+                            Start Free Trial
                             <i class="ti ti-arrow-right ms-2"></i>
                         </a>
-                        <a href="#features" class="btn btn-outline-secondary btn-lg px-5 rounded-pill fw-semibold">
-                            Learn More
-                        </a>
                     </div>
-                    <div class="mt-4 text-secondary small">
-                        <i class="ti ti-circle-check text-success me-1"></i> No credit card required &nbsp;&nbsp;
-                        <i class="ti ti-circle-check text-success me-1"></i> 14-day free trial
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="position-relative p-4 bg-body-tertiary rounded-4 border" data-aos="fade-left"
-                        data-aos-duration="1000">
-                        <div class="bg-body rounded-3  shadow-sm p-4 mb-4 border-start border-4 border-primary">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="bg-primary bg-opacity-10 badge py-2 rounded-circle text-primary me-3">
-                                    <i class="ti ti-users fs-4"></i>
-                                </div>
-                                <div>
-                                    <h5 class="mb-0 fw-bold text-body">Total Employees</h5>
-                                    <small class="text-secondary">Active workforce status</small>
-                                </div>
-                                <h3 class="ms-auto mb-0 fw-bold text-primary">1,245</h3>
-                            </div>
-                            <div class="progress" style="height: 6px;">
-                                <div class="progress-bar bg-primary" role="progressbar" style="width: 75%"></div>
-                            </div>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="bg-body rounded-3 shadow-sm p-3 border-start border-4 border-success h-100">
-                                    <small class="text-secondary d-block mb-1">On Time</small>
-                                    <h4 class="fw-bold text-body mb-0">95%</h4>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="bg-body rounded-3 shadow-sm p-3 border-start border-4 border-warning h-100">
-                                    <small class="text-secondary d-block mb-1">On Leave</small>
-                                    <h4 class="fw-bold text-body mb-0">12</h4>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Decorative elements -->
-                        <div
-                            class="position-absolute top-0 end-0 translate-middle-y me-4 mt-2 bg-success text-white px-3 py-1 rounded-pill shadow-sm small fw-bold">
-                            <i class="ti ti-chart-line me-1"></i> +24% Productivity
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section class="py-5 bg-body-tertiary" id="features">
-        <div class="container py-5">
-            <div class="text-center mb-5 mw-100 mx-auto" style="max-width: 700px;">
-                <h6 class="text-primary fw-bold text-uppercase letter-spacing-2">Key Features</h6>
-                <h2 class="fw-bold text-body-emphasis mb-3">Everything You Need to Manage Your Team</h2>
-                <p class="text-secondary lead">One platform to handle all your HR needs, from onboarding to
-                    retirement.
-                </p>
-            </div>
-
-            <div class="row g-4">
-                <!-- Feature 1 -->
-                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="0">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 bg-body hover-shadow transition-all">
-                        <div class="card-body">
-                            <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-3 p-3 mb-4"
-                                style="width: 60px; height: 60px;">
-                                <i class="ti ti-calendar-check fs-3"></i>
-                            </div>
-                            <h4 class="fw-bold mb-3 text-body">Smart Attendance</h4>
-                            <p class="text-secondary mb-0">
-                                Track employee attendance in real-time with geofencing and biometric integration
-                                options.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Feature 2 -->
-                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 hover-shadow transition-all bg-body">
-                        <div class="card-body">
-                            <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success rounded-3 p-3 mb-4"
-                                style="width: 60px; height: 60px;">
-                                <i class="ti ti-currency-dollar fs-3"></i>
-                            </div>
-                            <h4 class="fw-bold mb-3 text-body">Payroll Automation</h4>
-                            <p class="text-secondary mb-0">
-                                Automate salary calculations, deductions, and tax compliance with just a few clicks.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Feature 3 -->
-                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 hover-shadow transition-all bg-body">
-                        <div class="card-body">
-                            <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning rounded-3 p-3 mb-4"
-                                style="width: 60px; height: 60px;">
-                                <i class="ti ti-chart-pie fs-3"></i>
-                            </div>
-                            <h4 class="fw-bold mb-3 text-body">Performance Analytics</h4>
-                            <p class="text-secondary mb-0">
-                                Gain insights into employee performance and productivity with detailed reports.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Feature 4 -->
-                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 hover-shadow transition-all bg-body">
-                        <div class="card-body">
-                            <div class="d-inline-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info rounded-3 p-3 mb-4"
-                                style="width: 60px; height: 60px;">
-                                <i class="ti ti-user-plus fs-3"></i>
-                            </div>
-                            <h4 class="fw-bold mb-3 text-body">Easy Onboarding</h4>
-                            <p class="text-secondary mb-0">
-                                Seamlessly onboard new hires with digital document signing and automated workflows.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Feature 5 -->
-                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="400">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 hover-shadow transition-all bg-body">
-                        <div class="card-body">
-                            <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-3 p-3 mb-4"
-                                style="width: 60px; height: 60px;">
-                                <i class="ti ti-checklist fs-3"></i>
-                            </div>
-                            <h4 class="fw-bold mb-3 text-body">Task Management</h4>
-                            <p class="text-secondary mb-0">
-                                Assign tasks, track progress, and collaborate with your team efficiently.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Feature 6 -->
-                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="500">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 p-3 hover-shadow transition-all bg-body">
-                        <div class="card-body">
-                            <div class="d-inline-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary rounded-3 p-3 mb-4"
-                                style="width: 60px; height: 60px;">
-                                <i class="ti ti-shield-check fs-3"></i>
-                            </div>
-                            <h4 class="fw-bold mb-3 text-body">Secure Data</h4>
-                            <p class="text-secondary mb-0">
-                                Enterprise-grade security to keep your employee data safe and compliant.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Trusted & Ratings Section -->
-    <section class="py-4 bg-body-tertiary border-bottom">
-        <div class="container text-center">
-            <p class="text-uppercase text-secondary fw-bold small letter-spacing-2 mb-3">Trusted by leading
-                companies
-            </p>
-            <div class="row align-items-center justify-content-center g-4 grayscale opacity-75">
-                <div class="col-6 col-md-3 col-lg-2">
-                    <span class="h4 fw-bold text-body"><i class="ti ti-star text-warning "></i> G2</span>
-                    <div class="small">High Performer 2024</div>
-                </div>
-                <div class="col-6 col-md-3 col-lg-2">
-                    <span class="h4 fw-bold text-body"><i class="ti ti-trophy text-warning "></i>
-                        Capterra</span>
-                    <div class="small">Best Ease of Use</div>
-                </div>
-                <div class="col-6 col-md-3 col-lg-2">
-                    <span class="h4 fw-bold text-body"><i class="ti ti-brand-google-filled text-primary "></i>
-                        Google</span>
-                    <div class="small">4.8/5 Rating</div>
-                </div>
-                <div class="col-6 col-md-3 col-lg-2">
-                    <span class="h4 fw-bold text-body"><i class="ti ti-shield-check text-success "></i>
-                        ISO</span>
-                    <div class="small">27001 Certified</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Detailed Feature: Core HR -->
-    <section class="py-5 bg-body">
-        <div class="container py-5">
-            <div class="row align-items-center g-5">
-                <div class="col-lg-6" data-aos="fade-right">
-                    <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-3 p-3 mb-4"
-                        style="width: 60px; height: 60px;">
-                        <i class="ti ti-users-group fs-3"></i>
-                    </div>
-                    <h2 class="display-6 fw-bold text-body-emphasis mb-4">Simplify Core HR Operations</h2>
-                    <p class="lead text-secondary mb-4">
-                        Stop juggling spreadsheets. Centralize your employee data in one secure location.
-                        Manage documentation, assets, and policies effortlessly.
-                    </p>
-                    <ul class="list-unstyled text-secondary d-flex flex-column gap-3 mb-4">
-                        <li class="d-flex align-items-start">
-                            <i class="ti ti-circle-check text-success mt-1 me-3"></i>
-                            <div>
-                                <strong class="d-block text-body">Employee Database</strong>
-                                A 360-degree view of every employee's profile and history.
-                            </div>
-                        </li>
-                        <li class="d-flex align-items-start">
-                            <i class="ti ti-circle-check text-success mt-1 me-3"></i>
-                            <div>
-                                <strong class="d-block text-body">Document Management</strong>
-                                Securely store and share digitally signed documents.
-                            </div>
-                        </li>
-                    </ul>
-                    <a href="#" class="btn btn-outline-primary rounded-pill fw-semibold px-4">Explore Core HR</a>
                 </div>
                 <div class="col-lg-6" data-aos="fade-left">
-                    <div class="p-4 bg-body-tertiary rounded-4 border">
-                        <div class="bg-body rounded-3 shadow-sm p-4 text-center">
-                            <div class="display-1 text-primary mb-3"><i class="far fa-address-card"></i></div>
-                            <h4 class="mb-2 text-body">Employee Directory</h4>
-                            <p class="text-secondary small">Access team details anytime, anywhere.</p>
-                            <div class="d-flex justify-content-center gap-2 mt-3">
-                                <div class="bg-body-secondary rounded p-2" style="width: 40px; height: 40px;"></div>
-                                <div class="bg-body-secondary rounded p-2" style="width: 140px; height: 40px;">
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-center gap-2 mt-2">
-                                <div class="bg-body-secondary rounded p-2" style="width: 40px; height: 40px;"></div>
-                                <div class="bg-body-secondary rounded p-2" style="width: 140px; height: 40px;">
-                                </div>
+                    <!-- Hero Image Placeholder -->
+                    <div class="p-4 bg-body-tertiary rounded-4 border shadow-sm">
+                        <div class="bg-body rounded-3 p-4 text-center"
+                            style="min-height: 300px; display: flex; align-items: center; justify-content: center;">
+                            <div class="text-muted">
+                                <i class="ti ti-trophy fs-1 mb-3 text-warning"></i>
+                                <h5>Empower Your Workforce</h5>
+                                <p class="small">Seamless. Smart. Secure.</p>
                             </div>
                         </div>
                     </div>
@@ -390,111 +158,138 @@
         </div>
     </section>
 
+    <!-- Key Benefits Grid -->
     <section class="py-5 bg-body-tertiary">
         <div class="container py-5">
-            <div class="row align-items-center g-5 flex-lg-row-reverse">
-                <div class="col-lg-6" data-aos="fade-left">
-                    <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning rounded-3 p-3 mb-4"
-                        style="width: 60px; height: 60px;">
-                        <i class="ti ti-chart-line fs-3"></i>
-                    </div>
-                    <h2 class="display-6 fw-bold text-body-emphasis mb-4">Drive High Performance</h2>
-                    <p class="lead text-secondary mb-4">
-                        Align individual goals with organizational objectives. Run continuous feedback
-                        cycles and 360-degree appraisals without the paperwork.
-                    </p>
-                    <ul class="list-unstyled text-secondary d-flex flex-column gap-3 mb-4">
-                        <li class="d-flex align-items-start">
-                            <i class="ti ti-circle-check text-success mt-1 me-3"></i>
-                            <div>
-                                <strong class="d-block text-body">KRA & KPI Tracking</strong>
-                                Set clear targets and monitor progress in real-time.
-                            </div>
-                        </li>
-                        <li class="d-flex align-items-start">
-                            <i class="ti ti-circle-check text-success mt-1 me-3"></i>
-                            <div>
-                                <strong class="d-block text-body">Skill Matrix</strong>
-                                Identify skill gaps and plan training programs effectively.
-                            </div>
-                        </li>
-                    </ul>
-                    <a href="#" class="btn btn-outline-primary rounded-pill fw-semibold px-4">See Performance
-                        Tools</a>
-                </div>
-                <div class="col-lg-6" data-aos="fade-right">
-                    <div class="p-4 bg-body rounded-4 border shadow-sm position-relative">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="p-3 bg-body-tertiary rounded-3 text-center h-100 border">
-                                    <h2 class="text-primary fw-bold mb-0">98%</h2>
-                                    <small class="text-secondary">Goals Met</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-3 bg-body-tertiary rounded-3 text-center h-100 border">
-                                    <div class="text-warning h2 mb-0"><i class="ti ti-star"></i> 4.8</div>
-                                    <small class="text-secondary">Avg Rating</small>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="p-3 bg-success bg-opacity-10 rounded-3 border border-success">
-                                    <h6 class="text-success mb-1 fw-bold">Performance Review</h6>
-                                    <p class="small text-secondary mb-0">Completed on time for 45 employees.</p>
-                                </div>
-                            </div>
+            <div class="text-center mb-5" data-aos="fade-up">
+                <h6 class="text-primary fw-bold text-uppercase letter-spacing-2 mb-3">Core Advantages</h6>
+                <h2 class="display-5 fw-bold text-body-emphasis">Everything You Need to Succeed</h2>
+            </div>
+            <div class="row g-4">
+                <!-- Benefit 1 -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-shadow transition-all bg-body">
+                        <div class="mb-4 text-primary">
+                            <i class="ti ti-bolt fs-1"></i>
                         </div>
+                        <h4 class="fw-bold mb-3">Lightning Fast Setup</h4>
+                        <p class="text-secondary">
+                            Get up and running in minutes, not months. Import your data easily and start managing your
+                            team immediately.
+                        </p>
+                    </div>
+                </div>
+                <!-- Benefit 2 -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-shadow transition-all bg-body">
+                        <div class="mb-4 text-success">
+                            <i class="ti ti-pig-money fs-1"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Cost Efficient</h4>
+                        <p class="text-secondary">
+                            Reduce operational costs by automating manual tasks. No hidden fees, just transparent
+                            pricing.
+                        </p>
+                    </div>
+                </div>
+                <!-- Benefit 3 -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-shadow transition-all bg-body">
+                        <div class="mb-4 text-info">
+                            <i class="ti ti-shield-lock fs-1"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Bank-Grade Security</h4>
+                        <p class="text-secondary">
+                            Your data is encrypted and protected with enterprise-level security protocols. GDPR
+                            compliant.
+                        </p>
+                    </div>
+                </div>
+                <!-- Benefit 4 -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="400">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-shadow transition-all bg-body">
+                        <div class="mb-4 text-warning">
+                            <i class="ti ti-device-mobile fs-1"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Mobile First</h4>
+                        <p class="text-secondary">
+                            Empower your team to mark attendance, apply for leave, and view payslips from anywhere, on
+                            any device.
+                        </p>
+                    </div>
+                </div>
+                <!-- Benefit 5 -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="500">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-shadow transition-all bg-body">
+                        <div class="mb-4 text-danger">
+                            <i class="ti ti-heart-handshake fs-1"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Employee Wellbeing</h4>
+                        <p class="text-secondary">
+                            Tools to track engagement and satisfaction, ensuring your team stays happy and productive.
+                        </p>
+                    </div>
+                </div>
+                <!-- Benefit 6 -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="600">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-shadow transition-all bg-body">
+                        <div class="mb-4 text-primary">
+                            <i class="ti ti-headset fs-1"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">24/7 Support</h4>
+                        <p class="text-secondary">
+                            Our dedicated support team is always ready to assist you with any questions or issues.
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Detailed Feature: Analytics (New Section) -->
+    <!-- Deep Dive Section -->
     <section class="py-5 bg-body">
         <div class="container py-5">
             <div class="row align-items-center g-5">
                 <div class="col-lg-6" data-aos="fade-right">
-                    <div class="d-inline-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info rounded-3 p-3 mb-4"
-                        style="width: 60px; height: 60px;">
-                        <i class="ti ti-chart-pie fs-3"></i>
-                    </div>
-                    <h2 class="display-6 fw-bold text-body-emphasis mb-4">Powerful HR Analytics</h2>
+                    <h2 class="display-5 fw-bold mb-4">Focus on People, Not Paperwork</h2>
                     <p class="lead text-secondary mb-4">
-                        Make data-driven decisions with real-time insights. diverse reports to understand attrition,
-                        attendance patterns, and workforce costs.
+                        StaffSync eliminates the chaos of spreadsheets and manual filings.
+                        By centralizing your HR operations, you reclaim hours every week to focus on culture and
+                        strategy.
                     </p>
-                    <ul class="list-unstyled text-secondary d-flex flex-column gap-3 mb-4">
-                        <li class="d-flex align-items-start">
-                            <i class="ti ti-circle-check text-success mt-1 me-3"></i>
-                            <div>
-                                <strong class="d-block text-body">Visual Dashboards</strong>
-                                Instantly see the big picture with intuitive charts and graphs.
-                            </div>
+                    <ul class="list-unstyled text-secondary d-flex flex-column gap-3">
+                        <li class="d-flex align-items-center">
+                            <i class="ti ti-check text-success me-3 fs-4"></i> Automated Leave Management
                         </li>
-                        <li class="d-flex align-items-start">
-                            <i class="ti ti-circle-check text-success mt-1 me-3"></i>
-                            <div>
-                                <strong class="d-block text-body">Custom Reports</strong>
-                                Build reports that matter most to your organization.
-                            </div>
+                        <li class="d-flex align-items-center">
+                            <i class="ti ti-check text-success me-3 fs-4"></i> Smart Attendance Tracking
+                        </li>
+                        <li class="d-flex align-items-center">
+                            <i class="ti ti-check text-success me-3 fs-4"></i> One-Click Payroll Generation
                         </li>
                     </ul>
-                    <a href="#" class="btn btn-outline-primary rounded-pill fw-semibold px-4">See Analytics
-                        Features</a>
                 </div>
-                <div class="col-lg-6" data-aos="fade-left">
-                    <!-- Placeholder Image for Analytics -->
-                    <div class="position-relative p-2 bg-body-secondary rounded-4 border">
-                        <img src="/hrms/assets/img/hrms_analytics_dashboard.png" alt="HR Analytics Dashboard Screenshot"
-                            class="img-fluid rounded-3 shadow-sm w-100">
-                        <!-- Caption for User to Replace Image -->
-                        <div
-                            class="position-absolute bottom-0 start-50 translate-middle-x mb-3 bg-dark bg-opacity-75 text-white px-3 py-1 rounded-pill small fst-italic">
-                            * Placeholder: Replace with your system screenshot
-                        </div>
+                <div class="col-lg-6 text-center" data-aos="fade-left">
+                    <div class="p-4 bg-primary bg-opacity-10 rounded-pill d-inline-block">
+                        <i class="ti ti-files-off fs-1 text-primary display-1"></i>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-5 bg-primary bg-gradient text-white">
+        <div class="container py-5 text-center">
+            <h2 class="display-5 fw-bold mb-4">Experience the Difference</h2>
+            <p class="lead mb-5 opacity-75 mx-auto" style="max-width: 600px;">
+                Join the fast-growing companies that rely on StaffSync to drive their success.
+            </p>
+            <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+                <a href="/hrms/register.php"
+                    class="btn btn-light btn-lg px-4 px-md-5 rounded-pill fw-bold text-primary shadow-sm">
+                    Book a Free Demo
+                </a>
             </div>
         </div>
     </section>
@@ -815,7 +610,7 @@
             <div class="row g-5">
                 <!-- Brand and Social Column -->
                 <div class="col-lg-4 mb-4">
-                    <a class="d-flex align-items-center mb-4 text-decoration-none" href="#">
+                    <a href="index.php" class="navbar-brand d-flex align-items-center text-decoration-none">
                         <img src="/hrms/assets/img/SS.png" alt="Logo" width="30" height="30" class="me-2">
                         <span class="h5 fw-bold text-white mb-0">StaffSync</span>
                     </a>

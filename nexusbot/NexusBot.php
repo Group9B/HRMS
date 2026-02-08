@@ -78,7 +78,9 @@ class NexusBot
     public function process(string $message): array
     {
         // Validate authentication
-        if (!$this->security->isAuthenticated()) {
+        $isGuest = empty($this->userContext['user_id']);
+
+        if (!$isGuest && !$this->security->isAuthenticated()) {
             return $this->errorResponse('Please log in to use NexusBot.');
         }
 
@@ -207,6 +209,16 @@ class NexusBot
         $this->context->set(ConversationContext::CTX_CURRENT_TOPIC, $intent['intent']);
 
         // Route to appropriate handler
+        if ($isGuest) {
+            $allowedGuestIntents = ['general_query', 'greeting', 'thanks', 'goodbye', 'help', 'company_info', 'policy', 'unknown'];
+            if (!in_array($intent['intent'], $allowedGuestIntents)) {
+                return $this->successResponse(
+                    "I can only help with general information about StaffSync (Pricing, Features, Company Info). Please log in to access your personal data or perform actions.",
+                    self::TYPE_HELP
+                );
+            }
+        }
+
         $result = $this->handleIntent($intent);
 
         // Generate Response
@@ -412,7 +424,8 @@ class NexusBot
         if (in_array($intentType, ['general_query', 'greeting', 'thanks', 'goodbye', 'help'])) {
             return [
                 'success' => true,
-                'data' => null
+                'data' => null,
+                'message' => "I apologize, but I'm currently unable to access my advanced AI features. Please try asking specific questions about Attendance, Leave, or Company Policies."
             ];
         }
 

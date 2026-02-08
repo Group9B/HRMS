@@ -49,9 +49,9 @@ function logRequest(array $data): void
 }
 
 /**
- * Advanced rate limiting with exponential backoff
+ * Advanced rate limiting with exponential backoff (Bot Specific)
  */
-function checkRateLimit(): array
+function checkBotRateLimit(): array
 {
     $rateLimitKey = 'nexusbot_rate_' . ($_SESSION['user_id'] ?? 'anon');
     $violationsKey = 'nexusbot_violations_' . ($_SESSION['user_id'] ?? 'anon');
@@ -275,16 +275,11 @@ if (!validateOrigin()) {
     ], 403);
 }
 
-// Check authentication
-if (!isLoggedIn()) {
-    sendResponse([
-        'success' => false,
-        'message' => 'Authentication required. Please log in.'
-    ], 401);
-}
+// Check authentication - Allow Guests
+// Rate limiting is done per session, even for guests
 
 // Check rate limit
-$rateCheck = checkRateLimit();
+$rateCheck = checkBotRateLimit();
 if (!$rateCheck['allowed']) {
     logRequest(['type' => 'rate_limit', 'user_id' => $_SESSION['user_id'] ?? null]);
     sendResponse([
@@ -327,15 +322,33 @@ if (strlen($message) > NEXUSBOT_MAX_MESSAGE_LENGTH) {
     ], 400);
 }
 
-// Get user context
-$userContext = getUserContext($mysqli);
+// Check authentication - Allow Guests
+$userContext = null;
+if (isLoggedIn()) {
+    $userContext = getUserContext($mysqli);
+} else {
+    // Create Guest Context
+    $userContext = [
+        'user_id' => 0,
+        'username' => 'Guest',
+        'role_id' => 0,
+        'role_name' => 'Guest',
+        'company_id' => 0,
+        'email' => '',
+        'employee_id' => 0
+    ];
+}
 
 if (!$userContext) {
-    logRequest(['type' => 'error', 'reason' => 'no_user_context']);
-    sendResponse([
-        'success' => false,
-        'message' => 'User context not found. Please log in again.'
-    ], 403);
+    // Fallback if login session exists but DB lookup failed
+    logRequest(['type' => 'error', 'reason' => 'user_context_failed']);
+    $userContext = [
+        'user_id' => 0,
+        'username' => 'Guest',
+        'role_id' => 0,
+        'role_name' => 'Guest',
+        'company_id' => 0
+    ];
 }
 
 // Check for special commands (prefixed with /)

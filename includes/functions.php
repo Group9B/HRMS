@@ -353,6 +353,8 @@ function requireAuth()
             exit;
         }
     }
+    // Check subscription status for logged-in users
+    checkSubscriptionStatus();
 }
 
 
@@ -695,4 +697,95 @@ function checkRateLimit($action, $limit = 5, $minutes = 15)
     return true;
 }
 
+
+/**
+ * Check Subscription Status and Enforce Expiry
+ */
+function checkSubscriptionStatus()
+{
+    global $mysqli;
+    if (!isLoggedIn()) {
+        return;
+    }
+
+    // Allow access to logout and expired pages to prevent loops
+    $current_uri = $_SERVER['REQUEST_URI'];
+    if (
+        strpos($current_uri, '/auth/logout.php') !== false ||
+        strpos($current_uri, '/subscription/expired.php') !== false
+    ) {
+        return;
+    }
+
+    $company_id = $_SESSION['company_id'] ?? 0;
+    if ($company_id == 0) {
+        return;
+    }
+
+    // Fetch status
+    // Optimization: Store in session to avoid DB hit on every page load?
+    // For now, let's just query it to be safe and "real-time" as per user request.
+    $sql = "SELECT subscription_status, trial_ends_at FROM companies WHERE id = ?";
+    $res = query($mysqli, $sql, [$company_id]);
+
+    if ($res['success'] && !empty($res['data'])) {
+        $sub = $res['data'][0];
+
+        // 1. Check if Trial Time has run out but status is still 'trial'
+        if ($sub['subscription_status'] === 'trial' && !empty($sub['trial_ends_at'])) {
+            $now = new DateTime();
+            $end = new DateTime($sub['trial_ends_at']);
+
+            if ($now > $end) {
+                // Update to expired
+                query($mysqli, "UPDATE companies SET subscription_status = 'expired' WHERE id = ?", [$company_id]);
+                // Force Logout
+                session_unset();
+                session_destroy();
+                // Redirect to login with parameter
+                redirect('/hrms/auth/login.php?msg=expired');
+            }
+        }
+        // 2. Check if already Expired
+        elseif ($sub['subscription_status'] === 'expired') {
+            // Force Logout
+            session_unset();
+            session_destroy();
+            redirect('/hrms/auth/login.php?msg=expired');
+        }
+    }
+}
+
+/**
+ * Get days remaining in trial
+ * @return int|null Days remaining, or null if not in trial
+ */
+function getTrialDaysLeft()
+{
+    global $mysqli;
+    if (!isLoggedIn())
+        return null;
+
+    $company_id = $_SESSION['company_id'] ?? 0;
+    if ($company_id == 0)
+        return null;
+
+    $sql = "SELECT subscription_status, trial_ends_at FROM companies WHERE id = ?";
+    $res = query($mysqli, $sql, [$company_id]);
+
+    if ($res['success'] && !empty($res['data'])) {
+        $sub = $res['data'][0];
+        if ($sub['subscription_status'] === 'trial' && !empty($sub['trial_ends_at'])) {
+            $now = new DateTime();
+            $end = new DateTime($sub['trial_ends_at']);
+
+            if ($now > $end)
+                return 0;
+
+            $interval = $now->diff($end);
+            return (int) $interval->format('%a');
+        }
+    }
+    return null;
+}
 ?>
