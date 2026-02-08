@@ -382,7 +382,9 @@ function toastBgClass($type)
 function errorLog($msg)
 {
     global $logFilePath;
-    if (getenv('APP_DEBUG') && (bool) getenv('APP_DEBUG') === true) {
+    // Check if APP_DEBUG is explicitly 'true' or boolean true
+    $debug = getenv('APP_DEBUG');
+    if ($debug === 'true' || $debug === true || $debug === '1') {
         $msg = "[" . date('Y-m-d H:i:s') . "] From the file: " . $_SERVER['SCRIPT_FILENAME'] . " " . $msg . PHP_EOL;
         error_log($msg, 3, $logFilePath);
     }

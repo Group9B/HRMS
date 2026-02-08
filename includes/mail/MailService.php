@@ -166,40 +166,108 @@ class MailService
      */
     public function sendPasswordReset($toEmail, $toName, $resetLink)
     {
-        try {
-            // Clear any existing recipients
-            $this->mailer->clearAddresses();
-            $this->mailer->clearAttachments();
+        $subject = "Password Reset Request - " . ($this->config['from_name'] ?? 'HRMS');
 
-            $this->mailer->addAddress($toEmail, $toName);
-            $this->mailer->isHTML(true);
-            $this->mailer->Subject = "Password Reset Request - " . ($this->config['from_name'] ?? 'HRMS');
+        $body = "
+        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;'>
+            <h2 style='color: #333;'>Password Reset Request</h2>
+            <p>Hello " . htmlspecialchars($toName) . ",</p>
+            <p>We received a request to reset your password for your account.</p>
+            <div style='margin: 30px 0; text-align: center;'>
+                <a href='" . htmlspecialchars($resetLink) . "' style='background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;'>Reset Password</a>
+            </div>
+            <p>If the button doesn't work, you can copy and paste the following link into your browser:</p>
+            <p style='background-color: #f8f9fa; padding: 10px; word-break: break-all; font-size: 14px;'>" . htmlspecialchars($resetLink) . "</p>
+            <p>For security, this link will expire in 1 hour.</p>
+            <p>If you did not request a password reset, you can safely ignore this email.</p>
+            <hr style='border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;'>
+            <p style='color: #6c757d; font-size: 12px;'>This is an automated message. Please do not reply.</p>
+        </div>";
 
-            // Simple inline template for now
-            $body = "
-            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;'>
-                <h2 style='color: #333;'>Password Reset Request</h2>
-                <p>Hello " . htmlspecialchars($toName) . ",</p>
-                <p>We received a request to reset your password for your account.</p>
-                <div style='margin: 30px 0; text-align: center;'>
-                    <a href='" . htmlspecialchars($resetLink) . "' style='background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;'>Reset Password</a>
-                </div>
-                <p>If the button doesn't work, you can copy and paste the following link into your browser:</p>
-                <p style='background-color: #f8f9fa; padding: 10px; word-break: break-all; font-size: 14px;'>" . htmlspecialchars($resetLink) . "</p>
-                <p>For security, this link will expire in 1 hour.</p>
-                <p>If you did not request a password reset, you can safely ignore this email.</p>
-                <hr style='border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;'>
-                <p style='color: #6c757d; font-size: 12px;'>This is an automated message. Please do not reply.</p>
-            </div>";
+        $altBody = "Hello $toName,\n\nWe received a request to reset your password. Please visit the following link to reset it:\n$resetLink\n\nIf you did not request this, please ignore this email.";
 
-            $this->mailer->Body = $body;
-            $this->mailer->AltBody = "Hello $toName,\n\nWe received a request to reset your password. Please visit the following link to reset it:\n$resetLink\n\nIf you did not request this, please ignore this email.";
+        return $this->send($toEmail, $toName, $subject, $body, $altBody);
+    }
 
-            $this->mailer->send();
-            return true;
-        } catch (Exception $e) {
-            error_log("Password reset email could not be sent to {$toEmail}. Mailer Error: {$this->mailer->ErrorInfo}");
+    // =========================================================================
+    //  EMAIL QUEUE SYSTEM
+    // =========================================================================
+
+    /**
+     * Queue an email for asynchronous sending.
+     * Inserts the email into the `email_queue` database table instead of
+     * sending it immediately. A background worker script processes the queue.
+     * 
+     * @param string $toEmail Recipient email
+     * @param string $toName Recipient name
+     * @param string $subject Email subject
+     * @param string $htmlBody HTML body
+     * @param string|null $altBody Plain text alternative
+     * @return bool True if queued successfully
+     */
+    public function queue($toEmail, $toName, $subject, $htmlBody, $altBody = null)
+    {
+        global $mysqli;
+
+        // Safety: ensure db connection exists
+        if (!isset($mysqli) || !$mysqli) {
+            require_once __DIR__ . '/../../config/db.php';
+        }
+
+        $alt = $altBody ?? strip_tags($htmlBody);
+
+        $stmt = $mysqli->prepare(
+            "INSERT INTO email_queue (to_email, to_name, subject, body, alt_body, status) 
+             VALUES (?, ?, ?, ?, ?, 'pending')"
+        );
+
+        if (!$stmt) {
+            error_log("[MailQueue] Failed to prepare INSERT statement: " . $mysqli->error);
             return false;
         }
+
+        $stmt->bind_param("sssss", $toEmail, $toName, $subject, $htmlBody, $alt);
+        $result = $stmt->execute();
+
+        if (!$result) {
+            error_log("[MailQueue] Failed to queue email to {$toEmail}: " . $stmt->error);
+        }
+
+        $stmt->close();
+        return $result;
+    }
+
+    /**
+     * Queue a password reset email (async version).
+     * Same as sendPasswordReset() but non-blocking.
+     * 
+     * @param string $toEmail
+     * @param string $toName
+     * @param string $resetLink
+     * @return bool
+     */
+    public function queuePasswordReset($toEmail, $toName, $resetLink)
+    {
+        $subject = "Password Reset Request - " . ($this->config['from_name'] ?? 'HRMS');
+
+        $body = "
+        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;'>
+            <h2 style='color: #333;'>Password Reset Request</h2>
+            <p>Hello " . htmlspecialchars($toName) . ",</p>
+            <p>We received a request to reset your password for your account.</p>
+            <div style='margin: 30px 0; text-align: center;'>
+                <a href='" . htmlspecialchars($resetLink) . "' style='background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;'>Reset Password</a>
+            </div>
+            <p>If the button doesn't work, you can copy and paste the following link into your browser:</p>
+            <p style='background-color: #f8f9fa; padding: 10px; word-break: break-all; font-size: 14px;'>" . htmlspecialchars($resetLink) . "</p>
+            <p>For security, this link will expire in 1 hour.</p>
+            <p>If you did not request a password reset, you can safely ignore this email.</p>
+            <hr style='border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;'>
+            <p style='color: #6c757d; font-size: 12px;'>This is an automated message. Please do not reply.</p>
+        </div>";
+
+        $altBody = "Hello $toName,\n\nWe received a request to reset your password. Please visit the following link to reset it:\n$resetLink\n\nIf you did not request this, please ignore this email.";
+
+        return $this->queue($toEmail, $toName, $subject, $body, $altBody);
     }
 }

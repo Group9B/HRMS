@@ -3,7 +3,7 @@
 /assets/css/icon.css
 /vendor
 /composer.lock
-# *.log
+*.log
 .DS_Store
 Thumbs.db
 uploads/*
@@ -19,3 +19,4 @@ uploads/policies/*
 .idea/
 *.sublime-*
 groq_error.log
+app.log

@@ -4,6 +4,17 @@ require_once "../includes/functions.php";
 
 $error = "";
 $success = "";
+
+// Check for flash messages
+if (isset($_SESSION['flash_success'])) {
+    $success = $_SESSION['flash_success'];
+    unset($_SESSION['flash_success']);
+}
+if (isset($_SESSION['flash_error'])) {
+    $error = $_SESSION['flash_error'];
+    unset($_SESSION['flash_error']);
+}
+
 $token = $_GET['token'] ?? '';
 $email = $_GET['email'] ?? '';
 
@@ -12,7 +23,7 @@ if (isLoggedIn()) {
 }
 
 // Basic validation of link parameters
-if (empty($token) || empty($email)) {
+if ((empty($token) || empty($email)) && empty($success)) {
     $error = "Invalid password reset link.";
 }
 
@@ -28,15 +39,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($error)) {
 
     // Verify CSRF
     if (!verifyCsrfToken($csrf_input)) {
-        $error = "Invalid request or session expired. Please refresh the page.";
+        $_SESSION['flash_error'] = "Invalid request or session expired. Please refresh the page.";
+        redirect("reset_password.php?token=" . urlencode($token_input) . "&email=" . urlencode($email_input));
     }
     // Re-validate inputs
     elseif (empty($password) || empty($confirm_password)) {
-        $error = "Please enter and confirm your new password.";
+        $_SESSION['flash_error'] = "Please enter and confirm your new password.";
+        redirect("reset_password.php?token=" . urlencode($token_input) . "&email=" . urlencode($email_input));
     } elseif (strlen($password) < 6) {
-        $error = "Password must be at least 6 characters long.";
+        $_SESSION['flash_error'] = "Password must be at least 6 characters long.";
+        redirect("reset_password.php?token=" . urlencode($token_input) . "&email=" . urlencode($email_input));
     } elseif ($password !== $confirm_password) {
-        $error = "Passwords do not match.";
+        $_SESSION['flash_error'] = "Passwords do not match.";
+        redirect("reset_password.php?token=" . urlencode($token_input) . "&email=" . urlencode($email_input));
     } else {
         // Verify token against database
         $token_hash = hash('sha256', $token_input);
@@ -45,7 +60,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($error)) {
         $result = query($mysqli, $query, [$email_input, $token_hash]);
 
         if (!$result['success'] || empty($result['data'])) {
-            $error = "Invalid or expired password reset link. Please request a new one.";
+            $_SESSION['flash_error'] = "Invalid or expired password reset link. Please request a new one.";
+            redirect("reset_password.php?token=" . urlencode($token_input) . "&email=" . urlencode($email_input));
         } else {
             $user_id = $result['data'][0]['id'];
 
@@ -60,9 +76,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($error)) {
                 $success = "Your password has been successfully reset. You can now login with your new password.";
                 // Log the activity
                 logActivity($user_id, 'Password Reset Successful', 'User reset their password via email link');
+
+                // Redirect back to same page but show success message (which hides form)
+                $_SESSION['flash_success'] = $success;
+                redirect("reset_password.php");
             } else {
-                $error = "Failed to reset password. Please try again later.";
+                $_SESSION['flash_error'] = "Failed to reset password. Please try again later.";
                 error_log("Password reset failed for user ID $user_id: " . $update_result['error']);
+                redirect("reset_password.php?token=" . urlencode($token_input) . "&email=" . urlencode($email_input));
             }
         }
     }

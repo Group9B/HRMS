@@ -5,6 +5,16 @@ require_once "../includes/functions.php";
 $error = "";
 $success_msg = "";
 
+// Check for flash messages
+if (isset($_SESSION['flash_success'])) {
+    $success_msg = $_SESSION['flash_success'];
+    unset($_SESSION['flash_success']);
+}
+if (isset($_SESSION['flash_error'])) {
+    $error = $_SESSION['flash_error'];
+    unset($_SESSION['flash_error']);
+}
+
 if (isLoggedIn()) {
     redirect("/hrms/includes/redirect.php");
 }
@@ -25,17 +35,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     // CSRF Check
     if (!verifyCsrfToken($token_input)) {
-        $error = "Session expired or invalid request. Please refresh and try again.";
+        $_SESSION['flash_error'] = "Session expired or invalid request. Please refresh and try again.";
+        redirect("forgot_password.php");
     }
     // Rate Limit Check (5 attempts per 15 minutes)
     elseif (!checkRateLimit('Password Reset Attempt', 5, 15)) {
-        $error = "Too many requests. Please wait 15 minutes before trying again.";
+        $_SESSION['flash_error'] = "Too many requests. Please wait 15 minutes before trying again.";
+        redirect("forgot_password.php");
     }
     // Input validation
     elseif (empty($email)) {
-        $error = "Please enter your email address.";
+        $_SESSION['flash_error'] = "Please enter your email address.";
+        redirect("forgot_password.php");
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = "Please enter a valid email address.";
+        $_SESSION['flash_error'] = "Please enter a valid email address.";
+        redirect("forgot_password.php");
     } else {
         // Log the attempt for rate limiting (failures count too)
         // We log with NULL user_id initially
@@ -45,15 +59,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $user_result = query($mysqli, "SELECT id, username, email, status FROM users WHERE email = ?", [$email]);
 
         if (!$user_result['success']) {
-            $error = "Unable to process request. Please try again later.";
+            $_SESSION['flash_error'] = "Unable to process request. Please try again later.";
+            redirect("forgot_password.php");
         } elseif (empty($user_result['data'])) {
             // Security: Don't reveal if email exists or not
-            $error = "If an account exists for that email, we have sent password reset instructions.";
+            $_SESSION['flash_error'] = "If an account exists for that email, we have sent password reset instructions.";
+            redirect("forgot_password.php");
         } else {
             $user = $user_result['data'][0];
 
             if ($user['status'] !== 'active') {
-                $error = "Your account is inactive. Please contact your administrator.";
+                $_SESSION['flash_error'] = "Your account is inactive. Please contact your administrator.";
+                redirect("forgot_password.php");
             } else {
                 // Log the activity
                 logActivity($user['id'], 'Password Reset Requested', 'User requested password reset via ' . $email);
@@ -80,16 +97,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 // Only send the token and email (email is for UX/verification)
                 $resetLink = "$protocol://$host/hrms/auth/reset_password.php?token=$token&email=" . urlencode($email);
 
-                // Send email using MailService
+                // Send email using MailService (queued for async delivery)
                 require_once "../includes/mail/MailService.php";
                 $mailService = new MailService();
 
-                if ($mailService->sendPasswordReset($user['email'], $user['username'], $resetLink)) {
-                    $success_msg = "We have sent a password reset link to " . htmlspecialchars($email) . ". Please check your inbox.";
+                if ($mailService->queuePasswordReset($user['email'], $user['username'], $resetLink)) {
+                    $_SESSION['flash_success'] = "We have sent a password reset link to " . htmlspecialchars($email) . ". Please check your inbox.";
+                    redirect("forgot_password.php");
                 } else {
-                    $error = "Failed to send reset email. Please try again later or contact support.";
-                    // Log the failure
-                    error_log("Failed to send password reset email to " . $email);
+                    $_SESSION['flash_error'] = "Failed to send reset email. Please try again later or contact support.";
+                    error_log("Failed to queue password reset email to " . $email);
+                    redirect("forgot_password.php");
                 }
             }
         }
