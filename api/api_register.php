@@ -20,8 +20,13 @@ if ($action === 'register_demo') {
     $email = trim($_POST['email'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
     $password = $_POST['password'] ?? '';
+    // Check for terms agreement
+    $terms_agree = $_POST['terms_agree'] ?? '';
 
     $errors = [];
+    if (empty($terms_agree)) {
+        $errors[] = "You must agree to the Terms and Conditions.";
+    }
     if (empty($company_name))
         $errors[] = "Company Name is required.";
     if (empty($first_name))

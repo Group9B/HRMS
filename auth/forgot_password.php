@@ -115,7 +115,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 require_once "../components/layout/header.php";
 ?>
-<div class="body d-flex justify-content-center align-items-center vh-100">
+<div class="body d-flex justify-content-center align-items-center min-vh-100 py-5">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-4">

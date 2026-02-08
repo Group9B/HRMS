@@ -55,6 +55,7 @@ $role_color = $role_colors[$role_id] ?? 'secondary';
     </div>
     </div>
     <?php if (isLoggedIn()): ?>
+        <!-- Dashboard Header for Logged-in Users -->
         <div
             class="hrms-header p-1 d-flex justify-content-between align-items-center border-bottom position-fixed top-0 start-0 w-100 bg-body-tertiary">
             <div class="wrapper d-flex align-items-center justify-content-start">
@@ -64,7 +65,7 @@ $role_color = $role_colors[$role_id] ?? 'secondary';
                     </button>
                 <?php endif; ?>
                 <div class="logo">
-                    <a href="index.php" class="navbar-brand d-flex align-items-center text-decoration-none">
+                    <a href="/hrms/index.php" class="navbar-brand d-flex align-items-center text-decoration-none">
                         <img src="/hrms/assets/img/SS.png" alt="" height="40" class="d-inline-block align-text-top pe-1">
                         <h2 class="m-0 d-none d-md-block h4 fw-medium">Staff Sync</h2>
                         <h2 class="m-0 d-block d-md-none h4">SS</h2>
@@ -144,6 +145,62 @@ $role_color = $role_colors[$role_id] ?? 'secondary';
             </div>
         </div>
         <div class="breaker mb-5"></div>
+    <?php else: ?>
+        <!-- Public Navbar for Guests -->
+        <nav class="navbar navbar-expand-lg bg-body sticky-top shadow-sm py-3">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center fw-bold text-primary" href="/hrms/index.php">
+                    <img src="/hrms/assets/img/SS.png" alt="Logo" width="30" height="30"
+                        class="d-inline-block align-text-top me-2">
+                    StaffSync
+                </a>
+
+                <!-- Custom Toggler Trigger -->
+                <button class="navbar-toggler border-0 shadow-none z-3" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
+                    <i class="ti ti-menu-2 ti-lg" id="navbarTogglerIcon"></i>
+                </button>
+
+                <!-- Offcanvas Menu (Right Side) -->
+                <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar"
+                    aria-labelledby="offcanvasNavbarLabel">
+                    <div class="offcanvas-header justify-content-between">
+                        <h5 class="offcanvas-title fw-bold text-primary" id="offcanvasNavbarLabel">StaffSync</h5>
+                        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="offcanvas-body">
+                        <ul class="navbar-nav justify-content-end flex-grow-1 align-items-center gap-3">
+                            <li class="nav-item">
+                                <a class="nav-link text-body fw-semibold" href="/hrms/index.php#features">Features</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-body fw-semibold" href="/hrms/benefits.php">Benefits</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-body fw-semibold" href="/hrms/subscription/purchase.php">Pricing</a>
+                            </li>
+                            <li class="nav-item ms-lg-2 w-20 w-lg-auto">
+                                <a href="/hrms/auth/login.php"
+                                    class="btn btn-outline-primary btn-sm px-3 rounded-pill fw-semibold w-100 w-lg-auto">Log
+                                    In</a>
+                            </li>
+                            <li class="nav-item w-20 w-lg-auto">
+                                <a href="/hrms/register.php"
+                                    class="btn btn-primary btn-sm px-3 rounded-pill fw-semibold shadow-sm w-100 w-lg-auto">Sign
+                                    Up
+                                    Free</a>
+                            </li>
+                        </ul>
+                        <!-- Theme Toggle (ID matches main.js) -->
+                        <button class="btn btn-link text-primary p-0 ms-3 me-auto text-decoration-none" id="toggleThemeBtn"
+                            aria-label="Toggle theme">
+                            <i class="ti ti-moon fs-5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
     <?php endif; ?>
     <?php if (!empty($_SESSION['toasts'])):
         ?>

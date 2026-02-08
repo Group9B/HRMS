@@ -8,6 +8,11 @@ $(document).ready(function () {
 
         // Store original content if it was an icon+text, or just text. 
         // For now, restoring text is sufficient as per original code.
+        // Validate Terms and Conditions
+        if (!$('#termsAgree').is(':checked')) {
+            alert.addClass('alert-danger').removeClass('d-none').text('You must agree to the Terms and Conditions to proceed.');
+            return;
+        }
 
         btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Setting up...');
         alert.addClass('d-none').removeClass('alert-danger alert-success');

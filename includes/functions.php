@@ -630,7 +630,7 @@ HTML;
 /**
  * Log user activity
  * 
- * @param int $userId
+ * @param int|null $userId
  * @param string $action
  * @param string|null $details
  * @return bool

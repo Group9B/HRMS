@@ -6,7 +6,7 @@ require_once "components/layout/header.php";
 
 $title = "Book a Free Demo";
 ?>
-<div class="body d-flex justify-content-center align-items-center vh-100">
+<div class="body d-flex justify-content-center align-items-center min-vh-100 py-5">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-6 col-lg-5">
@@ -70,6 +70,14 @@ $title = "Book a Free Demo";
                                         <i class="ti ti-eye fs-4" id="icon"></i>
                                     </button>
                                 </div>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="termsAgree" name="terms_agree"
+                                    required>
+                                <label class="form-check-label small text-muted" for="termsAgree">
+                                    I agree to the <a href="terms.php" target="_blank"
+                                        class="text-decoration-none">Terms and Conditions</a>
+                                </label>
                             </div>
 
                             <div class="view-user-btn d-grid gap-2 mb-3">
