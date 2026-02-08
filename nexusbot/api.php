@@ -26,6 +26,7 @@ define('NEXUSBOT_LOG_FILE', __DIR__ . '/logs/nexusbot.log');
 define('NEXUSBOT_RATE_LIMIT', 30); // Max requests per minute
 define('NEXUSBOT_RATE_WINDOW', 60); // Window in seconds
 define('NEXUSBOT_MAX_MESSAGE_LENGTH', 500);
+define('NEXUSBOT_SKIP_ORIGIN_CHECK', false); // Set to true to skip origin validation
 
 // Disable error display for API JSON integrity
 error_reporting(0);
