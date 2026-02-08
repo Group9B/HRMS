@@ -379,6 +379,15 @@ function toastBgClass($type)
     }
 }
 
+function errorLog($msg)
+{
+    global $logFilePath;
+    if (getenv('APP_DEBUG') && (bool) getenv('APP_DEBUG') === true) {
+        $msg = "[" . date('Y-m-d H:i:s') . "] From the file: " . $_SERVER['SCRIPT_FILENAME'] . " " . $msg . PHP_EOL;
+        error_log($msg, 3, $logFilePath);
+    }
+}
+
 /**
  * Get user permissions based on role ID
  */
@@ -529,37 +538,6 @@ function checkPasswordComplexity($password)
     return $errors;
 }
 
-/**
- * Generate CSRF token
- */
-function generateCSRFToken()
-{
-    if (!isset($_SESSION['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-    }
-    return $_SESSION['csrf_token'];
-}
-
-/**
- * Verify CSRF token
- */
-function verifyCSRFToken($token)
-{
-    return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
-}
-
-/**
- * Require CSRF token for POST requests
- */
-function requireCSRFToken()
-{
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        if (!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
-            http_response_code(403);
-            die('CSRF token validation failed');
-        }
-    }
-}
 
 function render_stat_card(string $title, $value, string $icon, string $color): string
 {
@@ -643,6 +621,76 @@ function render_todo_list_widget(string $card_title = 'My To-Do List'): string
         </div>
     </div>
 HTML;
+}
+
+/**
+ * Log user activity
+ * 
+ * @param int $userId
+ * @param string $action
+ * @param string|null $details
+ * @return bool
+ */
+function logActivity($userId, $action, $details = null)
+{
+    global $mysqli;
+    $ip = $_SERVER['REMOTE_ADDR'] ?? null;
+    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+
+    $query = "INSERT INTO activity_logs (user_id, action, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)";
+    $result = query($mysqli, $query, [$userId, $action, $details, $ip, $userAgent]);
+
+    return $result['success'];
+}
+
+/**
+ * Generate CSRF Token and store in session
+ * @return string The generated token
+ */
+function generateCsrfToken()
+{
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+/**
+ * Verify CSRF Token
+ * @param string $token The token to verify
+ * @return bool True if valid
+ */
+function verifyCsrfToken($token)
+{
+    if (!isset($_SESSION['csrf_token']) || empty($token)) {
+        return false;
+    }
+    return hash_equals($_SESSION['csrf_token'], $token);
+}
+
+/**
+ * Check Rate Limit
+ * Checks if an IP has exceeded the action limit in recent time.
+ * 
+ * @param string $action The action name to check
+ * @param int $limit Max allowed attempts
+ * @param int $minutes Time window in minutes
+ * @return bool True if request allowed, False if limit exceeded
+ */
+function checkRateLimit($action, $limit = 5, $minutes = 15)
+{
+    global $mysqli;
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    $window = date('Y-m-d H:i:s', strtotime("-{$minutes} minutes"));
+
+    $query = "SELECT COUNT(*) as count FROM activity_logs WHERE ip_address = ? AND action = ? AND created_at > ?";
+    $result = query($mysqli, $query, [$ip, $action, $window]);
+
+    if ($result['success'] && isset($result['data'][0]['count']) && $result['data'][0]['count'] >= $limit) {
+        return false;
+    }
+
+    return true;
 }
 
 ?>

@@ -151,7 +151,54 @@ class MailService
             $this->mailer->send();
             return true;
         } catch (Exception $e) {
-            error_log("Email could not be sent to {$toEmail}. Mailer Error: {$this->mailer->ErrorInfo}");
+            error_log("Payslip email could not be sent to {$toEmail}. Mailer Error: {$this->mailer->ErrorInfo}");
+            return false;
+        }
+    }
+
+    /**
+     * Send password reset email
+     * 
+     * @param string $toEmail Recipient email address
+     * @param string $toName Recipient name
+     * @param string $resetLink The password reset link
+     * @return bool True on success, false on failure
+     */
+    public function sendPasswordReset($toEmail, $toName, $resetLink)
+    {
+        try {
+            // Clear any existing recipients
+            $this->mailer->clearAddresses();
+            $this->mailer->clearAttachments();
+
+            $this->mailer->addAddress($toEmail, $toName);
+            $this->mailer->isHTML(true);
+            $this->mailer->Subject = "Password Reset Request - " . ($this->config['from_name'] ?? 'HRMS');
+
+            // Simple inline template for now
+            $body = "
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;'>
+                <h2 style='color: #333;'>Password Reset Request</h2>
+                <p>Hello " . htmlspecialchars($toName) . ",</p>
+                <p>We received a request to reset your password for your account.</p>
+                <div style='margin: 30px 0; text-align: center;'>
+                    <a href='" . htmlspecialchars($resetLink) . "' style='background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;'>Reset Password</a>
+                </div>
+                <p>If the button doesn't work, you can copy and paste the following link into your browser:</p>
+                <p style='background-color: #f8f9fa; padding: 10px; word-break: break-all; font-size: 14px;'>" . htmlspecialchars($resetLink) . "</p>
+                <p>For security, this link will expire in 1 hour.</p>
+                <p>If you did not request a password reset, you can safely ignore this email.</p>
+                <hr style='border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;'>
+                <p style='color: #6c757d; font-size: 12px;'>This is an automated message. Please do not reply.</p>
+            </div>";
+
+            $this->mailer->Body = $body;
+            $this->mailer->AltBody = "Hello $toName,\n\nWe received a request to reset your password. Please visit the following link to reset it:\n$resetLink\n\nIf you did not request this, please ignore this email.";
+
+            $this->mailer->send();
+            return true;
+        } catch (Exception $e) {
+            error_log("Password reset email could not be sent to {$toEmail}. Mailer Error: {$this->mailer->ErrorInfo}");
             return false;
         }
     }

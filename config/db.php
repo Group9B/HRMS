@@ -2,6 +2,7 @@
 // config/db.php
 // Database connection using MySQLi OOP
 
+define('PROJECT_ROOT', realpath(__DIR__ . '/..'));
 // Load environment variables from .env file
 $env_file = __DIR__ . '/../.env';
 if (file_exists($env_file)) {
@@ -93,4 +94,7 @@ try {
 if (PHP_SESSION_NONE === session_status()) {
     session_start();
 }
+
+
+$logFilePath = PROJECT_ROOT . '/app.log';
 ?>

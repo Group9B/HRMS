@@ -5,6 +5,8 @@ $error = "";
 if (isLoggedIn()) {
     redirect("/hrms/includes/redirect.php");
 }
+
+errorLog("Login PAge Loaded");
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email = trim($_POST["email"] ?? '');
@@ -140,6 +142,10 @@ require_once "../components/layout/header.php";
                                         style="border-left: none;">
                                         <i class="ti ti-eye fs-4" id="icon"></i>
                                     </button>
+                                </div>
+                                <div class="d-flex justify-content-end mt-1">
+                                    <a href="forgot_password.php" class="text-decoration-none small">Forgot
+                                        Password?</a>
                                 </div>
                             </div>
 

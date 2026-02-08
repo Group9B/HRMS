@@ -18,3 +18,4 @@ uploads/policies/*
 .vscode/
 .idea/
 *.sublime-*
+groq_error.log
