@@ -42,11 +42,6 @@ define('SKELETON_DEV_DELAY', (int) (getenv('SKELETON_DEV_DELAY') ?: 0));
 // Set default timezone to Asia/Kolkata (IST)
 date_default_timezone_set('Asia/Kolkata');
 
-// Error logging configuration
-$log_file = __DIR__ . '/../error.log';
-$detailed_log_file = __DIR__ . '/../error_detailed.log';
-$enable_logging = getenv('APP_DEBUG') === 'true';
-
 try {
     $mysqli = new mysqli($host, $user, $pass, $db);
 
@@ -96,5 +91,5 @@ if (PHP_SESSION_NONE === session_status()) {
 }
 
 
-$logFilePath = PROJECT_ROOT . '/app.log';
+$logFilePath = PROJECT_ROOT . '/logs/app.log';
 ?>

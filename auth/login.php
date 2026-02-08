@@ -92,34 +92,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 $_SESSION['employee_id'] = $employee['id'];
 
                                 // Redirect based on role
-                                switch ($user['role_id']) {
-                                    case 1: // Admin
-                                        redirect("/hrms/admin/");
-                                        break;
-                                    case 2: // Company Owner
-                                        redirect("/hrms/company/");
-                                        break;
-                                    case 3: // Human Resource
-                                        redirect("/hrms/hr/");
-                                        break;
-                                    case 4: // Employee
-                                        redirect("/hrms/employee/");
-                                        break;
-                                    case 5: // Auditor
-                                        redirect("/hrms/auditor/");
-                                        break;
-                                    case 6: // Manager
-                                        redirect("/hrms/manager/");
-                                        break;
-                                    case 7: // Candidate (Future Implementation)
-                                        // redirect("/hrms/candidate/");
-                                        break;
-                                    default:
-                                        http_response_code(404);
-                                        redirect("/hrms/pages/404.php");
-                                        break;
-                                }
-                                exit();
+                                redirect(PROJECT_ROOT . '/includes/redirect.php');
                             }
                         }
                     } else {
@@ -139,7 +112,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 require_once "../components/layout/header.php";
 ?>
-<div class="body d-flex justify-content-center align-items-center min-vh-100 py-5">
+<div class="body d-flex justify-content-center align-items-center min-vh-100">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-4">

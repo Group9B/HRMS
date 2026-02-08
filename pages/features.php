@@ -1,7 +1,7 @@
 <?php
 $title = "Features - StaffSync HRMS";
 $root_path = __DIR__;
-require_once $root_path . '/components/layout/header.php';
+require_once '../components/layout/header.php';
 ?>
 
 <style>
@@ -57,13 +57,17 @@ require_once $root_path . '/components/layout/header.php';
                     </p>
                     <ul class="list-unstyled text-secondary">
                         <li class="mb-2 d-flex align-items-start"><i class="ti ti-check text-success me-2 mt-1"></i>
-                            <span>Digital Employee Profiles & Document Storage</span></li>
+                            <span>Digital Employee Profiles & Document Storage</span>
+                        </li>
                         <li class="mb-2 d-flex align-items-start"><i class="ti ti-check text-success me-2 mt-1"></i>
-                            <span>Organization Chart & Hierarchy View</span></li>
+                            <span>Organization Chart & Hierarchy View</span>
+                        </li>
                         <li class="mb-2 d-flex align-items-start"><i class="ti ti-check text-success me-2 mt-1"></i>
-                            <span>Asset & Inventory Management</span></li>
+                            <span>Asset & Inventory Management</span>
+                        </li>
                         <li class="d-flex align-items-start"><i class="ti ti-check text-success me-2 mt-1"></i>
-                            <span>Self-Service Portal for Employees</span></li>
+                            <span>Self-Service Portal for Employees</span>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -93,13 +97,17 @@ require_once $root_path . '/components/layout/header.php';
                     </p>
                     <ul class="list-unstyled text-secondary">
                         <li class="mb-2 d-flex align-items-start"><i class="ti ti-check text-success me-2 mt-1"></i>
-                            <span>Check-in/out with Geolocation & Geofencing</span></li>
+                            <span>Check-in/out with Geolocation & Geofencing</span>
+                        </li>
                         <li class="mb-2 d-flex align-items-start"><i class="ti ti-check text-success me-2 mt-1"></i>
-                            <span>Biometric Integration Support</span></li>
+                            <span>Biometric Integration Support</span>
+                        </li>
                         <li class="mb-2 d-flex align-items-start"><i class="ti ti-check text-success me-2 mt-1"></i>
-                            <span>Automated Leave Accruals & Balances</span></li>
+                            <span>Automated Leave Accruals & Balances</span>
+                        </li>
                         <li class="d-flex align-items-start"><i class="ti ti-check text-success me-2 mt-1"></i>
-                            <span>Overtime Calculation & Approval Workflows</span></li>
+                            <span>Overtime Calculation & Approval Workflows</span>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -129,13 +137,17 @@ require_once $root_path . '/components/layout/header.php';
                     </p>
                     <ul class="list-unstyled text-secondary">
                         <li class="mb-2 d-flex align-items-start"><i class="ti ti-check text-success me-2 mt-1"></i>
-                            <span>One-click Payroll Generation</span></li>
+                            <span>One-click Payroll Generation</span>
+                        </li>
                         <li class="mb-2 d-flex align-items-start"><i class="ti ti-check text-success me-2 mt-1"></i>
-                            <span>Automated Tax & Deduction Calculations</span></li>
+                            <span>Automated Tax & Deduction Calculations</span>
+                        </li>
                         <li class="mb-2 d-flex align-items-start"><i class="ti ti-check text-success me-2 mt-1"></i>
-                            <span>Direct Bank Transfer Files</span></li>
+                            <span>Direct Bank Transfer Files</span>
+                        </li>
                         <li class="d-flex align-items-start"><i class="ti ti-check text-success me-2 mt-1"></i>
-                            <span>Digital Payslips via Email & App</span></li>
+                            <span>Digital Payslips via Email & App</span>
+                        </li>
                     </ul>
                 </div>
             </div>

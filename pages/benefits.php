@@ -1,7 +1,7 @@
 <?php
 $title = "Benefits - StaffSync HRMS";
-$root_path = __DIR__;
-require_once $root_path . '/components/layout/header.php';
+require_once '../config/db.php';
+require_once PROJECT_ROOT . '/components/layout/header.php';
 ?>
 
 <style>
