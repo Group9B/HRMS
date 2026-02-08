@@ -177,7 +177,8 @@ $role_color = $role_colors[$role_id] ?? 'secondary';
                                     <a class="nav-link text-body fw-semibold" href="/hrms/pages/features.php">Features</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-body fw-semibold" href="/hrms/pages/benefits.php">Benefits</a>
+                                    <a class="nav-link text-body fw-semibold"
+                                        href="/hrms/pages/pages/benefits.php">Benefits</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link text-body fw-semibold"
@@ -189,7 +190,7 @@ $role_color = $role_colors[$role_id] ?? 'secondary';
                                         In</a>
                                 </li>
                                 <li class="nav-item w-20 w-lg-auto">
-                                    <a href="/hrms/register.php"
+                                    <a href="/hrms/pages/register.php"
                                         class="btn btn-primary btn-sm px-3 rounded-pill fw-semibold shadow-sm w-100 w-lg-auto">Sign
                                         Up
                                         Free</a>

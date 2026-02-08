@@ -98,7 +98,7 @@ if (isLoggedIn()) {
                                 <a class="nav-link text-body fw-semibold" href="#features">Features</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-body fw-semibold" href="/hrms/benefits.php">Benefits</a>
+                                <a class="nav-link text-body fw-semibold" href="/hrms/pages/benefits.php">Benefits</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-body fw-semibold"
