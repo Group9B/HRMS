@@ -99,6 +99,13 @@ switch ($_SESSION['role_id']) {
         'permission' => null,
         'submenu' => []
       ],
+      'Assets' => [
+        'title' => 'Assets',
+        'icon' => 'ti ti-device-laptop',
+        'url' => '/hrms/company/assets.php',
+        'permission' => null,
+        'submenu' => []
+      ],
       'Settings' => [
         'title' => 'Settings',
         'icon' => 'ti ti-settings',
@@ -159,6 +166,13 @@ switch ($_SESSION['role_id']) {
         'permission' => null,
         'submenu' => []
       ],
+      'Assets' => [
+        'title' => 'Assets',
+        'icon' => 'ti ti-device-laptop',
+        'url' => '/hrms/company/assets.php',
+        'permission' => null,
+        'submenu' => []
+      ],
       'Support' => [
         'title' => 'Support',
         'icon' => 'ti ti-help',
@@ -209,6 +223,13 @@ switch ($_SESSION['role_id']) {
         'title' => 'Tasks & Goals',
         'icon' => 'ti ti-checklist',
         'url' => '/hrms/employee/goals.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'my_assets' => [
+        'title' => 'My Assets',
+        'icon' => 'ti ti-device-laptop',
+        'url' => '/hrms/employee/my_assets.php',
         'permission' => null,
         'submenu' => []
       ],
@@ -300,6 +321,13 @@ switch ($_SESSION['role_id']) {
         'title' => 'Payslips',
         'icon' => 'ti ti-receipt',
         'url' => '/hrms/manager/payslips.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'my_assets' => [
+        'title' => 'My Assets',
+        'icon' => 'ti ti-device-laptop',
+        'url' => '/hrms/employee/my_assets.php',
         'permission' => null,
         'submenu' => []
       ],

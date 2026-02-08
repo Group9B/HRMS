@@ -311,7 +311,6 @@
 	color: var(--bs-primary-text) !important;
 	border-radius: var(--bs-border-radius) !important;
 	font-size: 3rem !important;
-	transition: all 0.1s ease-in-out;
 }
 
 .sidebar-active .nav-link {

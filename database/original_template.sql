@@ -20,6 +20,48 @@ CREATE TABLE `activity_logs` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+CREATE TABLE `assets` (
+  `id` int(11) NOT NULL,
+  `company_id` int(11) NOT NULL,
+  `category_id` int(11) NOT NULL,
+  `asset_name` varchar(255) NOT NULL,
+  `asset_tag` varchar(100) DEFAULT NULL,
+  `serial_number` varchar(100) DEFAULT NULL,
+  `purchase_date` date DEFAULT NULL,
+  `purchase_cost` decimal(12,2) DEFAULT NULL,
+  `warranty_expiry` date DEFAULT NULL,
+  `status` enum('Available','Assigned','Maintenance','Retired','Lost') NOT NULL DEFAULT 'Available',
+  `condition_status` enum('New','Good','Fair','Poor','Damaged') NOT NULL DEFAULT 'New',
+  `description` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `asset_assignments` (
+  `id` int(11) NOT NULL,
+  `asset_id` int(11) NOT NULL,
+  `employee_id` int(11) NOT NULL,
+  `assigned_by` int(11) NOT NULL,
+  `assigned_date` date NOT NULL,
+  `expected_return_date` date DEFAULT NULL,
+  `actual_return_date` date DEFAULT NULL,
+  `status` enum('Active','Returned') NOT NULL DEFAULT 'Active',
+  `condition_on_assignment` enum('New','Good','Fair','Poor','Damaged') DEFAULT 'Good',
+  `condition_on_return` enum('New','Good','Fair','Poor','Damaged') DEFAULT NULL,
+  `remarks` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `asset_categories` (
+  `id` int(11) NOT NULL,
+  `company_id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `type` enum('Hardware','Software','Access','Security','Other') NOT NULL DEFAULT 'Other',
+  `description` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 CREATE TABLE `attendance` (
   `id` int(11) NOT NULL,
   `employee_id` int(11) NOT NULL,
@@ -59,7 +101,9 @@ CREATE TABLE `companies` (
   `address` varchar(255) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `subscription_status` enum('trial','active','expired','cancelled') DEFAULT 'trial',
+  `trial_ends_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `company_holiday_settings` (
@@ -109,6 +153,20 @@ CREATE TABLE `email_logs` (
   `sent_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `email_queue` (
+  `id` int(11) NOT NULL,
+  `to_email` varchar(255) NOT NULL,
+  `to_name` varchar(255) DEFAULT NULL,
+  `subject` varchar(255) NOT NULL,
+  `body` longtext NOT NULL,
+  `alt_body` longtext DEFAULT NULL,
+  `status` enum('pending','processing','sent','failed') NOT NULL DEFAULT 'pending',
+  `attempts` int(11) NOT NULL DEFAULT 0,
+  `error_message` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `processed_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `email_templates` (
   `id` int(11) NOT NULL,
@@ -425,11 +483,13 @@ CREATE TABLE `users` (
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `status` enum('active','inactive') DEFAULT 'active',
+  `reset_token_hash` varchar(64) DEFAULT NULL,
+  `reset_token_expires_at` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT INTO `users` (`id`, `company_id`, `role_id`, `username`, `email`, `password`, `status`, `created_at`) VALUES
-(1, NULL, 1, 'admin', 'admin@mail.com', '$2y$10$4oXGSu5Ip7f2oJFXksjqA.927pO76waLG1YCGuyiQNj6QMoqrJW/W', 'active', '2025-09-06 06:34:45');
+INSERT INTO `users` (`id`, `company_id`, `role_id`, `username`, `email`, `password`, `status`, `reset_token_hash`, `reset_token_expires_at`, `created_at`) VALUES
+(1, NULL, 1, 'admin', 'admin@mail.com', '$2y$10$4oXGSu5Ip7f2oJFXksjqA.927pO76waLG1YCGuyiQNj6QMoqrJW/W', 'active', NULL, NULL, '2025-09-06 06:34:45');
 
 CREATE TABLE `user_preferences` (
   `id` int(11) NOT NULL,
@@ -444,6 +504,22 @@ CREATE TABLE `user_preferences` (
 ALTER TABLE `activity_logs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_user_id` (`user_id`);
+
+ALTER TABLE `assets`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `company_id` (`company_id`),
+  ADD KEY `category_id` (`category_id`);
+
+ALTER TABLE `asset_assignments`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `asset_id` (`asset_id`),
+  ADD KEY `employee_id` (`employee_id`),
+  ADD KEY `assigned_by` (`assigned_by`);
+
+ALTER TABLE `asset_categories`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_category_per_company` (`company_id`,`name`),
+  ADD KEY `company_id` (`company_id`);
 
 ALTER TABLE `attendance`
   ADD PRIMARY KEY (`id`),
@@ -481,6 +557,11 @@ ALTER TABLE `email_logs`
   ADD KEY `idx_user_id` (`user_id`),
   ADD KEY `idx_template_id` (`template_id`),
   ADD KEY `idx_status` (`status`);
+
+ALTER TABLE `email_queue`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_created_at` (`created_at`);
 
 ALTER TABLE `email_templates`
   ADD PRIMARY KEY (`id`),
@@ -628,7 +709,8 @@ ALTER TABLE `users`
   ADD UNIQUE KEY `username` (`username`),
   ADD UNIQUE KEY `email` (`email`),
   ADD KEY `company_id` (`company_id`),
-  ADD KEY `role_id` (`role_id`);
+  ADD KEY `role_id` (`role_id`),
+  ADD KEY `idx_reset_token_hash` (`reset_token_hash`);
 
 ALTER TABLE `user_preferences`
   ADD PRIMARY KEY (`id`),
@@ -637,6 +719,15 @@ ALTER TABLE `user_preferences`
 
 
 ALTER TABLE `activity_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `assets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `asset_assignments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `asset_categories`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `attendance`
@@ -664,6 +755,9 @@ ALTER TABLE `documents`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `email_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `email_queue`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `email_templates`
@@ -753,6 +847,13 @@ ALTER TABLE `user_preferences`
 
 ALTER TABLE `activity_logs`
   ADD CONSTRAINT `activity_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+ALTER TABLE `assets`
+  ADD CONSTRAINT `fk_asset_category` FOREIGN KEY (`category_id`) REFERENCES `asset_categories` (`id`);
+
+ALTER TABLE `asset_assignments`
+  ADD CONSTRAINT `fk_assignment_asset` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_assignment_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE;
 
 ALTER TABLE `attendance`
   ADD CONSTRAINT `attendance_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE;
