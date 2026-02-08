@@ -1,5 +1,5 @@
 * {
-	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	font-family: "Inter", sans-serif;
 }
 :root {
 	--bs-card-cap-bg: rgba(var(--bs-body-color-rgb), 0.03);

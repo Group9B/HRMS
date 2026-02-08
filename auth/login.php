@@ -185,7 +185,7 @@ require_once "../components/layout/header.php";
 
                             <div class="text-center mt-3">
                                 <span class="small text-muted">Don't have an account?</span>
-                                <a href="../register.php" class="text-decoration-none small fw-bold">Book a Free
+                                <a href="../register.php" class="text-decoration-none small">Book a Free
                                     Demo</a>
                             </div>
                         </form>
