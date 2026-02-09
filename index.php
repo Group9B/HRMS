@@ -124,8 +124,6 @@ if (isLoggedIn()) {
                 </div>
             </div>
         </nav>
-
-        <!-- Hero Section -->
         <section class="py-5 bg-body border-bottom">
             <div class="container">
                 <div class="row align-items-center g-5">
@@ -914,7 +912,7 @@ if (isLoggedIn()) {
                         <ul class="list-unstyled d-flex flex-column gap-2 small">
                             <li><a href="#" class="text-decoration-none text-white-50 footer-link transition-all">About
                                     Us</a></li>
-                            <li><a href="/hrms/careers.php"
+                            <li><a href="/hrms/pages/careers.php"
                                     class="text-decoration-none text-white-50 footer-link transition-all">Careers</a>
                             </li>
                             <li><a href="#"

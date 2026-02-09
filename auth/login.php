@@ -1,6 +1,7 @@
 <?php
 require_once "../config/db.php";
 require_once "../includes/functions.php";
+$hideHeader = true;
 $error = "";
 if (isLoggedIn()) {
     redirect("/hrms/includes/redirect.php");
@@ -185,7 +186,7 @@ require_once "../components/layout/header.php";
 
                             <div class="text-center mt-3">
                                 <span class="small text-muted">Don't have an account?</span>
-                                <a href="../register.php" class="text-decoration-none small">Book a Free
+                                <a href="/hrms/pages/register.php" class="text-decoration-none small">Book a Free
                                     Demo</a>
                             </div>
                         </form>

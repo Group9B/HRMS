@@ -2,7 +2,8 @@
 // register.php
 // Public page for "Book a Demo" / Self-Service Registration
 // functions.php is included via header.php to avoid redeclaration issues
-require_once "components/layout/header.php";
+$hideHeader = true;
+require_once "../components/layout/header.php";
 
 $title = "Book a Free Demo";
 ?>
@@ -101,5 +102,5 @@ $title = "Book a Free Demo";
 
 <?php
 $additionalScripts = ['register.js'];
-require_once "components/layout/footer.php";
+require_once "../components/layout/footer.php";
 ?>

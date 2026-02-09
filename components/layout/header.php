@@ -4,6 +4,7 @@ $root_path = dirname(__DIR__, 2); // Goes up 2 levels from components/layout to 
 require_once $root_path . '/config/db.php';
 $additionalScripts = [];
 require_once $root_path . '/includes/functions.php';
+$hideHeader = $hideHeader ?? false; // allow pages to suppress header/navbar
 
 $is_site_active = query($mysqli, "SELECT setting_value from system_settings WHERE setting_key = 'maintenance_mode'");
 
@@ -54,7 +55,7 @@ $role_color = $role_colors[$role_id] ?? 'secondary';
         </div>
         </div>
         </div>
-        <?php if (isLoggedIn()): ?>
+        <?php if (!$hideHeader && isLoggedIn()): ?>
             <!-- Dashboard Header for Logged-in Users -->
             <div
                 class="hrms-header p-1 d-flex justify-content-between align-items-center border-bottom position-fixed top-0 start-0 w-100 bg-body-tertiary">
@@ -147,7 +148,7 @@ $role_color = $role_colors[$role_id] ?? 'secondary';
                 </div>
             </div>
             <div class="breaker mb-5"></div>
-        <?php else: ?>
+        <?php elseif (!$hideHeader): ?>
             <!-- Public Navbar for Guests -->
             <nav class="navbar navbar-expand-lg bg-body sticky-top shadow-sm py-3">
                 <div class="container">
@@ -177,12 +178,10 @@ $role_color = $role_colors[$role_id] ?? 'secondary';
                                     <a class="nav-link text-body fw-semibold" href="/hrms/pages/features.php">Features</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-body fw-semibold"
-                                        href="/hrms/pages/pages/benefits.php">Benefits</a>
+                                    <a class="nav-link text-body fw-semibold" href="/hrms/pages/benefits.php">Benefits</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-body fw-semibold"
-                                        href="/hrms/subscription/purchase.php">Pricing</a>
+                                    <a class="nav-link text-body fw-semibold" href="/hrms/pages/features.php">Pricing</a>
                                 </li>
                                 <li class="nav-item ms-lg-2 w-20 w-lg-auto">
                                     <a href="/hrms/auth/login.php"
@@ -191,9 +190,7 @@ $role_color = $role_colors[$role_id] ?? 'secondary';
                                 </li>
                                 <li class="nav-item w-20 w-lg-auto">
                                     <a href="/hrms/pages/register.php"
-                                        class="btn btn-primary btn-sm px-3 rounded-pill fw-semibold shadow-sm w-100 w-lg-auto">Sign
-                                        Up
-                                        Free</a>
+                                        class="btn btn-primary btn-sm px-3 rounded-pill fw-semibold shadow-sm w-100 w-lg-auto">Register</a>
                                 </li>
                             </ul>
                             <!-- Theme Toggle (ID matches main.js) -->

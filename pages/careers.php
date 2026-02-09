@@ -1,6 +1,6 @@
 <?php
 $title = "Careers - StaffSync HRMS";
-require_once 'components/layout/header.php';
+require_once '../components/layout/header.php';
 
 // Fetch open jobs
 $jobs_result = query($mysqli, "SELECT j.id, j.title, j.description, j.employment_type, j.location, j.openings, j.posted_at, d.name as department_name, c.name as company_name 
@@ -108,7 +108,8 @@ $jobs = $jobs_result['data'] ?? [];
 
                                 <?php if ($job['description']): ?>
                                     <p class="text-secondary small mb-3">
-                                        <?= nl2br(htmlspecialchars(substr($job['description'], 0, 150))) ?>...</p>
+                                        <?= nl2br(htmlspecialchars(substr($job['description'], 0, 150))) ?>...
+                                    </p>
                                 <?php endif; ?>
 
                                 <div class="d-flex justify-content-between align-items-center">
@@ -201,11 +202,11 @@ $jobs = $jobs_result['data'] ?? [];
 </div>
 
 <?php
-require_once 'components/layout/footer.php';
+require_once '../components/layout/footer.php';
 
 // Include Nexus Bot for guests
 if (!isLoggedIn()) {
-    include 'nexusbot/chat_widget.php';
+    include '../nexusbot/chat_widget.php';
 }
 ?>
 
