@@ -14,14 +14,9 @@ if (isLoggedIn()) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>StaffSync HRMS - Modern HR Solution</title>
         <link rel="icon" href="/hrms/assets/img/SS.png" type="image/png">
-        <!-- Using existing local Bootstrap -->
         <link rel="stylesheet" href="/hrms/assets/css/bootstrap.css">
-        <!-- tabler for Icons -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-        <!-- AOS Animation CSS -->
-        <!-- AOS Animation CSS -->
         <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-        <!-- Google Fonts: Inter -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
