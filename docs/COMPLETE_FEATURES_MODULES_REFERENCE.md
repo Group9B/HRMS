@@ -20,7 +20,7 @@
 10. [Performance Management](#performance-management)
 11. [Asset Management](#asset-management)
 12. [Organization Management](#organization-management)
-13. [Communication & Notifications](#communication--notifications)
+13. [Notifications](#communication--notifications)
 14. [Reports & Analytics](#reports--analytics)
 15. [AI Assistant (NexusBot)](#ai-assistant-nexusbot)
 16. [Support & Help Desk](#support--help-desk)
@@ -71,7 +71,6 @@
     - CSRF token protection
     - Session timeout and security
     - Trial expiry enforcement
-    - Remember me functionality
     - Logout with session cleanup
 
 ### 2. **User Roles & Permissions**
@@ -130,13 +129,13 @@
 
 **Features**:
 
-- Company-wide overview and KPIs
+- Company-wide overview
 - Quick actions panel (hire, manage departments, approve leaves)
 - Recent hires trend (last 3 months bar chart)
 - Department-wise headcount
 - Pending leave requests summary
 - Quick links to all modules
-- Employee growth analytics
+- Employee growth analytics(future)
 
 **Statistics Cards**:
 
@@ -239,7 +238,6 @@
 - View team attendance records
 - Assign tasks to team members
 - Monitor team performance
-- Access interview scheduling
 
 ---
 
@@ -315,8 +313,6 @@
 - Token generation and validation (SHA-256 hashed)
 - Time-limited reset links (1 hour expiry)
 - CSRF protection
-- Honeypot anti-bot field
-- Rate limiting (5 attempts per 15 minutes)
 - Email confirmation
 - Secure token transmission
 
@@ -568,7 +564,7 @@
 
 ### Geofencing & Location Tracking
 
-**Features**:
+**Features(Future)**:
 
 - GPS-based check-in validation
 - Define office geofence radius
@@ -689,7 +685,6 @@
 - Department-wise Leave Report
 - Leave Type Analysis
 - Monthly Leave Trends
-- Absenteeism Report
 
 ---
 
@@ -737,8 +732,7 @@
 - Employee Details (name, ID, department, designation)
 - Salary Month and Year
 - Working Days and Present Days
-- Earnings Breakup (component-wise)
-- Deductions Breakup (component-wise)
+
 - Gross Salary
 - Total Deductions
 - Net Salary
@@ -779,8 +773,7 @@
 
 - Record increment/promotion
 - Effective date
-- Old vs New CTC
-- Reason for revision
+- Old vs New CTC(future)
 - Approval workflow
 
 ---
@@ -1048,7 +1041,6 @@
 **Features** (Partial Implementation):
 
 - Performance appraisal cycles
-- Goal setting (OKRs, KPIs)
 - 360-degree feedback
 - Manager reviews
 - Self-assessment
@@ -1242,7 +1234,6 @@
 - Geofence radius for attendance
 - Leave policies
 - Payroll settings (PF%, ESI%, PT)
-- Tax regime (old/new)
 - Notification preferences
 - Email templates customization
 - System preferences
