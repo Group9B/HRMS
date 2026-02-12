@@ -420,18 +420,20 @@ require_once '../components/layout/header.php';
             responsive: true,
             columns: [
                 { data: 'asset_name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong>${r.serial_number ? '<br><small class="text-muted">SN: ' + escapeHTML(r.serial_number) + '</small>' : ''}` },
-                { data: 'category_name', render: (d, t, r) => `<span class="badge bg-secondary">${escapeHTML(r.category_type)}</span> ${escapeHTML(d)}` },
+                { data: 'category_name', render: (d, t, r) => `<span class="badge bg-secondary-subtle text-secondary-emphasis">${escapeHTML(r.category_type)}</span> ${escapeHTML(d)}` },
                 { data: 'asset_tag', render: d => d ? escapeHTML(d) : '<span class="text-muted">-</span>' },
                 {
                     data: 'status', render: d => {
                         const colors = { 'Available': 'success', 'Assigned': 'primary', 'Maintenance': 'warning', 'Retired': 'secondary', 'Lost': 'danger' };
-                        return `<span class="badge bg-${colors[d] || 'secondary'}">${d}</span>`;
+                        const color = colors[d] || 'secondary';
+                        return `<span class="badge bg-${color}-subtle text-${color}-emphasis">${d}</span>`;
                     }
                 },
                 {
                     data: 'condition_status', render: d => {
                         const colors = { 'New': 'success', 'Good': 'info', 'Fair': 'warning', 'Poor': 'danger', 'Damaged': 'danger' };
-                        return `<span class="badge bg-${colors[d] || 'secondary'}">${d}</span>`;
+                        const color = colors[d] || 'secondary';
+                        return `<span class="badge bg-${color}-subtle text-${color}-emphasis">${d}</span>`;
                     }
                 },
                 { data: 'assigned_to_name', render: (d, t, r) => d ? escapeHTML(d) : '<span class="text-muted">Unassigned</span>' },
@@ -481,7 +483,8 @@ require_once '../components/layout/header.php';
                 {
                     data: 'type', render: d => {
                         const colors = { 'Hardware': 'primary', 'Software': 'info', 'Access': 'warning', 'Security': 'danger', 'Other': 'secondary' };
-                        return `<span class="badge bg-${colors[d] || 'secondary'}">${d}</span>`;
+                        const color = colors[d] || 'secondary';
+                        return `<span class="badge bg-${color}-subtle text-${color}-emphasis">${d}</span>`;
                     }
                 },
                 { data: 'description', render: d => d ? escapeHTML(d) : '<span class="text-muted">-</span>' },
@@ -673,8 +676,8 @@ require_once '../components/layout/header.php';
                     let html = '<div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>Employee</th><th>Assigned Date</th><th>Returned</th><th>Condition (Out/In)</th><th>Status</th></tr></thead><tbody>';
                     result.data.forEach(a => {
                         const statusBadge = a.status === 'Active'
-                            ? '<span class="badge bg-success">Active</span>'
-                            : '<span class="badge bg-secondary">Returned</span>';
+                            ? '<span class="badge bg-success-subtle text-success-emphasis">Active</span>'
+                            : '<span class="badge bg-secondary-subtle text-secondary-emphasis">Returned</span>';
                         html += `<tr>
                         <td>${escapeHTML(a.employee_name)}</td>
                         <td>${a.assigned_date}</td>

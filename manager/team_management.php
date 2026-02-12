@@ -44,185 +44,132 @@ require_once '../components/layout/header.php';
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
-        <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="h3 text-gray-800">
-                <i class="ti ti-users me-2"></i>Team Management
-            </h2>
-            <div>
-                <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#createTeamModal">
-                    <i class="ti ti-plus me-2"></i>Create New Team
-                </button>
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#assignTeamModal">
-                    <i class="ti ti-user-plus me-2"></i>Assign Members
-                </button>
-            </div>
-        </div>
-
-        <!-- Teams List View (Default) -->
         <div id="teamsListView">
-            <!-- Team Statistics -->
-            <div class="row mb-4">
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card stat-card shadow-sm">
-                        <div class="card-body">
-                            <div class="icon-circle bg-primary"><i class="ti ti-users"></i></div>
-                            <div>
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Teams</div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-teams-count">
-                                    <?= count($teams) ?>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card stat-card shadow-sm">
-                        <div class="card-body">
-                            <div class="icon-circle bg-success"><i class="ti ti-user-check"></i></div>
-                            <div>
-                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Members
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-members-count">--</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card stat-card shadow-sm">
-                        <div class="card-body">
-                            <div class="icon-circle bg-info"><i class="ti ti-checklist"></i></div>
-                            <div>
-                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Active Teams</div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="active-teams-count">
-                                    <?= count($teams) ?>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card stat-card shadow-sm">
-                        <div class="card-body">
-                            <div class="icon-circle bg-warning"><i class="ti ti-star"></i></div>
-                            <div>
-                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Team Leaders
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-leaders-count">--</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="row mb-4" id="teamStatsContainer">
+                <!-- Stats will be rendered dynamically by renderStatCards() -->
             </div>
 
             <!-- Teams Cards -->
             <div class="card shadow-sm mb-4">
-                <div class="card-header">
-                    <h6 class="m-0 font-weight-bold">Your Teams</h6>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="ti ti-users me-2"></i>Your Teams
+                    </h6>
+                    <div>
+                        <button class="btn btn-outline-primary btn-sm me-2" data-bs-toggle="modal"
+                            data-bs-target="#createTeamModal">
+                            <i class="ti ti-plus me-1"></i>Create Team
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#assignTeamModal">
+                            <i class="ti ti-user-plus me-1"></i>Assign Members
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <?php if (!empty($teams)): ?>
-                        <div class="row">
-                            <?php foreach ($teams as $team): ?>
-                                <div class="col-lg-6 col-xl-4 mb-4" id="team-card-<?= $team['id'] ?>">
-                                    <div class="card border-left-primary shadow-sm h-100" style="cursor: pointer;"
-                                        onclick="viewTeamDetails(<?= $team['id'] ?>)">
-                                        <div class="card-body overflow-visible">
-                                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <h6 class="card-title mb-0"><?= htmlspecialchars($team['name']) ?></h6>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <span class="badge bg-primary"><?= $team['member_count'] ?> members</span>
-                                                    <div class="dropdown" onclick="event.stopPropagation();">
-                                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                                                            type="button" data-bs-toggle="dropdown">
-                                                            <i class="ti ti-dots-vertical"></i>
-                                                        </button>
-                                                        <ul class="dropdown-menu dropdown-menu-end" style="min-width: 180px;">
-                                                            <li><a class="dropdown-item" href="#"
-                                                                    onclick="viewTeamDetails(<?= $team['id'] ?>)">
-                                                                    <i class="ti ti-eye me-2"></i>View Details
-                                                                </a></li>
-                                                            <li><a class="dropdown-item" href="#"
-                                                                    onclick="editTeam(<?= $team['id'] ?>)">
-                                                                    <i class="ti ti-edit me-2"></i>Edit Team
-                                                                </a></li>
-                                                            <li><a class="dropdown-item" href="#"
-                                                                    onclick="manageMembers(<?= $team['id'] ?>)">
-                                                                    <i class="ti ti-user-plus me-2"></i>Manage Members
-                                                                </a></li>
-                                                            <li><a class="dropdown-item" href="#"
-                                                                    onclick="assignTeamLeader(<?= $team['id'] ?>)">
-                                                                    <i class="ti ti-star me-2"></i>Assign Team Leader
-                                                                </a></li>
-                                                            <li>
-                                                                <hr class="dropdown-divider">
-                                                            </li>
-                                                            <li><a class="dropdown-item text-danger" href="#"
-                                                                    onclick="deleteTeam(<?= $team['id'] ?>)">
-                                                                    <i class="ti ti-trash me-2"></i>Delete Team
-                                                                </a></li>
-                                                        </ul>
+                                <div class="row">
+                                    <?php foreach ($teams as $team): ?>
+                                                <div class="col-lg-6 col-xl-4 mb-4" id="team-card-<?= $team['id'] ?>">
+                                                    <div class="card border-left-primary shadow-sm h-100" style="cursor: pointer;"
+                                                        onclick="viewTeamDetails(<?= $team['id'] ?>)">
+                                                        <div class="card-body overflow-visible">
+                                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                                <h6 class="card-title mb-0"><?= htmlspecialchars($team['name']) ?></h6>
+                                                                <div class="d-flex align-items-center gap-2">
+                                                                    <span class="badge bg-primary"><?= $team['member_count'] ?> members</span>
+                                                                    <div class="dropdown" onclick="event.stopPropagation();">
+                                                                        <button class="btn action dropdown-toggle" type="button"
+                                                                            data-bs-toggle="dropdown">
+                                                                            <i class="ti ti-dots-vertical"></i>
+                                                                        </button>
+                                                                        <ul class="dropdown-menu dropdown-menu-end" style="min-width: 180px;">
+                                                                            <li><a class="dropdown-item" href="#"
+                                                                                    onclick="viewTeamDetails(<?= $team['id'] ?>)">
+                                                                                    <i class="ti ti-eye me-2"></i>View Details
+                                                                                </a></li>
+                                                                            <li><a class="dropdown-item" href="#"
+                                                                                    onclick="editTeam(<?= $team['id'] ?>)">
+                                                                                    <i class="ti ti-edit me-2"></i>Edit Team
+                                                                                </a></li>
+                                                                            <li><a class="dropdown-item" href="#"
+                                                                                    onclick="manageMembers(<?= $team['id'] ?>)">
+                                                                                    <i class="ti ti-user-plus me-2"></i>Manage Members
+                                                                                </a></li>
+                                                                            <li><a class="dropdown-item" href="#"
+                                                                                    onclick="assignTeamLeader(<?= $team['id'] ?>)">
+                                                                                    <i class="ti ti-star me-2"></i>Assign Team Leader
+                                                                                </a></li>
+                                                                            <li>
+                                                                                <hr class="dropdown-divider">
+                                                                            </li>
+                                                                            <li><a class="dropdown-item text-danger" href="#"
+                                                                                    onclick="deleteTeam(<?= $team['id'] ?>)">
+                                                                                    <i class="ti ti-trash me-2"></i>Delete Team
+                                                                                </a></li>
+                                                                        </ul>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <p class="card-text text-muted small mb-3">
+                                                                <?= htmlspecialchars($team['description'] ?: 'No description provided') ?>
+                                                            </p>
+
+                                                            <?php if ($team['team_leaders']): ?>
+                                                                        <div class="mb-3">
+                                                                            <small class="text-muted d-block mb-1">
+                                                                                <i class="ti ti-star me-1"></i>Team Leader(s):
+                                                                            </small>
+                                                                            <div class="fw-bold text-primary" style="font-size: 0.9rem;">
+                                                                                <?= htmlspecialchars($team['team_leaders']) ?>
+                                                                            </div>
+                                                                        </div>
+                                                            <?php else: ?>
+                                                                        <div class="mb-3">
+                                                                            <small class="text-warning">
+                                                                                <i class="ti ti-alert-circle me-1"></i>No team leader assigned
+                                                                            </small>
+                                                                        </div>
+                                                            <?php endif; ?>
+
+                                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                <small class="text-muted">
+                                                                    Created <?= date('M j, Y', strtotime($team['created_at'])) ?>
+                                                                </small>
+                                                            </div>
+
+                                                            <div class="d-flex gap-2">
+                                                                <button class="btn btn-sm btn-primary flex-fill"
+                                                                    onclick="event.stopPropagation(); viewTeamDetails(<?= $team['id'] ?>)">
+                                                                    <i class="ti ti-eye me-1"></i>View Team
+                                                                </button>
+                                                                <button class="btn btn-sm btn-outline-warning"
+                                                                    onclick="event.stopPropagation(); assignTeamLeader(<?= $team['id'] ?>)"
+                                                                    title="Assign Team Leader">
+                                                                    <i class="ti ti-user-star"></i>
+                                                                </button>
+                                                                <button class="btn btn-sm btn-success"
+                                                                    onclick="event.stopPropagation(); assignTaskToTeam(<?= $team['id'] ?>, '<?= htmlspecialchars($team['name']) ?>')"
+                                                                    title="Assign Task">
+                                                                    <i class="ti ti-plus"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-
-                                            <p class="card-text text-muted small mb-3">
-                                                <?= htmlspecialchars($team['description'] ?: 'No description provided') ?>
-                                            </p>
-
-                                            <?php if ($team['team_leaders']): ?>
-                                                <div class="mb-3">
-                                                    <small class="text-muted d-block mb-1">
-                                                        <i class="ti ti-star me-1"></i>Team Leader(s):
-                                                    </small>
-                                                    <div class="fw-bold text-primary" style="font-size: 0.9rem;">
-                                                        <?= htmlspecialchars($team['team_leaders']) ?>
-                                                    </div>
-                                                </div>
-                                            <?php else: ?>
-                                                <div class="mb-3">
-                                                    <small class="text-warning">
-                                                        <i class="ti ti-alert-circle me-1"></i>No team leader assigned
-                                                    </small>
-                                                </div>
-                                            <?php endif; ?>
-
-                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                <small class="text-muted">
-                                                    Created <?= date('M j, Y', strtotime($team['created_at'])) ?>
-                                                </small>
-                                            </div>
-
-                                            <div class="d-flex gap-2">
-                                                <button class="btn btn-sm btn-primary flex-fill"
-                                                    onclick="event.stopPropagation(); viewTeamDetails(<?= $team['id'] ?>)">
-                                                    <i class="ti ti-eye me-1"></i>View Team
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-warning"
-                                                    onclick="event.stopPropagation(); assignTeamLeader(<?= $team['id'] ?>)"
-                                                    title="Assign Team Leader">
-                                                    <i class="ti ti-user-star"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-success"
-                                                    onclick="event.stopPropagation(); assignTaskToTeam(<?= $team['id'] ?>, '<?= htmlspecialchars($team['name']) ?>')"
-                                                    title="Assign Task">
-                                                    <i class="ti ti-plus"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <?php endforeach; ?>
                                 </div>
-                            <?php endforeach; ?>
-                        </div>
                     <?php else: ?>
-                        <div class="text-center text-muted p-5">
-                            <i class="ti ti-users fa-3x mb-3" style="font-size: 2rem;"></i>
-                            <h5>No Teams Found</h5>
-                            <p>Create your first team to start organizing your workforce.</p>
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTeamModal">
-                                <i class="ti ti-plus me-2"></i>Create Your First Team
-                            </button>
-                        </div>
+                                <div class="text-center text-muted p-5">
+                                    <i class="ti ti-users fa-3x mb-3" style="font-size: 2rem;"></i>
+                                    <h5>No Teams Found</h5>
+                                    <p>Create your first team to start organizing your workforce.</p>
+                                    <button class="btn btn-outline-primary" data-bs-toggle="modal"
+                                        data-bs-target="#createTeamModal">
+                                        <i class="ti ti-plus me-2"></i>Create Your First Team
+                                    </button>
+                                </div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -328,7 +275,7 @@ require_once '../components/layout/header.php';
                         <select class="form-select" id="select_team" name="team_id" required>
                             <option value="">Choose a team...</option>
                             <?php foreach ($teams as $team): ?>
-                                <option value="<?= $team['id'] ?>"><?= htmlspecialchars($team['name']) ?></option>
+                                        <option value="<?= $team['id'] ?>"><?= htmlspecialchars($team['name']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -510,56 +457,6 @@ require_once '../components/layout/header.php';
 
 <?php require_once '../components/layout/footer.php'; ?>
 
-<style>
-    .avatar-circle {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: linear-gradient(45deg, #4e73df, #36b9cc);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 14px;
-    }
-
-    .stat-card {
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 14px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
-    }
-
-    .stat-card .card-body {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding-top: 14px;
-        padding-bottom: 14px;
-    }
-
-    .icon-circle {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 6px;
-        color: white;
-        font-size: 20px;
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-    }
-
-    .border-left-primary {
-        border-left: 4px solid #4e73df !important;
-    }
-
-    .progress-sm {
-        height: 8px;
-    }
-</style>
-
 <script>
     let currentTeamId = null;
     let currentTeamName = null;
@@ -647,23 +544,30 @@ require_once '../components/layout/header.php';
     });
 
     function loadOverallStats() {
+        // Count leaders from PHP teams data
+        let leaderCount = 0;
+        <?php foreach ($teams as $team): ?>
+                    <?php if ($team['team_leaders']): ?>
+                                leaderCount++;
+                    <?php endif; ?>
+        <?php endforeach; ?>
+
         fetch('/hrms/api/api_manager.php?action=get_team_stats')
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    $('#total-members-count').text(data.data.total_members || 0);
+                    const stats = data.data;
+
+                    // Use renderStatCards from main.js
+                    renderStatCards('teamStatsContainer', [
+                        { label: 'Total Teams', value: stats.total_teams || 0, color: 'primary', icon: 'users-group' },
+                        { label: 'Total Members', value: stats.total_members || 0, color: 'success', icon: 'users' },
+                        { label: 'Active Teams', value: stats.active_teams || 0, color: 'info', icon: 'circle-check' },
+                        { label: 'Team Leaders', value: leaderCount, color: 'warning', icon: 'star' }
+                    ]);
                 }
             })
             .catch(error => console.error('Error loading stats:', error));
-
-        // Count leaders
-        let leaderCount = 0;
-        <?php foreach ($teams as $team): ?>
-            <?php if ($team['team_leaders']): ?>
-                leaderCount++;
-            <?php endif; ?>
-        <?php endforeach; ?>
-        $('#total-leaders-count').text(leaderCount);
     }
 
     function createTeam() {
@@ -784,7 +688,7 @@ require_once '../components/layout/header.php';
                         team.team_leaders = leaders; // Add for template use
 
                         const cardHTML = generateTeamCardHTML(team);
-                        // Prepend to show first
+
                         targetContainer.insertAdjacentHTML('afterbegin', cardHTML);
                     }
                 }
@@ -799,9 +703,9 @@ require_once '../components/layout/header.php';
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <h6 class="card-title mb-0">${escapeHtml(team.name)}</h6>
                             <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-primary">${team.member_count} members</span>
+                                <span class="badge bg-primary-subtle text-primary-emphasis">${team.member_count} members</span>
                                 <div class="dropdown" onclick="event.stopPropagation();">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <button class="btn btn-sm action dropdown-toggle" type="button" data-bs-toggle="dropdown">
                                         <i class="ti ti-dots-vertical"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end" style="min-width: 180px;">
@@ -830,13 +734,13 @@ require_once '../components/layout/header.php';
                             <small class="text-muted">Created ${new Date(team.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
                         </div>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-sm btn-primary flex-fill" onclick="event.stopPropagation(); viewTeamDetails(${team.id})">
+                            <button class="btn btn-sm btn-outline-primary flex-fill" onclick="event.stopPropagation(); viewTeamDetails(${team.id})">
                                 <i class="ti ti-eye me-1"></i>View Team
                             </button>
                             <button class="btn btn-sm btn-outline-warning" onclick="event.stopPropagation(); assignTeamLeader(${team.id})" title="Assign Team Leader">
                                 <i class="ti ti-user-star"></i>
                             </button>
-                            <button class="btn btn-sm btn-success" onclick="event.stopPropagation(); assignTaskToTeam(${team.id}, '${escapeHtml(team.name).replace(/'/g, "\\'")}')" title="Assign Task">
+                            <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); assignTaskToTeam(${team.id}, '${escapeHtml(team.name).replace(/'/g, "\\'")}')" title="Assign Task">
                                 <i class="ti ti-plus"></i>
                             </button>
                         </div>
@@ -847,20 +751,6 @@ require_once '../components/layout/header.php';
     }
 
     function updateStatsUI(increment) {
-        const totalTeamsEl = document.getElementById('total-teams-count');
-        const activeTeamsEl = document.getElementById('active-teams-count');
-
-        if (totalTeamsEl) {
-            let count = parseInt(totalTeamsEl.innerText) || 0;
-            totalTeamsEl.innerText = count + increment;
-        }
-
-        if (activeTeamsEl) {
-            let count = parseInt(activeTeamsEl.innerText) || 0;
-            activeTeamsEl.innerText = count + increment;
-        }
-
-        // Reload overall stats to catch member counts if members were added
         loadOverallStats();
     }
 
@@ -1218,12 +1108,14 @@ require_once '../components/layout/header.php';
 
             const isLeader = member.role_in_team && (member.role_in_team.toLowerCase().includes('leader') || member.role_in_team.toLowerCase().includes('lead'));
 
+            const avatarData = generateAvatarData({ id: member.id, username: member.employee_code });
+
             html += `
                 <tr>
                     <td>
                         <div class="d-flex align-items-center">
-                            <div class="avatar-circle me-3">
-                                ${member.first_name.charAt(0)}${member.last_name.charAt(0)}
+                            <div class="avatar-circle me-3" style="background-color: ${avatarData.color};">
+                                ${avatarData.initials}
                             </div>
                             <div>
                                 <div class="fw-bold">
@@ -1235,7 +1127,7 @@ require_once '../components/layout/header.php';
                         </div>
                     </td>
                     <td>
-                        <span class="badge ${isLeader ? 'bg-warning' : 'bg-secondary'}" style="cursor: pointer;" 
+                        <span class="badge ${isLeader ? 'bg-warning-subtle text-warning-emphasis' : 'bg-secondary-subtle text-secondary-emphasis'}" style="cursor: pointer;" 
                               onclick="updateMemberRole(${teamId}, ${member.id}, '${member.first_name} ${member.last_name}', '${member.role_in_team || ''}')">
                             ${member.role_in_team || 'Member'}
                         </span>
@@ -1253,7 +1145,7 @@ require_once '../components/layout/header.php';
                         <small class="text-muted">${completionRate}%</small>
                     </td>
                     <td>
-                        <span class="badge bg-${performanceClass}">${performanceScore > 0 ? performanceScore + '%' : 'N/A'}</span>
+                        <span class="badge bg-${performanceClass}-subtle text-${performanceClass}-emphasis">${performanceScore > 0 ? performanceScore + '%' : 'N/A'}</span>
                     </td>
                     <td>${member.attendance_count} days</td>
                     <td>
@@ -1458,10 +1350,8 @@ require_once '../components/layout/header.php';
                                 activeTeamsEl.innerText = Math.max(0, count - 1);
                             }
 
-                            // Check if no teams left
                             const teamsContainer = document.querySelector('.card-body .row');
                             if (teamsContainer && teamsContainer.children.length === 0) {
-                                // We need to check if we are in the list view
                                 const listView = document.getElementById('teamsListView');
                                 if (listView && listView.style.display !== 'none') {
                                     const cardBody = teamsContainer.closest('.card-body');
@@ -1543,5 +1433,38 @@ require_once '../components/layout/header.php';
 
     function assignIndividualTask(employeeId) {
         window.location.href = `/hrms/manager/task_management.php`;
+    }
+
+    function removeMemberFromTeam(teamId, employeeId, memberName) {
+        showConfirmationModal(
+            `Are you sure you want to remove <strong>${escapeHTML(memberName)}</strong> from this team?`,
+            function () {
+                const formData = new FormData();
+                formData.append('action', 'remove_team_member');
+                formData.append('team_id', teamId);
+                formData.append('employee_id', employeeId);
+
+                fetch('/hrms/api/api_manager.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast('Member removed successfully', 'success');
+                            loadTeamMembersStats(teamId);
+                            loadOverallStats();
+                        } else {
+                            showToast(data.message || 'Failed to remove member', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        showToast('An error occurred. Please try again.', 'error');
+                    });
+            },
+            'Remove Team Member',
+            'Remove',
+            'btn-danger'
+        );
     }
 </script>

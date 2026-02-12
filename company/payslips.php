@@ -197,9 +197,16 @@ require_once '../components/layout/header.php';
     };
 
     const renderActionButtons = (row) => {
-      const sendBtn = `<button class="btn btn-sm btn-outline-primary send-btn" data-id="${escapeHTML(row.id)}" title="Mark as sent">Send</button>`;
-      const emailBtn = `<button class="btn btn-sm btn-outline-info email-btn" data-id="${escapeHTML(row.id)}" title="Send to employee via email"><i class="ti ti-mail"></i></button>`;
-      return `${sendBtn} ${emailBtn}`;
+      return `
+        <div class="btn-group btn-group-sm" role="group">
+          <button class="btn btn-outline-primary send-btn" data-id="${escapeHTML(row.id)}" title="Mark as sent">
+            <i class="ti ti-send"></i>
+          </button>
+          <button class="btn btn-outline-info email-btn" data-id="${escapeHTML(row.id)}" title="Send to employee via email">
+            <i class="ti ti-mail"></i>
+          </button>
+        </div>
+      `;
     };
 
     function loadPayslips() {

@@ -665,6 +665,70 @@ const initToolTip = () => {
 };
 
 /**
+ * Humanize a date/timestamp to a relative time string
+ * @param {string|Date} dateInput - The date to humanize (ISO string, timestamp, or Date object)
+ * @returns {string} - Humanized date string (e.g., "2 hours ago", "yesterday", "3 weeks ago")
+ */
+function humanizeDate(dateInput) {
+	const date = new Date(dateInput);
+	const now = new Date();
+	const seconds = Math.floor((now - date) / 1000);
+	const minutes = Math.floor(seconds / 60);
+	const hours = Math.floor(minutes / 60);
+	const days = Math.floor(hours / 24);
+	const weeks = Math.floor(days / 7);
+	const months = Math.floor(days / 30);
+	const years = Math.floor(days / 365);
+
+	// Future dates
+	if (seconds < 0) {
+		return date.toLocaleDateString("en-US", {
+			month: "short",
+			day: "numeric",
+			year: "numeric",
+		});
+	}
+
+	// Less than a minute
+	if (seconds < 60) {
+		return seconds <= 5 ? "just now" : `${seconds} seconds ago`;
+	}
+
+	// Less than an hour
+	if (minutes < 60) {
+		return minutes === 1 ? "1 minute ago" : `${minutes} minutes ago`;
+	}
+
+	// Less than a day
+	if (hours < 24) {
+		return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+	}
+
+	// Yesterday
+	if (days === 1) {
+		return "yesterday";
+	}
+
+	// Less than a week
+	if (days < 7) {
+		return `${days} days ago`;
+	}
+
+	// Less than a month
+	if (weeks < 4) {
+		return weeks === 1 ? "a week ago" : `${weeks} weeks ago`;
+	}
+
+	// Less than a year
+	if (months < 12) {
+		return months === 1 ? "a month ago" : `${months} months ago`;
+	}
+
+	// More than a year
+	return years === 1 ? "a year ago" : `${years} years ago`;
+}
+
+/**
  * Backward compatibility alias for legacy code using the old Skeleton utility.
  * New code should use SkeletonFactory and UIController instead.
  *

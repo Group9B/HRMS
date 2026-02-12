@@ -92,7 +92,7 @@ require_once '../components/layout/header.php';
                                         <div class="mb-1"><i class="ti ti-calendar me-1 text-muted"></i><strong>Assigned:</strong> ${asset.assigned_date}</div>
                                         ${asset.expected_return_date ? `<div class="mb-1"><i class="ti ti-calendar-due me-1 text-muted"></i><strong>Return by:</strong> ${asset.expected_return_date}</div>` : ''}
                                         <div class="mt-2">
-                                            <span class="badge bg-${condColor}">${asset.condition_on_assignment} condition</span>
+                                            <span class="badge bg-${condColor}-subtle text-${condColor}-emphasis">${asset.condition_on_assignment} condition</span>
                                         </div>
                                     </div>
                                 </div>

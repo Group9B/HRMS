@@ -36,9 +36,8 @@ require_once '../components/layout/header.php';
                     <div class="card shadow-sm border-0">
                         <div class="card-body d-flex flex-column flex-md-row align-items-center gap-4 p-4 pt-0">
                             <!-- Avatar -->
-                            <div class="avatar-container flex-shrink-0">
-                                <div class="avatar rounded-circle d-flex align-items-center justify-content-center skeleton skeleton-circle"
-                                    style="width: 80px; height: 80px; font-size: 32px; font-weight: bold; color: white; flex-shrink: 0;"
+                            <div class="avatar-container flex-shrink-0 fs-1">
+                                <div class="avatar skeleton skeleton-circle" style="width: 80px; height: 80px;"
                                     id="profileAvatar">
                                 </div>
                             </div>

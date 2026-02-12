@@ -15,7 +15,7 @@
 	height: 30px;
 	border-radius: 50%;
 	color: white;
-	font-size: 12px;
+	font-size: 0.85em;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -304,6 +304,49 @@
 
 .action::after {
 	content: none;
+}
+
+.btn.action {
+	border: none;
+	background: transparent;
+	padding: 0.25rem 0.5rem;
+	line-height: 2rem;
+	transition: all 0.2s ease;
+}
+
+.btn.action:hover {
+	background-color: var(--bs-secondary-bg);
+	border-radius: var(--bs-border-radius);
+}
+
+.btn.action:focus,
+.btn.action:active {
+	box-shadow: none;
+	background-color: var(--bs-secondary-bg);
+}
+
+.btn.action i {
+	font-size: 1.1rem;
+	color: var(--bs-body-color);
+}
+
+.dropdown-menu {
+	box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+	border: 1px solid var(--bs-border-color);
+}
+
+.dropdown-item {
+	padding: 0.5rem 1rem;
+	transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+	background-color: var(--bs-secondary-bg);
+}
+
+.dropdown-item i {
+	width: 1.25rem;
+	text-align: center;
 }
 
 .sidebar-active {

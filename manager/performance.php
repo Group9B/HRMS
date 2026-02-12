@@ -35,13 +35,6 @@ require_once '../components/layout/header.php';
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-            <h2 class="h3 mb-0"><i class="ti ti-chart-line me-2"></i>Performance Management</h2>
-            <button class="btn btn-primary" id="addReviewBtn" onclick="prepareAddModal()">
-                <i class="ti ti-plus me-2"></i>Add Review
-            </button>
-        </div>
-
         <!-- Tabs Navigation -->
         <ul class="nav nav-tabs mb-4" id="performanceTabs" role="tablist">
             <li class="nav-item" role="presentation">
@@ -63,29 +56,54 @@ require_once '../components/layout/header.php';
             <!-- Individual Performance Tab -->
             <div class="tab-pane fade show active" id="individual" role="tabpanel">
                 <div class="card shadow-sm mb-4">
-                    <div class="card-body">
-                        <form id="filterForm" class="row g-3 align-items-end">
-                            <div class="col-md-5">
-                                <label for="employee_filter" class="form-label">Employee</label>
-                                <select class="form-select" id="employee_filter">
-                                    <option value="">All Team Members</option>
-                                    <?php foreach ($team_members as $member): ?>
-                                        <option value="<?= $member['id'] ?>">
-                                            <?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <h6 class="m-0 font-weight-bold">Performance Reviews</h6>
                             </div>
-                            <div class="col-md-5">
-                                <label for="period_filter" class="form-label">Period</label>
-                                <input type="month" class="form-control" id="period_filter" value="<?= date('Y-m') ?>">
+                            <div class="wrapper d-flex gap-3"><button class="btn btn-sm btn-secondary ms-2"
+                                    type="button" data-bs-toggle="collapse" data-bs-target="#individualFilterCollapse"
+                                    aria-expanded="false">
+                                    <i class="ti ti-filter me-1"></i>Filters
+                                </button>
+                                <button class="btn btn-primary btn-sm" id="addReviewBtn" onclick="prepareAddModal()">
+                                    <i class="ti ti-plus me-1"></i>Add Review
+                                </button>
                             </div>
-                            <div class="col-md-2">
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary">Filter</button>
+                        </div>
+                        <!-- Collapsible Filters -->
+                        <div class="collapse mt-3" id="individualFilterCollapse">
+                            <form id="filterForm" class="row g-3">
+                                <div class="col-md-5">
+                                    <label for="employee_filter" class="form-label">Employee</label>
+                                    <select class="form-select form-select-sm" id="employee_filter">
+                                        <option value="">All Team Members</option>
+                                        <?php foreach ($team_members as $member): ?>
+                                            <option value="<?= $member['id'] ?>">
+                                                <?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
-                            </div>
-                        </form>
+                                <div class="col-md-4">
+                                    <label for="period_filter" class="form-label">Period</label>
+                                    <input type="month" class="form-control form-control-sm" id="period_filter"
+                                        value="<?= date('Y-m') ?>">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary btn-sm flex-fill">
+                                            <i class="ti ti-search me-1"></i>Apply
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                            onclick="$('#employee_filter').val(''); $('#period_filter').val('<?= date('Y-m') ?>'); loadData();">
+                                            <i class="ti ti-x"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
@@ -93,7 +111,8 @@ require_once '../components/layout/header.php';
                     <div class="col-xl-4 mb-4">
                         <div class="card shadow-sm h-100">
                             <div class="card-header">
-                                <h6 class="m-0 font-weight-bold">Performance Distribution</h6>
+                                <h6 class="m-0 font-weight-bold"><i class="ti ti-chart-donut me-2"></i>Performance
+                                    Distribution</h6>
                             </div>
                             <div class="card-body d-flex align-items-center justify-content-center"><canvas
                                     id="performanceChart"></canvas></div>
@@ -101,9 +120,6 @@ require_once '../components/layout/header.php';
                     </div>
                     <div class="col-xl-8 mb-4">
                         <div class="card shadow-sm h-100">
-                            <div class="card-header">
-                                <h6 class="m-0 font-weight-bold">Performance Reviews</h6>
-                            </div>
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="performanceTable" width="100%">
@@ -127,30 +143,55 @@ require_once '../components/layout/header.php';
             <!-- Team Performance Tab -->
             <div class="tab-pane fade" id="team" role="tabpanel">
                 <div class="card shadow-sm mb-4">
-                    <div class="card-body">
-                        <form id="teamFilterForm" class="row g-3 align-items-end">
-                            <div class="col-md-5">
-                                <label for="team_filter" class="form-label">Team</label>
-                                <select class="form-select" id="team_filter">
-                                    <option value="">All Teams</option>
-                                    <?php foreach ($teams as $team): ?>
-                                        <option value="<?= $team['id'] ?>">
-                                            <?= htmlspecialchars($team['name']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <h6 class="m-0 font-weight-bold">Team Performance Reviews</h6>
+
                             </div>
-                            <div class="col-md-5">
-                                <label for="team_period_filter" class="form-label">Period</label>
-                                <input type="month" class="form-control" id="team_period_filter"
-                                    value="<?= date('Y-m') ?>">
+                            <div class="wrapper d-flex gap-3"><button class="btn btn-sm btn-secondary ms-2"
+                                    type="button" data-bs-toggle="collapse" data-bs-target="#teamFilterCollapse"
+                                    aria-expanded="false">
+                                    <i class="ti ti-filter me-1"></i>Filters
+                                </button>
+                                <button class="btn btn-primary btn-sm" onclick="prepareAddTeamModal()">
+                                    <i class="ti ti-plus me-1"></i>Add Team Review
+                                </button>
                             </div>
-                            <div class="col-md-2">
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary">Filter</button>
+                        </div>
+                        <!-- Collapsible Filters -->
+                        <div class="collapse mt-3" id="teamFilterCollapse">
+                            <form id="teamFilterForm" class="row g-3">
+                                <div class="col-md-5">
+                                    <label for="team_filter" class="form-label">Team</label>
+                                    <select class="form-select form-select-sm" id="team_filter">
+                                        <option value="">All Teams</option>
+                                        <?php foreach ($teams as $team): ?>
+                                            <option value="<?= $team['id'] ?>">
+                                                <?= htmlspecialchars($team['name']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
-                            </div>
-                        </form>
+                                <div class="col-md-4">
+                                    <label for="team_period_filter" class="form-label">Period</label>
+                                    <input type="month" class="form-control form-control-sm" id="team_period_filter"
+                                        value="<?= date('Y-m') ?>">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary btn-sm flex-fill">
+                                            <i class="ti ti-search me-1"></i>Apply
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                            onclick="$('#team_filter').val(''); $('#team_period_filter').val('<?= date('Y-m') ?>'); loadTeamData();">
+                                            <i class="ti ti-x"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
@@ -158,7 +199,8 @@ require_once '../components/layout/header.php';
                     <div class="col-xl-4 mb-4">
                         <div class="card shadow-sm h-100">
                             <div class="card-header">
-                                <h6 class="m-0 font-weight-bold">Team Performance Distribution</h6>
+                                <h6 class="m-0 font-weight-bold"><i class="ti ti-chart-donut me-2"></i>Team Performance
+                                    Distribution</h6>
                             </div>
                             <div class="card-body d-flex align-items-center justify-content-center">
                                 <canvas id="teamPerformanceChart"></canvas>
@@ -167,9 +209,6 @@ require_once '../components/layout/header.php';
                     </div>
                     <div class="col-xl-8 mb-4">
                         <div class="card shadow-sm h-100">
-                            <div class="card-header">
-                                <h6 class="m-0 font-weight-bold">Team Performance Reviews</h6>
-                            </div>
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="teamPerformanceTable" width="100%">
@@ -325,15 +364,18 @@ require_once '../components/layout/header.php';
             data: [],
             columns: [
                 { data: 'first_name', render: (d, t, r) => `${escapeHTML(d)} ${escapeHTML(r.last_name)}` },
-                { data: 'score', render: d => `<span class="badge bg-${getScoreColor(d)}">${d}</span>` },
+                { data: 'score', render: d => `<span class="badge bg-${getScoreColor(d)}-subtle text-${getScoreColor(d)}-emphasis">${d}</span>` },
                 { data: 'period' },
                 {
-                    data: null, orderable: false, render: (d, t, r) => `
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-info" onclick="viewPerformance(${r.id})"><i class="ti ti-eye"></i></button>
-                    <button class="btn btn-outline-primary" onclick="prepareEditModal(${r.id})"><i class="ti ti-edit"></i></button>
-                    <button class="btn btn-outline-danger" onclick="deletePerformance(${r.id})"><i class="ti ti-trash"></i></button>
-                </div>`
+                    data: null, orderable: false, render: (d, t, r) => {
+                        return createActionDropdown({
+                            onEdit: () => prepareEditModal(r.id),
+                            onDelete: () => deletePerformance(r.id)
+                        }, {
+                            editTooltip: 'Edit Review',
+                            deleteTooltip: 'Delete Review'
+                        });
+                    }
                 }]
         });
 
@@ -343,16 +385,19 @@ require_once '../components/layout/header.php';
             data: [],
             columns: [
                 { data: 'team_name' },
-                { data: 'member_count', render: d => `${d || 0} members` },
-                { data: 'score', render: d => `<span class="badge bg-${getScoreColor(d)}">${d}</span>` },
+                { data: 'member_count', render: d => `<span class="badge bg-secondary-subtle text-secondary-emphasis">${d || 0} members</span>` },
+                { data: 'score', render: d => `<span class="badge bg-${getScoreColor(d)}-subtle text-${getScoreColor(d)}-emphasis">${d}</span>` },
                 { data: 'period' },
                 {
-                    data: null, orderable: false, render: (d, t, r) => `
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-info" onclick="viewTeamPerformance(${r.id})"><i class="ti ti-eye"></i></button>
-                    <button class="btn btn-outline-primary" onclick="prepareEditTeamModal(${r.id})"><i class="ti ti-edit"></i></button>
-                    <button class="btn btn-outline-danger" onclick="deleteTeamPerformance(${r.id})"><i class="ti ti-trash"></i></button>
-                </div>`
+                    data: null, orderable: false, render: (d, t, r) => {
+                        return createActionDropdown({
+                            onEdit: () => prepareEditTeamModal(r.id),
+                            onDelete: () => deleteTeamPerformance(r.id)
+                        }, {
+                            editTooltip: 'Edit Team Review',
+                            deleteTooltip: 'Delete Team Review'
+                        });
+                    }
                 }]
         });
 
@@ -405,14 +450,9 @@ require_once '../components/layout/header.php';
 
     function switchTab(tab) {
         currentTab = tab;
-        const btn = $('#addReviewBtn');
         if (tab === 'team') {
-            btn.attr('onclick', 'prepareAddTeamModal()');
-            btn.html('<i class="ti ti-plus me-2"></i>Add Team Review');
             loadTeamData();
         } else {
-            btn.attr('onclick', 'prepareAddModal()');
-            btn.html('<i class="ti ti-plus me-2"></i>Add Review');
             loadData();
         }
     }
@@ -441,7 +481,19 @@ require_once '../components/layout/header.php';
                 labels: ['Excellent', 'Good', 'Average', 'Poor'],
                 datasets: [{
                     data: [0, 0, 0, 0],
-                    backgroundColor: ['#1cc88a', '#f6c23e', '#36b9cc', '#e74a3b'],
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 99, 132, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1.5
                 }]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
@@ -456,7 +508,19 @@ require_once '../components/layout/header.php';
                 labels: ['Excellent', 'Good', 'Average', 'Poor'],
                 datasets: [{
                     data: [0, 0, 0, 0],
-                    backgroundColor: ['#1cc88a', '#f6c23e', '#36b9cc', '#e74a3b'],
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 99, 132, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1.5
                 }]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
@@ -520,14 +584,14 @@ require_once '../components/layout/header.php';
                 <div class="row">
                     <div class="col-md-6">
                         <p><strong>Team:</strong> ${escapeHTML(p.team_name)}</p>
-                        <p><strong>Members:</strong> ${p.member_count || 0}</p>
+                        <p><strong>Members:</strong> <span class="badge bg-secondary-subtle text-secondary-emphasis">${p.member_count || 0} members</span></p>
                         <p><strong>Period:</strong> ${escapeHTML(p.period)}</p>
-                        <p><strong>Overall Score:</strong> <span class="badge bg-${getScoreColor(p.score)}">${p.score}/100</span></p>
-                        <p><strong>Collaboration Score:</strong> ${p.collaboration_score ? `<span class="badge bg-${getScoreColor(p.collaboration_score)}">${p.collaboration_score}/100</span>` : 'N/A'}</p>
+                        <p><strong>Overall Score:</strong> <span class="badge bg-${getScoreColor(p.score)}-subtle text-${getScoreColor(p.score)}-emphasis">${p.score}/100</span></p>
+                        <p><strong>Collaboration Score:</strong> ${p.collaboration_score ? `<span class="badge bg-${getScoreColor(p.collaboration_score)}-subtle text-${getScoreColor(p.collaboration_score)}-emphasis">${p.collaboration_score}/100</span>` : 'N/A'}</p>
                     </div>
                     <div class="col-md-6">
                         <p><strong>Evaluator:</strong> ${escapeHTML(p.evaluator_name || 'N/A')}</p>
-                        <p><strong>Evaluated:</strong> ${new Date(p.created_at).toLocaleDateString()}</p>
+                        <p><strong>Evaluated:</strong> ${humanizeDate(p.created_at)} <small class="text-muted">(${new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})</small></p>
                     </div>
                 </div>
                 <hr>
@@ -547,20 +611,26 @@ require_once '../components/layout/header.php';
     }
 
     function deleteTeamPerformance(id) {
-        if (confirm('Are you sure you want to delete this team review?')) {
-            const formData = new FormData();
-            formData.append('action', 'delete_team_performance');
-            formData.append('id', id);
-            fetch('/hrms/api/api_performance.php', { method: 'POST', body: formData })
-                .then(res => res.json()).then(result => {
-                    if (result.success) {
-                        showToast(result.message, 'success');
-                        loadTeamData();
-                    } else {
-                        showToast(result.message, 'error');
-                    }
-                });
-        }
+        showConfirmationModal(
+            'Are you sure you want to <strong>delete</strong> this team performance review? This action cannot be undone.',
+            function () {
+                const formData = new FormData();
+                formData.append('action', 'delete_team_performance');
+                formData.append('id', id);
+                fetch('/hrms/api/api_performance.php', { method: 'POST', body: formData })
+                    .then(res => res.json()).then(result => {
+                        if (result.success) {
+                            showToast(result.message, 'success');
+                            loadTeamData();
+                        } else {
+                            showToast(result.message, 'error');
+                        }
+                    });
+            },
+            'Delete Team Review',
+            'Delete',
+            'btn-danger'
+        );
     }
 
     function updateChart(data) {
@@ -600,8 +670,9 @@ require_once '../components/layout/header.php';
                 const html = `
                 <p><strong>Employee:</strong> ${escapeHTML(p.first_name)} ${escapeHTML(p.last_name)}</p>
                 <p><strong>Period:</strong> ${escapeHTML(p.period)}</p>
-                <p><strong>Score:</strong> <span class="badge bg-${getScoreColor(p.score)}">${p.score}/100</span></p>
+                <p><strong>Score:</strong> <span class="badge bg-${getScoreColor(p.score)}-subtle text-${getScoreColor(p.score)}-emphasis">${p.score}/100</span></p>
                 <p><strong>Evaluator:</strong> ${escapeHTML(p.evaluator_name || 'N/A')}</p>
+                <p><strong>Evaluated:</strong> ${humanizeDate(p.created_at)} <small class="text-muted">(${new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})</small></p>
                 <hr>
                 <h6>Remarks</h6>
                 <p class="border p-2 rounded">${escapeHTML(p.remarks || 'No remarks provided.')}</p>
@@ -615,20 +686,26 @@ require_once '../components/layout/header.php';
     }
 
     function deletePerformance(id) {
-        if (confirm('Are you sure you want to delete this review?')) {
-            const formData = new FormData();
-            formData.append('action', 'delete_performance');
-            formData.append('id', id);
-            fetch('/hrms/api/api_performance.php', { method: 'POST', body: formData })
-                .then(res => res.json()).then(result => {
-                    if (result.success) {
-                        showToast(result.message, 'success');
-                        loadData();
-                    } else {
-                        showToast(result.message, 'error');
-                    }
-                });
-        }
+        showConfirmationModal(
+            'Are you sure you want to <strong>delete</strong> this performance review? This action cannot be undone.',
+            function () {
+                const formData = new FormData();
+                formData.append('action', 'delete_performance');
+                formData.append('id', id);
+                fetch('/hrms/api/api_performance.php', { method: 'POST', body: formData })
+                    .then(res => res.json()).then(result => {
+                        if (result.success) {
+                            showToast(result.message, 'success');
+                            loadData();
+                        } else {
+                            showToast(result.message, 'error');
+                        }
+                    });
+            },
+            'Delete Review',
+            'Delete',
+            'btn-danger'
+        );
     }
 
     function getScoreColor(score) {

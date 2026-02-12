@@ -91,66 +91,87 @@ require_once '../components/layout/header.php';
 
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
-    <div class="p-3 p-md-4" style="flex: 1;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="h3 text-gray-800">
-                <i class="ti ti-checklist me-2"></i>Task Management
-            </h2>
-            <div>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
-                    <i class="ti ti-plus me-2"></i>Assign New Task
-                </button>
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#bulkTaskModal">
-                    <i class="ti ti-checklist me-2"></i>Bulk Assign
-                </button>
-            </div>
-        </div>
-
+    <div class="p-3 p-md-4 overflow-x-hidden" style="flex: 1;">
         <!-- Statistics Cards -->
-        <div id="taskStats" class="row mb-4"></div>
+        <div id="taskStats" class="row mb-2"></div>
 
-        <!-- Filters -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <form method="GET" class="row g-3">
-                    <div class="col-md-3">
-                        <label for="status" class="form-label">Status</label>
-                        <select class="form-select" id="status" name="status">
-                            <option value="all" <?= $status_filter === 'all' ? 'selected' : '' ?>>All Status</option>
-                            <option value="pending" <?= $status_filter === 'pending' ? 'selected' : '' ?>>Pending</option>
-                            <option value="in_progress" <?= $status_filter === 'in_progress' ? 'selected' : '' ?>>In
-                                Progress</option>
-                            <option value="completed" <?= $status_filter === 'completed' ? 'selected' : '' ?>>Completed
-                            </option>
-                            <option value="cancelled" <?= $status_filter === 'cancelled' ? 'selected' : '' ?>>Cancelled
-                            </option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="employee_id" class="form-label">Employee</label>
-                        <select class="form-select" id="employee_id" name="employee_id">
-                            <option value="">All Employees</option>
-                            <?php foreach ($team_members as $member): ?>
-                                <option value="<?= $member['id'] ?>" <?= $employee_filter == $member['id'] ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">&nbsp;</label>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Filter</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Tasks Table -->
         <div class="card shadow-sm">
             <div class="card-header">
-                <h6 class="m-0 font-weight-bold">Team Tasks</h6>
+                <div
+                    class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="ti ti-checklist fs-4"></i>
+                        <h6 class="m-0 font-weight-bold">Team Tasks</h6>
+                    </div>
+                    <div class="wrapper d-flex gap-3"><button class="btn btn-sm btn-secondary ms-2" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false"
+                            aria-controls="filterCollapse">
+                            <i class="ti ti-filter me-1"></i>Filters
+                        </button>
+                        <div class="dropdown">
+                            <button class="btn btn-primary btn-sm dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="ti ti-plus me-1"></i>Assign Tasks
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                        data-bs-target="#addTaskModal">
+                                        <i class="ti ti-user me-2"></i>Assign to Individual
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                        data-bs-target="#bulkTaskModal">
+                                        <i class="ti ti-users me-2"></i>Bulk Assign to Multiple
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- Collapsible Filters -->
+                <div class="collapse mt-3" id="filterCollapse">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select form-select-sm" id="status" name="status">
+                                <option value="all" <?= $status_filter === 'all' ? 'selected' : '' ?>>All Status</option>
+                                <option value="pending" <?= $status_filter === 'pending' ? 'selected' : '' ?>>Pending
+                                </option>
+                                <option value="in_progress" <?= $status_filter === 'in_progress' ? 'selected' : '' ?>>In
+                                    Progress</option>
+                                <option value="completed" <?= $status_filter === 'completed' ? 'selected' : '' ?>>Completed
+                                </option>
+                                <option value="cancelled" <?= $status_filter === 'cancelled' ? 'selected' : '' ?>>Cancelled
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="employee_id" class="form-label">Employee</label>
+                            <select class="form-select form-select-sm" id="employee_id" name="employee_id">
+                                <option value="">All Employees</option>
+                                <?php foreach ($team_members as $member): ?>
+                                    <option value="<?= $member['id'] ?>" <?= $employee_filter == $member['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary btn-sm flex-fill">
+                                    <i class="ti ti-search me-1"></i>Apply
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                    onclick="window.location.href='task_management.php'">
+                                    <i class="ti ti-x"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -167,7 +188,6 @@ require_once '../components/layout/header.php';
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Tasks will be loaded here via AJAX -->
                         </tbody>
                     </table>
                 </div>
@@ -362,7 +382,6 @@ require_once '../components/layout/header.php';
     $(document).ready(function () {
         // Initialize DataTable
         tasksTable = $('#tasksTable').DataTable({
-            responsive: true,
             pageLength: 10,
             order: [[5, 'desc']], // Sort by created date
             columnDefs: [
@@ -374,7 +393,7 @@ require_once '../components/layout/header.php';
         fetchTasks();
 
         // Handle Filter Form Submission
-        $('.card-body form').on('submit', function (e) {
+        $('.card-header form').on('submit', function (e) {
             e.preventDefault();
             fetchTasks();
         });
@@ -553,11 +572,12 @@ require_once '../components/layout/header.php';
                 </div>
             `;
 
-            // Assigned To Column
+            // Assigned To Column with avatar function
+            const avatarData = generateAvatarData({ id: task.employee_id, username: task.employee_code });
             const assignedTo = `
                 <div class="d-flex align-items-center">
-                    <div class="avatar-circle me-2">
-                        ${(task.first_name.charAt(0) + task.last_name.charAt(0)).toUpperCase()}
+                    <div class="avatar me-2" style="background-color: ${avatarData.color};">
+                        ${avatarData.initials}
                     </div>
                     <div>
                         <div class="fw-bold">
@@ -571,12 +591,12 @@ require_once '../components/layout/header.php';
             // Team Column
             const teamInfo = hasTeam ? `
                 <a href="manage_team_members.php?id=${task.assigned_team_id}"
-                    class="badge bg-light text-primary border border-primary text-decoration-none mb-1">
+                    class="badge bg-primary-subtle text-primary-emphasis text-decoration-none py-2">
                     <i class="ti ti-users me-1"></i>${escapeHtml(task.assigned_team_name)}
                 </a>
-            ` : '<span class="text-muted small">N/A</span>';
+            ` : '<span class="text-muted small">Not in a Team</span>';
 
-            // Status Column
+            // Status Column with subtle badges
             const statusLabels = {
                 'pending': 'warning',
                 'in_progress': 'info',
@@ -585,7 +605,7 @@ require_once '../components/layout/header.php';
             };
             const statusClass = statusLabels[task.status] || 'secondary';
             const statusLabel = task.status.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
-            const status = `<span class="badge bg-${statusClass}">${statusLabel}</span>`;
+            const status = `<span class="badge bg-${statusClass}-subtle text-${statusClass}-emphasis">${statusLabel}</span>`;
 
             // Due Date Column
             let dueDate = '<span class="text-muted">No due date</span>';
@@ -605,28 +625,25 @@ require_once '../components/layout/header.php';
                 `;
             }
 
-            // Created Date Column
-            const formattedDate = new Date(task.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            // Created Date Column - using humanizeDate function
+            const formattedDate = humanizeDate(task.created_at);
 
-            // Actions Column
-            let actions = `
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-primary" onclick="viewTask(${task.id})" title="View Details">
-                        <i class="ti ti-eye"></i>
-                    </button>
-                    <button class="btn btn-outline-success" onclick="editTask(${task.id})" title="Edit Task">
-                        <i class="ti ti-edit"></i>
-                    </button>
-            `;
+            // Actions Column using createActionDropdown
+            const actionConfig = {
+                onEdit: () => editTask(task.id),
+                onDelete: () => deleteTask(task.id)
+            };
 
+            // Add cancel option for non-completed/cancelled tasks
             if (task.status !== 'completed' && task.status !== 'cancelled') {
-                actions += `
-                    <button class="btn btn-outline-danger" onclick="cancelTask(${task.id})" title="Cancel Task">
-                        <i class="ti ti-x"></i>
-                    </button>
-                `;
+                actionConfig.onClose = () => cancelTask(task.id);
             }
-            actions += '</div>';
+
+            const actions = createActionDropdown(actionConfig, {
+                editTooltip: 'Edit Task',
+                deleteTooltip: 'Delete Task',
+                closeTooltip: 'Cancel Task'
+            });
 
             // Add row to DataTable
             tasksTable.row.add([
@@ -730,20 +747,21 @@ require_once '../components/layout/header.php';
     }
 
     function displayTaskDetails(task) {
+        const statusClass = getStatusClass(task.status);
         const html = `
         <div class="row">
             <div class="col-md-6">
                 <h6>Task Information</h6>
                 <p><strong>Title:</strong> ${escapeHtml(task.title)}</p>
                 <p><strong>Description:</strong> ${escapeHtml(task.description || 'No description provided')}</p>
-                <p><strong>Status:</strong> <span class="badge bg-${getStatusClass(task.status)}">${task.status.charAt(0).toUpperCase() + task.status.slice(1).replace('_', ' ')}</span></p>
+                <p><strong>Status:</strong> <span class="badge bg-${statusClass}-subtle text-${statusClass}-emphasis">${task.status.charAt(0).toUpperCase() + task.status.slice(1).replace('_', ' ')}</span></p>
             </div>
             <div class="col-md-6">
                 <h6>Assignment Details</h6>
                 <p><strong>Assigned To:</strong> ${escapeHtml(task.first_name + ' ' + task.last_name)}</p>
                 <p><strong>Employee Code:</strong> ${escapeHtml(task.employee_code || 'N/A')}</p>
                 <p><strong>Due Date:</strong> ${task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No due date'}</p>
-                <p><strong>Created:</strong> ${new Date(task.created_at).toLocaleString()}</p>
+                <p><strong>Created:</strong> ${humanizeDate(task.created_at)} <small class="text-muted">(${new Date(task.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})</small></p>
             </div>
         </div>
     `;
@@ -801,28 +819,65 @@ require_once '../components/layout/header.php';
     }
 
     function cancelTask(taskId) {
-        if (confirm('Are you sure you want to cancel this task?')) {
-            const formData = new FormData();
-            formData.append('action', 'cancel_task');
-            formData.append('task_id', taskId);
+        showConfirmationModal(
+            'Are you sure you want to cancel this task?',
+            function () {
+                const formData = new FormData();
+                formData.append('action', 'cancel_task');
+                formData.append('task_id', taskId);
 
-            fetch('/hrms/api/api_manager.php', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showToast(data.message, 'success');
-                        fetchTasks();
-                    } else {
-                        showToast(data.message, 'error');
-                    }
+                fetch('/hrms/api/api_manager.php', {
+                    method: 'POST',
+                    body: formData
                 })
-                .catch(error => {
-                    showToast('An error occurred. Please try again.', 'error');
-                });
-        }
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast(data.message, 'success');
+                            fetchTasks();
+                        } else {
+                            showToast(data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        showToast('An error occurred. Please try again.', 'error');
+                    });
+            },
+            'Cancel Task',
+            'Cancel',
+            'btn-warning'
+        );
+    }
+
+    function deleteTask(taskId) {
+        showConfirmationModal(
+            'Are you sure you want to <strong>delete</strong> this task? This action cannot be undone.',
+            function () {
+                const formData = new FormData();
+                formData.append('action', 'delete_task');
+                formData.append('task_id', taskId);
+
+                fetch('/hrms/api/api_manager.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast(data.message, 'success');
+                            fetchTasks();
+                        } else {
+                            showToast(data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        showToast('An error occurred. Please try again.', 'error');
+                    });
+            },
+            'Delete Task',
+            'Delete',
+            'btn-danger'
+        );
     }
 
     function getStatusClass(status) {
