@@ -106,6 +106,13 @@ switch ($_SESSION['role_id']) {
         'permission' => null,
         'submenu' => []
       ],
+      'Reports' => [
+        'title' => 'Reports',
+        'icon' => 'ti ti-chart-bar',
+        'url' => '/hrms/company/reports.php',
+        'permission' => null,
+        'submenu' => []
+      ],
       'Settings' => [
         'title' => 'Settings',
         'icon' => 'ti ti-settings',
@@ -173,6 +180,13 @@ switch ($_SESSION['role_id']) {
         'permission' => null,
         'submenu' => []
       ],
+      'Reports' => [
+        'title' => 'Reports',
+        'icon' => 'ti ti-chart-bar',
+        'url' => '/hrms/company/reports.php',
+        'permission' => null,
+        'submenu' => []
+      ],
       'Support' => [
         'title' => 'Support',
         'icon' => 'ti ti-help',
@@ -237,6 +251,13 @@ switch ($_SESSION['role_id']) {
         'title' => 'Feedback',
         'icon' => 'ti ti-message',
         'url' => '/hrms/employee/feedback.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'Reports' => [
+        'title' => 'Reports',
+        'icon' => 'ti ti-chart-bar',
+        'url' => '/hrms/employee/reports.php',
         'permission' => null,
         'submenu' => []
       ],
@@ -321,6 +342,13 @@ switch ($_SESSION['role_id']) {
         'title' => 'Payslips',
         'icon' => 'ti ti-receipt',
         'url' => '/hrms/manager/payslips.php',
+        'permission' => null,
+        'submenu' => []
+      ],
+      'Reports' => [
+        'title' => 'Reports',
+        'icon' => 'ti ti-chart-bar',
+        'url' => '/hrms/manager/reports.php',
         'permission' => null,
         'submenu' => []
       ],

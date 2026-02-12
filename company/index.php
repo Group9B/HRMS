@@ -21,7 +21,7 @@ $quick_actions = [
     ['title' => 'Hire New Employee', 'url' => 'recruitment.php', 'icon' => 'ti ti-user-plus'],
     ['title' => 'Manage Departments', 'url' => 'organization.php', 'icon' => 'ti ti-sitemap'],
     ['title' => 'Approve Leaves', 'url' => 'leaves.php', 'icon' => 'ti ti-calendar-check'],
-    ['title' => 'View Reports', 'url' => '#', 'icon' => 'ti ti-chart-bar', 'onclick' => "alert('This Feature will be Available soon..!');"]
+    ['title' => 'View Reports', 'url' => 'reports.php', 'icon' => 'ti ti-chart-bar']
 ];
 
 
@@ -68,13 +68,52 @@ require_once '../components/layout/header.php';
 </div>
 
 <script>
+    const COLORS = {
+        primary: '#4e73df',
+        success: '#1cc88a',
+        info: '#36b9cc',
+        warning: '#f6c23e',
+        danger: '#e74a3b',
+        secondary: '#858796'
+    };
+    let hiresChart = null;
+
     document.addEventListener('DOMContentLoaded', function () {
         // Initialize To-Do List
         initializeTodoList('#todo-form', '#todo-list');
 
         // Load Dashboard Data with Skeletons
         loadDashboardData();
+
+        // Theme Support
+        const observer = new MutationObserver(() => {
+            if (hiresChart) updateChartTheme(hiresChart);
+        });
+        observer.observe(document.documentElement, { attributes: true });
     });
+
+    function getChartTheme() {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+            textColor: isDark ? '#adb5bd' : '#6e707e',
+            gridColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+            borderColor: isDark ? '#444' : '#e3e6f0'
+        };
+    }
+
+    function updateChartTheme(chart) {
+        const theme = getChartTheme();
+        if (chart.options.scales) {
+            ['x', 'y'].forEach(axis => {
+                if (chart.options.scales[axis]) {
+                    chart.options.scales[axis].grid.color = theme.gridColor;
+                    chart.options.scales[axis].ticks.color = theme.textColor;
+                }
+            });
+        }
+        if (chart.options.plugins?.legend) chart.options.plugins.legend.labels.color = theme.textColor;
+        chart.update();
+    }
 
     async function loadDashboardData() {
         const statsContainer = '#companyStatsContainer';
@@ -126,35 +165,43 @@ require_once '../components/layout/header.php';
 
     function renderChart(chartData) {
         const ctx = document.getElementById('hiresChart');
-        if (ctx) {
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: chartData.labels,
-                    datasets: [{
-                        label: 'New Hires',
-                        data: chartData.data,
-                        fill: true,
-                        borderColor: 'rgb(75, 192, 192)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        tension: 0.3
-                    }]
+        if (!ctx) return;
+
+        const theme = getChartTheme();
+        if (hiresChart) hiresChart.destroy();
+
+        hiresChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: 'New Hires',
+                    data: chartData.data,
+                    fill: true,
+                    borderColor: COLORS.success,
+                    backgroundColor: 'rgba(28, 200, 138, 0.1)',
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: theme.textColor, stepSize: 1, precision: 0 },
+                        grid: { color: theme.gridColor }
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { stepSize: 1, precision: 0 }
-                        }
+                    x: {
+                        ticks: { color: theme.textColor },
+                        grid: { color: theme.gridColor }
                     }
                 }
-            });
-        }
+            }
+        });
     }
 
     function renderRecentHires(containerSelector, hires) {
@@ -176,7 +223,7 @@ require_once '../components/layout/header.php';
 
             // Use shared avatar generator (falls back gracefully if data missing)
             const avatarSource = {
-                id: hire.user_id*6 || hire.employee_id*3 || `${hire.first_name}${hire.last_name}`,
+                id: hire.user_id * 6 || hire.employee_id * 3 || `${hire.first_name}${hire.last_name}`,
                 username: hire.username || `${hire.first_name}.${hire.last_name}`
             };
             const avatar = generateAvatarData(avatarSource);

@@ -92,190 +92,158 @@ require_once '../components/layout/header.php';
 <script>
     $(function () {
         let companyDirectoryTable;
-        fetch('/hrms/api/api_reports_superadmin.php')
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    const data = result.data;
-                    initCompanyUsageChart(data.companyUsage || []);
-                    initUserActivityChart(data.userRegistrationActivity || { labels: [], data: [] });
-                    initEmployeeStatusChart(data.employeeStatus || {});
-                    initCompanyStatusChart(data.companyStatus || {});
-                    initUserRoleChart(data.userRole || {});
-                    populateCompanyDirectory(data.companyDirectory || []);
-                } else {
-                    showToast(result.message || 'Failed to load admin reports.', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching report data:', error);
-                showToast('An unexpected network error occurred.', 'error');
-            });
+        let charts = {};
+        const COLORS = {
+            primary: '#4e73df',
+            success: '#1cc88a',
+            info: '#36b9cc',
+            warning: '#f6c23e',
+            danger: '#e74a3b',
+            secondary: '#858796'
+        };
 
-        function populateCompanyDirectory(data) {
-            if (companyDirectoryTable) {
-                companyDirectoryTable.destroy();
+        // Theme Support
+        borderColor: isDark ? '#444' : '#e3e6f0'
+    };
+        }
+
+    function hexToRgba(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function updateChartTheme(chart) {
+        const theme = getChartTheme();
+        if (chart.options.scales) {
+            ['x', 'y'].forEach(axis => {
+                if (chart.options.scales[axis]) {
+                    chart.options.scales[axis].grid.color = theme.gridColor;
+                    chart.options.scales[axis].ticks.color = theme.textColor;
+                }
+            });
+        }
+        if (chart.options.plugins?.legend) chart.options.plugins.legend.labels.color = theme.textColor;
+        chart.update();
+    }
+
+    const observer = new MutationObserver(() => Object.values(charts).forEach(c => updateChartTheme(c)));
+    observer.observe(document.documentElement, { attributes: true });
+
+    fetch('/hrms/api/api_reports_superadmin.php')
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                const data = result.data;
+                initCompanyUsageChart(data.companyUsage || []);
+                initUserActivityChart(data.userRegistrationActivity || { labels: [], data: [] });
+                initEmployeeStatusChart(data.employeeStatus || {});
+                initCompanyStatusChart(data.companyStatus || {});
+                initUserRoleChart(data.userRole || {});
+                populateCompanyDirectory(data.companyDirectory || []);
+            } else {
+                showToast(result.message || 'Failed to load admin reports.', 'error');
             }
+        });
 
-            companyDirectoryTable = $('#companyDirectoryTable').DataTable({
-                data: data,
-                order: [[0, 'asc']],
-                columns: [
-                    { data: 'name', render: (d) => `<strong>${escapeHTML(d)}</strong>` },
-                    { data: 'email', render: (d) => escapeHTML(d || 'N/A') },
-                    { data: 'phone', render: (d) => escapeHTML(d || 'N/A') },
-                    { data: 'address', render: (d) => escapeHTML(d || 'N/A') },
-                    {
-                        data: 'created_at',
-                        render: function (data) {
-                            return new Date(data).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                        }
-                    }
-                ]
-            });
-        }
+    function populateCompanyDirectory(data) {
+        if (companyDirectoryTable) companyDirectoryTable.destroy();
+        companyDirectoryTable = $('#companyDirectoryTable').DataTable({
+            data: data,
+            columns: [
+                { data: 'name', render: (d) => `<strong>${escapeHTML(d)}</strong>` },
+                { data: 'email', render: (d) => escapeHTML(d || 'N/A') },
+                { data: 'phone', render: (d) => escapeHTML(d || 'N/A') },
+                { data: 'address', render: (d) => escapeHTML(d || 'N/A') },
+                { data: 'created_at', render: d => new Date(d).toLocaleDateString() }
+            ]
+        });
+    }
 
-        function initCompanyUsageChart(data) {
-            const ctx = document.getElementById('companyUsageChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: data.map(c => c.name),
-                    datasets: [{
-                        label: 'User Count',
-                        data: data.map(c => c.user_count),
-                        backgroundColor: 'rgba(78, 115, 223, 0.8)',
-                        borderColor: 'rgba(78, 115, 223, 1)',
-                        borderWidth: 1
-                    }]
+    function initCompanyUsageChart(data) {
+        const ctx = document.getElementById('companyUsageChart').getContext('2d');
+        const theme = getChartTheme();
+        charts.usage = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(c => c.name),
+                datasets: [{
+                    label: 'Users',
+                    data: data.map(c => c.user_count),
+                    backgroundColor: hexToRgba(COLORS.primary, 0.2),
+                    borderColor: COLORS.primary,
+                    borderWidth: 1.5
+                }]
+            },
+            options: {
+                indexAxis: 'y', maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { color: theme.gridColor }, ticks: { color: theme.textColor, stepSize: 1 } },
+                    y: { grid: { color: theme.gridColor }, ticks: { color: theme.textColor } }
                 },
-                options: {
-                    indexAxis: 'y',
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: { x: { ticks: { stepSize: 1 } } }
-                }
-            });
-        }
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
 
-        function initUserActivityChart(data) {
-            const ctx = document.getElementById('userActivityChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        label: "New Users",
-                        tension: 0.3,
-                        backgroundColor: "rgba(28, 200, 138, 0.05)",
-                        borderColor: "rgba(28, 200, 138, 1)",
-                        pointRadius: 3,
-                        data: data.data,
-                    }],
+    function initUserActivityChart(data) {
+        const ctx = document.getElementById('userActivityChart').getContext('2d');
+        const theme = getChartTheme();
+        charts.activity = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{ label: "New Users", tension: 0.3, borderColor: COLORS.success, data: data.data }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                scales: {
+                    y: { grid: { color: theme.gridColor }, ticks: { color: theme.textColor } },
+                    x: { grid: { color: theme.gridColor }, ticks: { color: theme.textColor } }
                 },
-                options: {
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
 
-        function initEmployeeStatusChart(data) {
-            const ctx = document.getElementById('employeeStatusChart');
-            if (!ctx) return;
+    function initEmployeeStatusChart(data) {
+        const ctx = document.getElementById('employeeStatusChart');
+        const theme = getChartTheme();
+        charts.empStatus = new Chart(ctx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{ data: Object.values(data), backgroundColor: [COLORS.success, COLORS.danger, COLORS.warning] }]
+            },
+            options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: theme.textColor } } } }
+        });
+    }
 
-            new Chart(ctx.getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(data),
-                    datasets: [{
-                        data: Object.values(data),
-                        backgroundColor: [
-                            'rgba(28, 200, 138, 0.8)',  // active - green
-                            'rgba(220, 53, 69, 0.8)',   // inactive - red
-                            'rgba(255, 193, 7, 0.8)'    // on_leave - yellow
-                        ],
-                        borderColor: [
-                            'rgba(28, 200, 138, 1)',
-                            'rgba(220, 53, 69, 1)',
-                            'rgba(255, 193, 7, 1)'
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
-        }
+    function initCompanyStatusChart(data) {
+        const ctx = document.getElementById('companyStatusChart');
+        const theme = getChartTheme();
+        charts.compStatus = new Chart(ctx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{ data: Object.values(data), backgroundColor: [COLORS.success, COLORS.danger, COLORS.warning] }]
+            },
+            options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: theme.textColor } } } }
+        });
+    }
 
-        function initCompanyStatusChart(data) {
-            const ctx = document.getElementById('companyStatusChart');
-            if (!ctx) return;
-
-            new Chart(ctx.getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(data),
-                    datasets: [{
-                        data: Object.values(data),
-                        backgroundColor: [
-                            'rgba(28, 200, 138, 0.8)',  // active - green
-                            'rgba(220, 53, 69, 0.8)',   // inactive - red
-                            'rgba(255, 193, 7, 0.8)'    // pending - yellow
-                        ],
-                        borderColor: [
-                            'rgba(28, 200, 138, 1)',
-                            'rgba(220, 53, 69, 1)',
-                            'rgba(255, 193, 7, 1)'
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
-        }
-
-        function initUserRoleChart(data) {
-            const ctx = document.getElementById('userRoleChart');
-            if (!ctx) return;
-
-            new Chart(ctx.getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: Object.keys(data),
-                    datasets: [{
-                        data: Object.values(data),
-                        backgroundColor: [
-                            'rgba(78, 115, 223, 0.8)',   // blue
-                            'rgba(28, 200, 138, 0.8)',   // green
-                            'rgba(255, 159, 64, 0.8)',   // orange
-                            'rgba(153, 102, 255, 0.8)'   // purple
-                        ],
-                        borderColor: [
-                            'rgba(78, 115, 223, 1)',
-                            'rgba(28, 200, 138, 1)',
-                            'rgba(255, 159, 64, 1)',
-                            'rgba(153, 102, 255, 1)'
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
-        }
+    function initUserRoleChart(data) {
+        const ctx = document.getElementById('userRoleChart');
+        const theme = getChartTheme();
+        charts.roles = new Chart(ctx.getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{ data: Object.values(data), backgroundColor: [COLORS.primary, COLORS.success, COLORS.warning, COLORS.secondary] }]
+            },
+            options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: theme.textColor } } } }
+        });
+    }
     });
 </script>

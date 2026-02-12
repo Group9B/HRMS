@@ -35,7 +35,7 @@ $role_colors = [
 $role_name = $role_names[$role_id] ?? 'Unknown';
 $role_color = $role_colors[$role_id] ?? 'secondary';
 ?>
-<html lang="en" data-bs-theme="light">
+<html lang="en" data-bs-theme="dark">
 
     <head>
         <meta charset="UTF-8">

@@ -77,8 +77,8 @@ try {
         $response['success'] = true;
         $response['data'] = [
             'stats' => [
-                ['label' => 'Active Employees', 'value' => $total_employees, 'icon' => 'users', 'color' => 'primary'],
-                ['label' => 'Departments', 'value' => $total_departments, 'icon' => 'sitemap', 'color' => 'info'],
+                ['label' => 'Active Employees', 'value' => $total_employees, 'icon' => 'users', 'color' => 'success'],
+                ['label' => 'Departments', 'value' => $total_departments, 'icon' => 'sitemap', 'color' => 'primary'],
                 ['label' => 'Pending Leaves', 'value' => $pending_leaves, 'icon' => 'hourglass-empty', 'color' => 'danger'],
                 ['label' => 'On Leave Today', 'value' => $on_leave_today, 'icon' => 'user-clock', 'color' => 'warning']
             ],

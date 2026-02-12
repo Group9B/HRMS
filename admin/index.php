@@ -114,6 +114,44 @@ require_once '../components/layout/header.php';
 
 <script>
   $(function () {
+    const COLORS = {
+      primary: '#4e73df',
+      success: '#1cc88a',
+      info: '#36b9cc',
+      warning: '#f6c23e',
+      danger: '#e74a3b',
+      secondary: '#858796'
+    };
+
+    let charts = {};
+
+    function getChartTheme() {
+      const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+      return {
+        textColor: isDark ? '#adb5bd' : '#6e707e',
+        gridColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+        borderColor: isDark ? '#444' : '#e3e6f0'
+      };
+    }
+
+    function updateChartTheme(chart) {
+      if (!chart) return;
+      const theme = getChartTheme();
+      if (chart.options.scales) {
+        ['x', 'y'].forEach(axis => {
+          if (chart.options.scales[axis]) {
+            chart.options.scales[axis].grid.color = theme.gridColor;
+            chart.options.scales[axis].ticks.color = theme.textColor;
+          }
+        });
+      }
+      if (chart.options.plugins?.legend?.labels) chart.options.plugins.legend.labels.color = theme.textColor;
+      chart.update();
+    }
+
+    const observer = new MutationObserver(() => Object.values(charts).forEach(c => updateChartTheme(c)));
+    observer.observe(document.documentElement, { attributes: true });
+
     // Render dashboard stats using modular function
     const stats = [
       { label: 'Active Companies', value: <?= $active_companies ?>, color: 'primary', icon: 'building' },
@@ -126,21 +164,28 @@ require_once '../components/layout/header.php';
 
     fetch('api_dashboard.php?action=get_storage_usage').then(res => res.json()).then(result => {
       if (result.success) {
-        const canvas = document.getElementById('storageChart');
-        canvas.width = 409;
-        canvas.height = 409;
-        const ctx = canvas.getContext('2d');
-        new Chart(ctx, {
+        const theme = getChartTheme();
+        const ctx = document.getElementById('storageChart').getContext('2d');
+        charts.storage = new Chart(ctx, {
           type: 'doughnut',
           data: {
             labels: ['Used Space (GB)', 'Free Space (GB)'],
             datasets: [{
               data: [result.data.used_gb, result.data.free_gb],
-              backgroundColor: ['#4e73df', '#F6AA1C'],
-              hoverBackgroundColor: ['#2e59d9', '#9D6807'],
+              backgroundColor: [hexToRgba(COLORS.primary, 0.8), hexToRgba(COLORS.warning, 0.8)],
+              borderWidth: 0
             }]
           },
-          options: { responsive: false, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+          options: {
+            responsive: false,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { color: theme.textColor, usePointStyle: true, padding: 20 }
+              }
+            }
+          }
         });
       }
     });
@@ -148,32 +193,33 @@ require_once '../components/layout/header.php';
     // Fetch and render role distribution chart
     fetch('/hrms/api/api_reports_superadmin.php').then(res => res.json()).then(result => {
       if (result.success && result.data.userRole) {
+        const theme = getChartTheme();
         const roleData = result.data.userRole;
-        const canvas = document.getElementById('roleDistributionChart');
-        canvas.width = 409;
-        canvas.height = 409;
-        const ctx = canvas.getContext('2d');
-        new Chart(ctx, {
+        const ctx = document.getElementById('roleDistributionChart').getContext('2d');
+        charts.roles = new Chart(ctx, {
           type: 'doughnut',
           data: {
             labels: Object.keys(roleData),
             datasets: [{
               data: Object.values(roleData),
               backgroundColor: [
-                '#4e73df',
-                '#1cc28a',
-                '#f2613f',
-                '#fec260'
+                hexToRgba(COLORS.primary, 0.8),
+                hexToRgba(COLORS.success, 0.8),
+                hexToRgba(COLORS.info, 0.8),
+                hexToRgba(COLORS.warning, 0.8),
+                hexToRgba(COLORS.danger, 0.8)
               ],
-              borderColor: '#fff',
-              borderWidth: 2
+              borderWidth: 0
             }]
           },
           options: {
             responsive: false,
             maintainAspectRatio: false,
             plugins: {
-              legend: { position: 'bottom' }
+              legend: {
+                position: 'bottom',
+                labels: { color: theme.textColor, usePointStyle: true, padding: 20 }
+              }
             }
           }
         });
