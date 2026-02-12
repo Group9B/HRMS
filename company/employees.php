@@ -2,7 +2,7 @@
 require_once '../config/db.php';
 require_once '../includes/functions.php';
 $title = "Employee Management";
-if (!isLoggedIn() || !in_array($_SESSION['role_id'], [2, 3,])) { 
+if (!isLoggedIn() || !in_array($_SESSION['role_id'], [2, 3,])) {
     redirect("/hrms/pages/unauthorized.php");
 }
 $company_id = $_SESSION['company_id'];
@@ -22,9 +22,14 @@ require_once '../components/layout/header.php';
         <div class="card shadow-sm">
             <div class="card-header justify-content-between d-flex align-items-center">
                 <h6 class="m-0 font-weight-bold">All Employees</h6>
-                <button class="btn btn-sm btn-primary" onclick="validateAndOpenAddModal()">
-                    <i class="ti ti-plus me-2"></i>Add Employee
-                </button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-success" onclick="exportEmployees()">
+                        <i class="ti ti-file-spreadsheet me-1"></i>Export to Excel
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="validateAndOpenAddModal()">
+                        <i class="ti ti-plus me-2"></i>Add Employee
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -217,7 +222,7 @@ require_once '../components/layout/header.php';
                     render: (d, t, r) => {
                         const actions = { onEdit: () => prepareEditModal(r) };
                         <?php if ($is_c_admin): ?>
-                        actions.onDelete = () => deleteEmployee(r.id);
+                            actions.onDelete = () => deleteEmployee(r.id);
                         <?php endif; ?>
 
                         return createActionDropdown(actions, {
@@ -804,5 +809,9 @@ require_once '../components/layout/header.php';
             'Delete',
             'btn-danger'
         );
+    }
+
+    function exportEmployees() {
+        window.open('/hrms/api/api_export_employees.php', '_blank');
     }
 </script>
