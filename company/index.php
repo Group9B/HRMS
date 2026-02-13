@@ -49,18 +49,13 @@ require_once '../components/layout/header.php';
                         </div>
                         <hr>
                         <div class="recent-companies-list" id="recentHiresList">
-                            <!-- List items will be rendered here -->
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Column Widgets -->
             <div class="col-lg-5 mb-4">
-                <!-- Quick Actions -->
                 <?php echo render_quick_actions($quick_actions); ?>
-
-                <!-- To-Do List -->
                 <?php echo render_todo_list_widget('My To-Do List'); ?>
             </div>
         </div>
@@ -230,7 +225,7 @@ require_once '../components/layout/header.php';
             console.log(avatar);
             html += `
             <div class="list-item d-flex align-items-center p-3 border-bottom">
-                <div class="avatar text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold; background-color: ${avatar.color};">
+                <div class="avatar text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;background-color: ${avatar.color};">
                     ${avatar.initials}
                 </div>
                 <div class="flex-grow-1">

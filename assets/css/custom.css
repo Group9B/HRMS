@@ -40,6 +40,13 @@
 	border-bottom-right-radius: var(--bs-border-radius) !important;
 }
 
+.user-dropdown-menu .btn {
+	border-top-left-radius: 0 !important;
+	border-bottom-left-radius: 0 !important;
+	border-width: 0 !important;
+	border-left: 2px solid rgba(var(--bs-info-rgb), var(--bs-border-opacity)) !important;
+}
+
 .user-menu {
 	border-radius: var(--bs-border-radius-lg) !important;
 }
