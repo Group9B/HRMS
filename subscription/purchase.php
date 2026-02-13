@@ -40,9 +40,6 @@ $title = "Upgrade to Pro";
         color: rgba(255, 255, 255, 0.6) !important;
     }
 </style>
-
-
-
 <div class="container py-5">
     <div class="text-center mb-5">
         <h1 class="display-5 fw-bold text-primary">Simple, Transparent Pricing</h1>
@@ -50,18 +47,16 @@ $title = "Upgrade to Pro";
     </div>
 
     <div class="row row-cols-1 row-cols-md-3 mb-3 text-center justify-content-center">
-
-        <!-- Free / Demo -->
         <div class="col">
             <div class="card mb-4 rounded-3 shadow-sm pricing-card">
                 <div class="card-header py-3">
                     <h4 class="my-0 fw-normal">Trial</h4>
                 </div>
                 <div class="card-body">
-                    <h1 class="card-title pricing-card-title">$0<small class="text-muted fw-light">/mo</small></h1>
+                    <h1 class="card-title pricing-card-title">₹0<small class="text-muted fw-light">/mo</small></h1>
                     <ul class="list-unstyled mt-3 mb-4 text-start check-list ps-4">
                         <li><i class="ti ti-check"></i> 14 Days Full Access</li>
-                        <li><i class="ti ti-check"></i> 5 Employees</li>
+                        <li><i class="ti ti-check"></i> 10 Employees</li>
                         <li><i class="ti ti-check"></i> Basic Reports</li>
                         <li><i class="ti ti-check"></i> Email Support</li>
                     </ul>
@@ -69,15 +64,13 @@ $title = "Upgrade to Pro";
                 </div>
             </div>
         </div>
-
-        <!-- Pro Plan -->
         <div class="col">
             <div class="card mb-4 rounded-3 shadow-lg border-primary pricing-card">
                 <div class="card-header py-3 text-white bg-primary border-primary">
                     <h4 class="my-0 fw-normal">Pro</h4>
                 </div>
                 <div class="card-body">
-                    <h1 class="card-title pricing-card-title">$49<small class="text-muted fw-light">/mo</small></h1>
+                    <h1 class="card-title pricing-card-title">₹549<small class="text-muted fw-light">/mo</small></h1>
                     <ul class="list-unstyled mt-3 mb-4 text-start check-list ps-4">
                         <li><i class="ti ti-check"></i> Unlimited Employees</li>
                         <li><i class="ti ti-check"></i> Advanced Analytics</li>

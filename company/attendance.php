@@ -15,11 +15,9 @@ require_once '../components/layout/header.php';
         <div class="card shadow-sm mb-4">
             <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
                 <div class="d-flex align-items-center my-1">
-                    <button id="prevMonth" class="btn btn-sm btn-outline-secondary"><i
-                            class="ti ti-chevron-left"></i></button>
+                    <button id="prevMonth" class="btn btn-sm action"><i class="ti ti-chevron-left"></i></button>
                     <h5 id="currentMonth" class="m-0 mx-3"></h5>
-                    <button id="nextMonth" class="btn btn-sm btn-outline-secondary"><i
-                            class="ti ti-chevron-right"></i></button>
+                    <button id="nextMonth" class="btn btn-sm action"><i class="ti ti-chevron-right"></i></button>
                 </div>
                 <div class="d-flex align-items-center flex-wrap gap-2 my-1">
                     <div class="badge bg-info-subtle text-info-emphasis"><i

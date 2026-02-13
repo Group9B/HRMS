@@ -5,7 +5,8 @@
  * Usage: php database/seed_asset_categories.php
  * Or visit: /hrms/database/seed_asset_categories.php
  */
-require_once __DIR__ . '/../config/db.php';
+// die(__DIR__);
+require_once __DIR__ . '/../../config/db.php';
 
 $default_categories = [
     // Hardware
