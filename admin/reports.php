@@ -13,20 +13,13 @@ require_once '../components/layout/header.php';
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h4 class="m-0 fw-bold">Admin Reports</h4>
-                <div class="text-muted small">System-wide analytics and statistics</div>
-            </div>
-            <a href="/hrms/api/api_export_reports_superadmin.php" class="btn btn-sm btn-success"><i
-                    class="ti ti-file-spreadsheet me-1"></i>Export to Excel</a>
-        </div>
-
         <div class="row">
             <div class="col-xl-6 mb-4">
                 <div class="card shadow-sm h-100">
-                    <div class="card-header py-3">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
                         <h6 class="m-0 font-weight-bold">Top 10 Companies by User Count</h6>
+                        <a href="/hrms/api/api_export_reports_superadmin.php" class="btn btn-sm btn-outline-success"><i
+                                class="ti ti-file-spreadsheet me-1"></i>Export</a>
                     </div>
                     <div class="card-body" style="min-height: 300px;"><canvas id="companyUsageChart"></canvas></div>
                 </div>
@@ -186,8 +179,8 @@ require_once '../components/layout/header.php';
                     datasets: [{
                         label: 'Users',
                         data: data.map(c => c.user_count),
-                        backgroundColor: hexToRgba(COLORS.primary, 0.2),
-                        borderColor: COLORS.primary,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1.5
                     }]
                 },
@@ -209,7 +202,15 @@ require_once '../components/layout/header.php';
                 type: 'line',
                 data: {
                     labels: data.labels,
-                    datasets: [{ label: "New Users", tension: 0.3, borderColor: COLORS.success, data: data.data }]
+                    datasets: [{
+                        label: "New Users",
+                        tension: 0.3,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: true,
+                        borderWidth: 1.5,
+                        data: data.data
+                    }]
                 },
                 options: {
                     maintainAspectRatio: false,
@@ -229,7 +230,20 @@ require_once '../components/layout/header.php';
                 type: 'doughnut',
                 data: {
                     labels: Object.keys(data),
-                    datasets: [{ data: Object.values(data), backgroundColor: [COLORS.success, COLORS.danger, COLORS.warning] }]
+                    datasets: [{
+                        data: Object.values(data),
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(255, 206, 86, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(255, 206, 86, 1)'
+                        ],
+                        borderWidth: 1.5
+                    }]
                 },
                 options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: theme.textColor } } } }
             });
@@ -242,7 +256,20 @@ require_once '../components/layout/header.php';
                 type: 'doughnut',
                 data: {
                     labels: Object.keys(data),
-                    datasets: [{ data: Object.values(data), backgroundColor: [COLORS.success, COLORS.danger, COLORS.warning] }]
+                    datasets: [{
+                        data: Object.values(data),
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(255, 206, 86, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(255, 206, 86, 1)'
+                        ],
+                        borderWidth: 1.5
+                    }]
                 },
                 options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: theme.textColor } } } }
             });
@@ -255,7 +282,22 @@ require_once '../components/layout/header.php';
                 type: 'pie',
                 data: {
                     labels: Object.keys(data),
-                    datasets: [{ data: Object.values(data), backgroundColor: [COLORS.primary, COLORS.success, COLORS.warning, COLORS.secondary] }]
+                    datasets: [{
+                        data: Object.values(data),
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(153, 102, 255, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1.5
+                    }]
                 },
                 options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: theme.textColor } } } }
             });
