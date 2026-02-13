@@ -60,7 +60,7 @@ $attendance_query = "
            COUNT(CASE WHEN status = 'present' THEN 1 END) as present_count,
            COUNT(id) as total_attendance
     FROM attendance 
-    WHERE employee_id IN (SELECT id FROM employees WHERE company_id = ?)
+    WHERE employee_id IN (SELECT e.id FROM employees e JOIN departments d ON e.department_id = d.id WHERE d.company_id = ?)
       AND date >= DATE_SUB(CURDATE(), INTERVAL 15 DAY)
     GROUP BY date 
     ORDER BY date ASC
@@ -81,7 +81,7 @@ if ($attendance_result['success']) {
 $leave_query = "
     SELECT status, COUNT(id) as count 
     FROM leaves 
-    WHERE employee_id IN (SELECT id FROM employees WHERE company_id = ?)
+    WHERE employee_id IN (SELECT e.id FROM employees e JOIN departments d ON e.department_id = d.id WHERE d.company_id = ?)
     GROUP BY status
 ";
 $leave_result = query($mysqli, $leave_query, [$company_id]);
@@ -117,7 +117,7 @@ if ($payroll_result['success']) {
 $recruitment_query = "
     SELECT status, COUNT(id) as count 
     FROM job_applications 
-    WHERE job_id IN (SELECT id FROM jobs WHERE company_id = ?)
+    WHERE job_id IN (SELECT j.id FROM jobs j WHERE j.company_id = ?)
     GROUP BY status
 ";
 $recruitment_result = query($mysqli, $recruitment_query, [$company_id]);
