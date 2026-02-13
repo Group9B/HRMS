@@ -13,18 +13,23 @@ require_once '../components/layout/header.php';
 
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
-    <div class="p-3 p-md-4 flex-grow-1" style="overflow-x: hidden;">
+    <div class="p-3 p-md-4 flex-grow-1" style="overflow-x: hidden;" id="reportContent">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="m-0 fw-bold">Reports & Analytics</h4>
-            <div class="text-muted small">Real-time data for your company</div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="text-muted small d-none d-md-block">Real-time data for your company</div>
+                <button onclick="downloadPDF()" class="btn btn-sm btn-danger"><i
+                        class="ti ti-file-type-pdf me-1"></i>Download PDF Report</button>
+            </div>
         </div>
 
         <!-- Employee Distribution Section -->
         <div class="row">
             <div class="col-xl-6 mb-4">
                 <div class="card shadow-sm h-100">
-                    <div class="card-header py-3">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
                         <h6 class="m-0 fw-bold">Employee Distribution by Department</h6>
+                        <a href="/hrms/api/api_export_report_single.php?type=dept" class="btn btn-sm btn-outline-success" title="Export Data"><i class="ti ti-download"></i></a>
                     </div>
                     <div class="card-body">
                         <div id="deptChartParent" style="position: relative; height:300px">
@@ -35,8 +40,9 @@ require_once '../components/layout/header.php';
             </div>
             <div class="col-xl-6 mb-4">
                 <div class="card shadow-sm h-100">
-                    <div class="card-header py-3">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
                         <h6 class="m-0 fw-bold">Employee Distribution by Designation</h6>
+                        <a href="/hrms/api/api_export_report_single.php?type=desig" class="btn btn-sm btn-outline-success" title="Export Data"><i class="ti ti-download"></i></a>
                     </div>
                     <div class="card-body">
                         <div id="desigChartParent" style="position: relative; height:300px">
@@ -51,8 +57,9 @@ require_once '../components/layout/header.php';
         <div class="row">
             <div class="col-xl-8 mb-4">
                 <div class="card shadow-sm h-100">
-                    <div class="card-header py-3">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
                         <h6 class="m-0 fw-bold">Daily Presence Trend (Last 15 Days)</h6>
+                        <a href="/hrms/api/api_export_report_single.php?type=attendance" class="btn btn-sm btn-outline-success" title="Export Data"><i class="ti ti-download"></i></a>
                     </div>
                     <div class="card-body">
                         <div id="attendanceChartParent" style="position: relative; height:300px">
@@ -63,8 +70,9 @@ require_once '../components/layout/header.php';
             </div>
             <div class="col-xl-4 mb-4">
                 <div class="card shadow-sm h-100">
-                    <div class="card-header py-3">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
                         <h6 class="m-0 fw-bold">Recruitment Pipeline</h6>
+                        <a href="/hrms/api/api_export_report_single.php?type=recruitment" class="btn btn-sm btn-outline-success" title="Export Data"><i class="ti ti-download"></i></a>
                     </div>
                     <div class="card-body">
                         <div id="recruitmentChartParent" style="position: relative; height:300px">
@@ -79,8 +87,9 @@ require_once '../components/layout/header.php';
         <div class="row">
             <div class="col-xl-7 mb-4">
                 <div class="card shadow-sm h-100">
-                    <div class="card-header py-3">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
                         <h6 class="m-0 fw-bold">Payroll Expenditure (Last 6 Months)</h6>
+                        <a href="/hrms/api/api_export_report_single.php?type=payroll" class="btn btn-sm btn-outline-success" title="Export Data"><i class="ti ti-download"></i></a>
                     </div>
                     <div class="card-body">
                         <div id="payrollChartParent" style="position: relative; height:300px">
@@ -91,8 +100,9 @@ require_once '../components/layout/header.php';
             </div>
             <div class="col-xl-5 mb-4">
                 <div class="card shadow-sm h-100">
-                    <div class="card-header py-3">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
                         <h6 class="m-0 fw-bold">Leave Status Distribution</h6>
+                        <a href="/hrms/api/api_export_report_single.php?type=leave" class="btn btn-sm btn-outline-success" title="Export Data"><i class="ti ti-download"></i></a>
                     </div>
                     <div class="card-body">
                         <div id="leaveChartParent" style="position: relative; height:300px">
@@ -108,6 +118,8 @@ require_once '../components/layout/header.php';
 
 <?php require_once '../components/layout/footer.php'; ?>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
     // Theme Colors (Matching organization.php)
     const COLORS = {
@@ -387,4 +399,55 @@ require_once '../components/layout/header.php';
             }
         });
     }
+
+    window.downloadPDF = async function() {
+        const { jsPDF } = window.jspdf;
+        const content = document.getElementById('reportContent');
+        const pdfBtn = document.querySelector('button[onclick="downloadPDF()"]');
+        
+        // Hide button during capture
+        if(pdfBtn) pdfBtn.style.display = 'none';
+        
+        try {
+            showToast('Generating PDF...', 'info');
+            
+            const canvas = await html2canvas(content, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                windowWidth: content.scrollWidth,
+                windowHeight: content.scrollHeight
+            });
+            
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4'); // Portrait
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            
+            const imgWidth = pdfWidth;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            let heightLeft = imgHeight;
+            let position = 0;
+            
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pdfHeight;
+            
+            while (heightLeft >= 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pdfHeight;
+            }
+            
+            pdf.save(`Company_Reports_${new Date().toISOString().split('T')[0]}.pdf`);
+            showToast('PDF downloaded successfully!', 'success');
+            
+        } catch (error) {
+            console.error('PDF Generation Error:', error);
+            showToast('Failed to generate PDF.', 'error');
+        } finally {
+            if(pdfBtn) pdfBtn.style.display = 'block';
+        }
+    };
 </script>

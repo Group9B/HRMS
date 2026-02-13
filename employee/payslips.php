@@ -20,18 +20,18 @@ require_once '../components/layout/header.php';
 
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
-    <div class="p-3 p-md-4" style="flex: 1;">
+    <div class="p-3 p-md-4" style="flex: 1; overflow-x: hidden;">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
             <h2 class="h3 mb-0"><i class="ti ti-receipt me-2"></i>My Payslips</h2>
         </div>
 
         <div class="card shadow-sm">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h6 class="m-0 font-weight-bold">Salary Details</h6>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover" id="payslipsTable">
+                    <table class="table table-hover table-striped w-100" id="payslipsTable" style="width: 100%;">
                         <thead>
                             <tr>
                                 <th>Period</th>

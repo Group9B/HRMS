@@ -35,7 +35,51 @@ require_once '../components/layout/header.php';
               </div>
               <div class="col-md-2">
                 <label class="form-label">Currency</label>
-                <input type="text" id="currencyInput" class="form-control" value="INR">
+                <input type="hidden" id="currencyInput" value="INR">
+                <div class="dropdown w-100" id="currencyDropdown">
+                  <button
+                    class="btn btn-outline-secondary dropdown-toggle w-100 d-flex align-items-center justify-content-between"
+                    type="button" data-bs-toggle="dropdown" aria-expanded="false" id="currencyDropdownBtn">
+                    <span><span class="fi fi-in me-2"></span>₹ INR</span>
+                  </button>
+                  <ul class="dropdown-menu w-100" style="max-height:280px;overflow-y:auto;">
+                    <li><a class="dropdown-item d-flex align-items-center" href="#" data-value="INR" data-label="₹ INR"
+                        data-flag="fi-in" title="Indian Rupee"><span class="fi fi-in me-2"></span>₹ INR</a></li>
+                    <li><a class="dropdown-item d-flex align-items-center" href="#" data-value="USD" data-label="$ USD"
+                        data-flag="fi-us" title="US Dollar"><span class="fi fi-us me-2"></span>$ USD</a></li>
+                    <li><a class="dropdown-item d-flex align-items-center" href="#" data-value="EUR" data-label="€ EUR"
+                        data-flag="fi-eu" title="Euro"><span class="fi fi-eu me-2"></span>€ EUR</a></li>
+                    <li><a class="dropdown-item d-flex align-items-center" href="#" data-value="GBP" data-label="£ GBP"
+                        data-flag="fi-gb" title="British Pound"><span class="fi fi-gb me-2"></span>£ GBP</a></li>
+                    <li><a class="dropdown-item d-flex align-items-center" href="#" data-value="AED"
+                        data-label="د.إ AED" data-flag="fi-ae" title="UAE Dirham"><span class="fi fi-ae me-2"></span>د.إ
+                        AED</a></li>
+                    <li><a class="dropdown-item d-flex align-items-center" href="#" data-value="SAR" data-label="﷼ SAR"
+                        data-flag="fi-sa" title="Saudi Riyal"><span class="fi fi-sa me-2"></span>﷼ SAR</a></li>
+                    <li><a class="dropdown-item d-flex align-items-center" href="#" data-value="CAD" data-label="$ CAD"
+                        data-flag="fi-ca" title="Canadian Dollar"><span class="fi fi-ca me-2"></span>$ CAD</a></li>
+                    <li><a class="dropdown-item d-flex align-items-center" href="#" data-value="AUD" data-label="$ AUD"
+                        data-flag="fi-au" title="Australian Dollar"><span class="fi fi-au me-2"></span>$ AUD</a></li>
+                    <li><a class="dropdown-item d-flex align-items-center" href="#" data-value="SGD" data-label="$ SGD"
+                        data-flag="fi-sg" title="Singapore Dollar"><span class="fi fi-sg me-2"></span>$ SGD</a></li>
+                    <li><a class="dropdown-item d-flex align-items-center" href="#" data-value="JPY" data-label="¥ JPY"
+                        data-flag="fi-jp" title="Japanese Yen"><span class="fi fi-jp me-2"></span>¥ JPY</a></li>
+                    <li><a class="dropdown-item d-flex align-items-center" href="#" data-value="CNY" data-label="¥ CNY"
+                        data-flag="fi-cn" title="Chinese Yuan"><span class="fi fi-cn me-2"></span>¥ CNY</a></li>
+                  </ul>
+                </div>
+                <script>
+                  document.querySelectorAll('#currencyDropdown .dropdown-item').forEach(item => {
+                    item.addEventListener('click', function (e) {
+                      e.preventDefault();
+                      const val = this.dataset.value;
+                      const label = this.dataset.label;
+                      const flag = this.dataset.flag;
+                      document.getElementById('currencyInput').value = val;
+                      document.getElementById('currencyDropdownBtn').innerHTML = '<span><span class="fi ' + flag + ' me-2"></span>' + label + '</span>';
+                    });
+                  });
+                </script>
               </div>
               <div class="col-md-2">
                 <label class="form-label">Gross</label>
@@ -137,8 +181,10 @@ require_once '../components/layout/header.php';
           </div>
         </div>
         <div class="card">
-          <div class="card-header">
+          <div class="card-header d-flex justify-content-between align-items-center">
             <h6 class="mb-0">Generated Payslips</h6>
+            <a href="/hrms/api/api_export_payslips.php" class="btn btn-sm btn-success"><i
+                class="ti ti-file-spreadsheet me-1"></i>Export to Excel</a>
           </div>
           <div class="card-body">
             <div class="table-responsive">

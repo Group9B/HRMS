@@ -29,6 +29,11 @@ require_once '../components/layout/header.php';
                     <button class="btn bg-dark-subtle btn-sm" id="openBulkModalBtn"><i
                             class="ti ti-loader-3 me-2"></i>Bulk
                         Actions</button>
+                    <a id="exportAttendanceBtn" class="btn btn-sm btn-success" href="#"
+                        onclick="exportAttendance(event)"><i class="ti ti-file-spreadsheet me-1"></i>Export to Excel</a>
+                    <script>
+                        function exportAttendance(e) { e.preventDefault(); const m = document.getElementById('currentMonth'); let monthStr = ''; if (m) { const d = new Date(m.textContent.trim() + ' 1'); if (!isNaN(d)) { monthStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); } } window.location.href = '/hrms/api/api_export_attendance.php' + (monthStr ? '?month=' + monthStr : ''); }
+                    </script>
                     <input type="search" id="employeeSearch" class="form-control form-control-sm"
                         placeholder="Search Department or Employee..." style="width: 200px;">
                 </div>

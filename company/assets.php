@@ -46,9 +46,13 @@ require_once '../components/layout/header.php';
                 <div class="card shadow-sm">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h6 class="m-0 font-weight-bold">All Assets</h6>
-                        <button class="btn btn-sm btn-primary" onclick="openAddAssetModal()">
-                            <i class="ti ti-plus me-1"></i>Add Asset
-                        </button>
+                        <div class="d-flex gap-2">
+                            <a href="/hrms/api/api_export_assets.php" class="btn btn-sm btn-success"><i
+                                    class="ti ti-file-spreadsheet me-1"></i>Export to Excel</a>
+                            <button class="btn btn-sm btn-primary" onclick="openAddAssetModal()">
+                                <i class="ti ti-plus me-1"></i>Add Asset
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">

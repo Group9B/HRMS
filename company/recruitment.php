@@ -187,9 +187,14 @@ require_once '../components/layout/header.php';
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
 
-                    <h6 class="m-0 font-weight-bold">Job Postings</h6><button class="btn btn-primary btn-sm"
-                        onclick="prepareJobModal()"><i class="ti ti-plus me-1"></i> Post New
-                        Job</button>
+                    <h6 class="m-0 font-weight-bold">Job Postings</h6>
+                    <div class="d-flex gap-2">
+                        <a href="/hrms/api/api_export_recruitment.php" class="btn btn-sm btn-success"><i
+                                class="ti ti-file-spreadsheet me-1"></i>Export to Excel</a>
+                        <button class="btn btn-primary btn-sm" onclick="prepareJobModal()"><i
+                                class="ti ti-plus me-1"></i> Post New
+                            Job</button>
+                    </div>
                 </div>
             </div>
             <div class="card-body">
