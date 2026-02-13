@@ -82,6 +82,19 @@ switch ($action) {
         }
         break;
 
+    case 'get_logs':
+        $logFile = realpath(__DIR__ . '/../logs/app.log');
+        if ($logFile && file_exists($logFile)) {
+            $lines = file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            // Get last 50 lines
+            $logs = array_slice($lines, -50);
+            $logs = array_reverse($logs); // Most recent first
+            $response = ['success' => true, 'data' => ['logs' => $logs]];
+        } else {
+            $response = ['success' => false, 'message' => 'Log file not found'];
+        }
+        break;
+
     default:
         $response['message'] = 'Invalid action specified.';
         break;

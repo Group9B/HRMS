@@ -26,10 +26,13 @@ require_once '../components/layout/header.php';
 <div class="d-flex">
   <?php require_once '../components/layout/sidebar.php'; ?>
   <div class="p-3 p-md-4" style="flex: 1;">
+    <!-- Stats Row -->
     <div class="row" id="dashboardStats"></div>
+
+    <!-- Recent Companies + User Role Distribution -->
     <div class="row">
       <div class="col-lg-8 mb-4">
-        <div class="card main-content-card shadow-sm">
+        <div class="card main-content-card shadow-sm h-100">
           <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold">Recent Companies</h6>
           </div>
@@ -55,45 +58,67 @@ require_once '../components/layout/header.php';
         </div>
       </div>
       <div class="col-lg-4 mb-4">
-        <div class="card main-content-card shadow-sm">
+        <div class="card shadow-sm h-100">
+          <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold">User Role Distribution</h6>
+          </div>
+          <div class="card-body d-flex align-items-center justify-content-center p-sm-0">
+            <canvas id="roleDistributionChart"
+              style="aspect-ratio: 1/1 !important; height: 280px !important; width: 280px !important;"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Uploads Storage + Application Logs -->
+    <div class="row">
+      <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold">Uploads Storage (5GB)</h6>
+          </div>
+          <div class="card-body d-flex align-items-center justify-content-center p-sm-0">
+            <canvas id="storageChart"
+              style="position:relative !important; aspect-ratio: 1/1 !important; height: 280px !important; width: 280px !important;"></canvas>
+          </div>
+        </div>
+      </div>
+      <?php
+      $logFile = '../logs/app.log';
+      if (file_exists($logFile)):
+        ?>
+        <div class="col-lg-8 mb-4">
+          <div class="card shadow-sm h-100">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+              <h6 class="m-0 font-weight-bold">Application Logs (Latest 50)</h6>
+              <button class="btn btn-sm btn-outline-secondary" onclick="refreshLogs()"><i class="ti ti-refresh"></i>
+                Refresh</button>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+              <div id="logContent" style="font-family: 'Courier New', monospace; font-size: 0.875rem;"></div>
+            </div>
+          </div>
+        </div>
+      <?php endif; ?>
+    </div>
+
+    <!-- Quick Actions + To-Do List -->
+    <div class="row">
+      <div class="col-lg-6 mb-4">
+        <div class="card main-content-card shadow-sm h-100">
           <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold">Quick Actions</h6>
           </div>
           <div class="card-body quick-actions">
             <div class="d-grid gap-2">
-              <a href="companies.php" class="btn btn-secondary"><i class="ti ti-plus"></i> Add New
-                Company</a>
+              <a href="companies.php" class="btn btn-secondary"><i class="ti ti-plus"></i> Add New Company</a>
               <a href="user_management.php" class="btn btn-secondary"><i class="ti ti-user-plus"></i> Create Admin
                 User</a>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col-xl-4 mb-4">
-        <div class="card shadow-sm h-100">
-          <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold">Uploads Storage (5GB)</h6>
-          </div>
-          <div class="card-body d-flex align-items-center justify-content-center p-sm-0"><canvas id="storageChart"
-              class=""
-              style="position:relative !important; aspect-ratio: 1/1 !important; height: 280px !important; width: 280px !important;"></canvas>
-          </div>
-        </div>
-      </div>
-      <div class="col-xl-4 mb-4">
-        <div class="card shadow-sm h-100">
-          <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold">User Role Distribution</h6>
-          </div>
-          <div class="card-body d-flex align-items-center justify-content-center p-sm-0"><canvas
-              id="roleDistributionChart" class=""
-              style="aspect-ratio: 1/1 !important; height: 280px !important; width: 280px !important;"></canvas>
-          </div>
-        </div>
-      </div>
-      <div class="col-xl-4 mb-4">
+      <div class="col-lg-6 mb-4">
         <div class="card shadow-sm h-100">
           <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold">My To-Do List</h6>
@@ -108,6 +133,7 @@ require_once '../components/layout/header.php';
         </div>
       </div>
     </div>
+
   </div>
 </div>
 <?php require_once '../components/layout/footer.php'; ?>
@@ -179,8 +205,15 @@ require_once '../components/layout/header.php';
             labels: ['Used Space (GB)', 'Free Space (GB)'],
             datasets: [{
               data: [result.data.used_gb, result.data.free_gb],
-              backgroundColor: [hexToRgba(COLORS.primary, 0.8), hexToRgba(COLORS.warning, 0.8)],
-              borderWidth: 0
+              backgroundColor: [
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)'
+              ],
+              borderColor: [
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)'
+              ],
+              borderWidth: 1.5
             }]
           },
           options: {
@@ -210,13 +243,20 @@ require_once '../components/layout/header.php';
             datasets: [{
               data: Object.values(roleData),
               backgroundColor: [
-                hexToRgba(COLORS.primary, 0.8),
-                hexToRgba(COLORS.success, 0.8),
-                hexToRgba(COLORS.info, 0.8),
-                hexToRgba(COLORS.warning, 0.8),
-                hexToRgba(COLORS.danger, 0.8)
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(153, 102, 255, 0.2)',
+                'rgba(255, 99, 132, 0.2)'
               ],
-              borderWidth: 0
+              borderColor: [
+                'rgba(54, 162, 235, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 99, 132, 1)'
+              ],
+              borderWidth: 1.5
             }]
           },
           options: {
@@ -234,5 +274,42 @@ require_once '../components/layout/header.php';
     });
 
     initializeTodoList('#todoForm', '#todoList');
+
+    // Load application logs if widget exists
+    if (document.getElementById('logContent')) {
+      loadLogs();
+    }
   });
+
+  function loadLogs() {
+    fetch('api_dashboard.php?action=get_logs')
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          const logContent = document.getElementById('logContent');
+          if (result.data.logs.length === 0) {
+            logContent.innerHTML = '<div class="text-muted">No logs available</div>';
+          } else {
+            logContent.innerHTML = result.data.logs.map(line => {
+              const escaped = escapeHTML(line);
+              let className = 'text-body-secondary';
+              if (line.includes('ERROR') || line.includes('error')) className = 'text-danger';
+              else if (line.includes('WARNING') || line.includes('warning')) className = 'text-warning';
+              else if (line.includes('SUCCESS') || line.includes('success')) className = 'text-success';
+              return `<div class="${className}">${escaped}</div>`;
+            }).join('');
+          }
+        } else {
+          document.getElementById('logContent').innerHTML = '<div class="text-danger">Failed to load logs</div>';
+        }
+      })
+      .catch(() => {
+        document.getElementById('logContent').innerHTML = '<div class="text-danger">Error loading logs</div>';
+      });
+  }
+
+  function refreshLogs() {
+    loadLogs();
+    showToast('Logs refreshed', 'success');
+  }
 </script>

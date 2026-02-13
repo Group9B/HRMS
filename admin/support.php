@@ -19,7 +19,7 @@ require_once '../components/layout/header.php';
 
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
-    <div class="p-3 p-md-4" style="flex: 1;">
+    <div class="p-3 p-md-4 overflow-x-hidden" style="flex: 1;">
 
         <div class="card shadow-sm">
             <div class="card-header py-3">
@@ -28,7 +28,7 @@ require_once '../components/layout/header.php';
                 </h6>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
+                <div class="table-responsive overflow-x-hidden">
                     <table class="table table-hover" id="ticketsTable">
                         <thead class="table">
                             <tr>

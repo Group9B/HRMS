@@ -12,7 +12,7 @@ require_once '../components/layout/header.php';
 ?>
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
-    <div class="p-3 p-md-4" style="flex: 1;">
+    <div class="p-3 p-md-4 overflow-x-hidden" style="flex: 1;">
         <div class="row">
             <div class="col-xl-6 mb-4">
                 <div class="card shadow-sm h-100">

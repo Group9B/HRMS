@@ -7,7 +7,6 @@ if (isLoggedIn()) {
     redirect("/hrms/includes/redirect.php");
 }
 
-errorLog("Login PAge Loaded");
 // Check for logout messages
 if (isset($_GET['msg']) && $_GET['msg'] === 'expired') {
     $error = "<strong>Trial Expired!</strong><br>You have been logged out because your free trial has ended.<br>Please subscribe to continue.";

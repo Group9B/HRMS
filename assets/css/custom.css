@@ -427,3 +427,18 @@
 .toast-container {
 	top: 50px !important;
 }
+
+/* Fix DataTables vertical scroll issue - let tables grow naturally */
+.dataTables_wrapper {
+	overflow-x: auto;
+}
+
+.dataTables_scrollBody {
+	max-height: none !important;
+	overflow-y: visible !important;
+}
+
+.card-body .table-responsive {
+	overflow-x: auto;
+	overflow-y: visible;
+}
