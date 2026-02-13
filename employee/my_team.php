@@ -68,14 +68,6 @@ require_once '../components/layout/header.php';
 <div class="d-flex">
     <?php require_once '../components/layout/sidebar.php'; ?>
     <div class="p-3 p-md-4" style="flex: 1;">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-            <h2 class="h3 mb-0"><i class="ti ti-users-group me-2"></i>My Team Management</h2>
-            <a href="/hrms/employee/index.php" class="btn btn-secondary">
-                <i class="ti ti-arrow-left me-2"></i>Back to Dashboard
-            </a>
-        </div>
-
-        <!-- Quick Stats -->
         <div class="row mb-4" id="statsCards">
             <div class="col-md-3 mb-3">
                 <div class="card shadow-sm">

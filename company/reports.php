@@ -22,7 +22,6 @@ require_once '../components/layout/header.php';
                         class="ti ti-file-type-pdf me-1"></i>Download PDF Report</button>
             </div>
         </div>
-
         <!-- Employee Distribution Section -->
         <div class="row">
             <div class="col-xl-6 mb-4">
@@ -241,11 +240,22 @@ require_once '../components/layout/header.php';
                 datasets: [{
                     data: data.map(d => d.count),
                     backgroundColor: [
-                        COLORS.primary, COLORS.success, COLORS.info,
-                        COLORS.warning, COLORS.danger, COLORS.secondary, '#5a5c69'
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)',
+                        'rgba(201, 203, 207, 0.2)'
                     ],
-                    borderColor: theme.borderColor,
-                    borderWidth: 1
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(201, 203, 207, 1)'
+                    ],
+                    borderWidth: 1.5
                 }]
             },
             options: {
@@ -268,8 +278,8 @@ require_once '../components/layout/header.php';
                 datasets: [{
                     label: 'Employees',
                     data: data.map(d => d.count),
-                    backgroundColor: hexToRgba(COLORS.success, 0.2),
-                    borderColor: COLORS.success,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1.5,
                     borderRadius: 5
                 }]
@@ -298,9 +308,10 @@ require_once '../components/layout/header.php';
                     label: 'Presence %',
                     data: data.data,
                     fill: true,
-                    borderColor: COLORS.success,
-                    backgroundColor: 'rgba(28, 200, 138, 0.1)',
-                    tension: 0.3
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.3,
+                    borderWidth: 1.5
                 }]
             },
             options: {
@@ -336,13 +347,19 @@ require_once '../components/layout/header.php';
                 datasets: [{
                     data: Object.values(data),
                     backgroundColor: [
-                        hexToRgba(COLORS.primary, 0.2),
-                        hexToRgba(COLORS.info, 0.2),
-                        hexToRgba(COLORS.success, 0.2),
-                        hexToRgba(COLORS.warning, 0.2),
-                        hexToRgba(COLORS.danger, 0.2)
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
                     ],
-                    borderColor: [COLORS.primary, COLORS.info, COLORS.success, COLORS.warning, COLORS.danger],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
                     borderWidth: 1.5
                 }]
             },
@@ -368,10 +385,11 @@ require_once '../components/layout/header.php';
                 datasets: [{
                     label: 'Total Payout',
                     data: data.data,
-                    borderColor: COLORS.primary,
-                    backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
                     fill: true,
-                    tension: 0.3
+                    tension: 0.3,
+                    borderWidth: 1.5
                 }]
             },
             options: {
@@ -397,9 +415,19 @@ require_once '../components/layout/header.php';
                 labels: Object.keys(data),
                 datasets: [{
                     data: Object.values(data),
-                    backgroundColor: [COLORS.success, COLORS.warning, COLORS.danger, COLORS.secondary],
-                    borderColor: theme.borderColor,
-                    borderWidth: 1
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(201, 203, 207, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(201, 203, 207, 1)'
+                    ],
+                    borderWidth: 1.5
                 }]
             },
             options: {

@@ -40,7 +40,7 @@
  * Matches text color in both light (dark gray) and dark (light gray) modes.
  */
 .sk-placeholder-bg {
-	opacity: 1; /* Subtle but visible opacity for skeleton blocks */
+	opacity: 1;
 }
 
 .sk-loading .card-body {
