@@ -105,6 +105,25 @@ $title = "Upgrade to Pro";
         </div>
     </div>
 
+    <!-- Customized Software Section -->
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-lg overflow-hidden position-relative">
+                <div class="card-body p-5 text-center bg-primary bg-gradient text-white rounded-3">
+                    <h2 class="display-6 fw-bold mb-3">Looking for Customized Software?</h2>
+                    <p class="lead mb-4 opacity-75">
+                        Does your business have unique requirements? We specialize in building tailored software
+                        solutions that fit your specific needs perfectly.
+                    </p>
+                    <a href="https://wa.me/916356869337?text=Hello%20I%20am%20interested%20in%20customized%20software"
+                        target="_blank" class="btn btn-light btn-lg rounded-pill fw-bold px-4 shadow-sm text-primary">
+                        <i class="ti ti-brand-whatsapp me-2 fs-4 align-middle"></i> Chat on WhatsApp
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <?php if (isset($_GET['email'])): ?>
         <div class="alert alert-info text-center">
             Continuing upgrade for <strong>
