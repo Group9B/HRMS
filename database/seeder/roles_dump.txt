@@ -1,0 +1,8 @@
+Roles in DB:
+ID: 1 - Name: Admin
+ID: 2 - Name: Company Owner
+ID: 3 - Name: Human Resource
+ID: 4 - Name: Employee
+ID: 5 - Name: Auditor
+ID: 6 - Name: Manager
+ID: 7 - Name: Candidate

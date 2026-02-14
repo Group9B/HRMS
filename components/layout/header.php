@@ -121,7 +121,7 @@ $role_color = $role_colors[$role_id] ?? 'secondary';
                             class="badge bg-<?= $role_color ?>-subtle text-<?= $role_color ?>-emphasis px-2 py-1 d-none d-sm-inline-block role-display">
                             <?= htmlspecialchars($role_name) ?>
                         </span>
-                        <div class="dropdown bg-<?= $role_color ?>-subtle user-dropdown-menu border-primary">
+                        <div class="dropdown bg-<?= $role_color ?>-subtle user-dropdown-menu border-<?= $role_color ?>">
                             <button class="btn dropdown-toggle d-flex justify-content-between align-items-center"
                                 type="button" id="userMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                                 <div class="avatar"></div>
