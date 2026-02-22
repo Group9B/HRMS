@@ -424,7 +424,7 @@ require_once '../components/layout/header.php';
             responsive: true,
             columns: [
                 { data: 'asset_name', render: (d, t, r) => `<strong>${escapeHTML(d)}</strong>${r.serial_number ? '<br><small class="text-muted">SN: ' + escapeHTML(r.serial_number) + '</small>' : ''}` },
-                { data: 'category_name', render: (d, t, r) => `<span class="badge bg-secondary-subtle text-secondary-emphasis">${escapeHTML(r.category_type)}</span> ${escapeHTML(d)}` },
+                { data: 'category_name', render: (d, t, r) => `<span class="badge bg-secondary-subtle text-secondary-emphasis w-100 h-75">${escapeHTML(r.category_type)}: <span class="fw-bolder text-body">${escapeHTML(d)}</span></span>` },
                 { data: 'asset_tag', render: d => d ? escapeHTML(d) : '<span class="text-muted">-</span>' },
                 {
                     data: 'status', render: d => {
