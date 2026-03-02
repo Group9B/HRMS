@@ -20,6 +20,60 @@
  *    4. POSTs the UID to /api/iot_attendance.php
  *    5. Server toggles check-in / check-out
  *    6. Response printed to Serial Monitor
+ *
+ * ═══════════════════════════════════════════════════════════════
+ *  SETUP GUIDE - Run these steps on a new PC before uploading
+ * ═══════════════════════════════════════════════════════════════
+ *
+ *  Step 1: Find your PC's local IP address
+ *    Open CMD/PowerShell and run:
+ *      ipconfig
+ *    Look for "Wireless LAN adapter Wi-Fi" → "IPv4 Address"
+ *    (e.g., 192.168.1.3). Update SERVER_BASE_URL below.
+ *
+ *  Step 2: Make sure XAMPP Apache is running
+ *    Open XAMPP Control Panel → Start Apache & MySQL
+ *
+ *  Step 3: Run the database migration (one-time)
+ *    Open phpMyAdmin (http://localhost/phpmyadmin) or run in CMD:
+ *      cd C:\xampp\mysql\bin
+ *      mysql.exe -u root YOUR_DB_NAME < C:\xampp\htdocs\HRMS\database\iot_attendance_migration.sql
+ *    This creates: employee_credentials, iot_devices tables + attendance columns
+ *
+ *  Step 4: Open Windows Firewall for port 80 (allow ESP32 to reach Apache)
+ *    Open PowerShell as Administrator and run:
+ *      netsh advfirewall firewall add rule name="XAMPP Apache HTTP" dir=in action=allow protocol=TCP localport=80
+ *
+ *  Step 5: Remove any existing Apache BLOCK rules (if connection still refused)
+ *    In Admin PowerShell, check for blocking rules:
+ *      netsh advfirewall firewall show rule name="Apache HTTP Server" verbose
+ *    If any show Action: Block, delete them:
+ *      netsh advfirewall firewall delete rule name="Apache HTTP Server" program="C:\xampp\apache\bin\httpd.exe"
+ *    Then re-add a clean allow rule:
+ *      netsh advfirewall firewall add rule name="Apache HTTP Server" dir=in action=allow program="C:\xampp\apache\bin\httpd.exe" protocol=TCP enable=yes profile=any
+ *
+ *  Step 6: Register RFID cards to employees
+ *    Option A — Via the Web UI:
+ *      Go to Employee Management → Actions (⋮) → "IoT Credentials"
+ *      Enter the card UID (from Serial Monitor) and click Add
+ *
+ *    Option B — Via MySQL directly:
+ *      cd C:\xampp\mysql\bin
+ *      mysql.exe -u root YOUR_DB_NAME -e "INSERT INTO employee_credentials (employee_id, type, identifier_value) VALUES (1, 'rfid', '0A8F8005');"
+ *      (Replace 1 with the employee ID and '0A8F8005' with the UID from Serial Monitor)
+ *
+ *  Step 7: Verify connectivity
+ *    Open this URL in your browser (use YOUR IP):
+ *      http://YOUR_PC_IP/HRMS/api/iot_ping.php
+ *    Should return: {"success":true,"message":"Ping OK",...}
+ *
+ *  Step 8: Upload this sketch to ESP32
+ *    - Install Arduino IDE + ESP32 board package
+ *    - Install libraries: MFRC522 (by GithubCommunity), ArduinoJson (by Benoit Blanchon)
+ *    - Select Board: "ESP32 Dev Module"
+ *    - Update WIFI_SSID, WIFI_PASSWORD, SERVER_BASE_URL, DEVICE_TOKEN below
+ *    - Upload and open Serial Monitor at 115200 baud
+ *
  * ═══════════════════════════════════════════════════════════════
  */
 
@@ -32,15 +86,15 @@
 // ─────────────────────────────────────────────────────────────
 // CONFIGURATION - UPDATE THESE VALUES
 // ─────────────────────────────────────────────────────────────
-const char* WIFI_SSID     = "YOUR_WIFI_SSID";       // ← Your WiFi name
-const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";    // ← Your WiFi password
+const char* WIFI_SSID     = "Airtel_Aditya_11111";       // ← Your WiFi name
+const char* WIFI_PASSWORD = "Adiv2005@";    // ← Your WiFi password
 
 // Server URL - Use your PC's local IP (run 'ipconfig' in cmd to find it)
 // Example: "http://192.168.1.100/hrms/api"
-const char* SERVER_BASE_URL = "http://YOUR_PC_IP/hrms/api";
+const char* SERVER_BASE_URL = "http://192.168.1.3/HRMS/api";
 
 // Device token from iot_devices table (run iot_test.php to generate one)
-const char* DEVICE_TOKEN = "YOUR_DEVICE_TOKEN_HERE";
+const char* DEVICE_TOKEN = "test_token_abc123xyz789";
 
 // ─────────────────────────────────────────────────────────────
 // PIN DEFINITIONS (ESP32 → RC522)

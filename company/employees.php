@@ -172,6 +172,94 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
+<!-- IoT Credentials Modal -->
+<div class="modal fade" id="credentialsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="credentialsModalLabel">
+                    <i class="ti ti-fingerprint me-2"></i>IoT Credentials
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="credentialEmployeeId" value="0">
+
+                <!-- Add Credential Form -->
+                <div class="card mb-4">
+                    <div class="card-header py-2">
+                        <h6 class="m-0"><i class="ti ti-plus me-1"></i>Add New Credential</h6>
+                    </div>
+                    <div class="card-body">
+                        <form id="addCredentialForm">
+                            <div class="col align-items-end">
+                                <div class="row-md-3 mb-2">
+                                    <label class="form-label">Type <span class="text-danger">*</span></label>
+                                    <select class="form-select" name="credential_type" id="credentialType" required>
+                                        <option value="rfid" selected>RFID Card</option>
+                                        <option value="fingerprint">Fingerprint</option>
+                                        <option value="face_id">Face ID</option>
+                                    </select>
+                                </div>
+                                <div class="row-md-6 mb-2">
+                                    <label class="form-label">Identifier Value <span
+                                            class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="identifier_value" id="identifierValue"
+                                        placeholder="e.g., 0A8F8005 (tap card on reader to get UID)" required>
+                                    <small class="form-text text-muted" id="credentialHelp">
+                                        Enter the RFID card UID (hex, e.g. 0A8F8005). Check Serial Monitor for the UID
+                                        when tapping a card.
+                                    </small>
+                                </div>
+                                <div class="row-md-3 mb-2">
+                                    <button type="submit" class="btn btn-primary w-100" id="addCredentialBtn">
+                                        <i class="ti ti-plus me-1"></i>Add
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0"><i class="ti ti-list me-1"></i>Registered Credentials</h6>
+                        <span class="badge bg-secondary" id="credentialCount">0</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="credentialsLoading" class="text-center p-4">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                            <span class="ms-2 text-muted">Loading credentials...</span>
+                        </div>
+                        <div id="credentialsEmpty" class="text-center text-muted p-4" style="display: none;">
+                            <i class="ti ti-id-badge-off"
+                                style="font-size: 2rem; opacity: 0.3; display: block; margin-bottom: 0.5rem;"></i>
+                            <p class="mb-0">No credentials registered for this employee.</p>
+                            <small>Add an RFID card UID above to enable IoT attendance.</small>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="credentialsTable" style="display: none;">
+                                <thead class="table">
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Identifier</th>
+                                        <th>Registered On</th>
+                                        <th style="width: 80px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="credentialsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php require_once '../components/layout/footer.php'; ?>
 
 <script>
@@ -179,11 +267,12 @@ require_once '../components/layout/header.php';
     const hasDepartments = <?= !empty($departments) ? 'true' : 'false' ?>;
     const hasShifts = <?= !empty($shifts) ? 'true' : 'false' ?>;
 
-    let employeesTable, employeeModal, createUserModal;
+    let employeesTable, employeeModal, createUserModal, credentialsModal;
 
     $(function () {
         employeeModal = new bootstrap.Modal('#employeeModal');
         createUserModal = new bootstrap.Modal('#createUserModal');
+        credentialsModal = new bootstrap.Modal('#credentialsModal');
 
         // Show skeleton
         SkeletonFactory.showTable('employeesTable', 5, 6);
@@ -220,12 +309,17 @@ require_once '../components/layout/header.php';
                     data: null,
                     orderable: false,
                     render: (d, t, r) => {
-                        const actions = { onEdit: () => prepareEditModal(r) };
+                        const actions = {
+                            onManage: () => openCredentialsModal(r),
+                            onEdit: () => prepareEditModal(r)
+                        };
                         <?php if ($is_c_admin): ?>
                             actions.onDelete = () => deleteEmployee(r.id);
                         <?php endif; ?>
 
                         return createActionDropdown(actions, {
+                            manageTooltip: 'IoT Credentials',
+                            manageIcon: 'ti ti-fingerprint',
                             editTooltip: 'Edit',
                             deleteTooltip: 'Delete'
                         });
@@ -813,5 +907,170 @@ require_once '../components/layout/header.php';
 
     function exportEmployees() {
         window.open('/hrms/api/api_export_employees.php', '_blank');
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    //  IoT Credential Management
+    // ═════════════════════════════════════════════════════════════
+
+    function openCredentialsModal(employee) {
+        const empName = `${escapeHTML(employee.first_name)} ${escapeHTML(employee.last_name)}`;
+        $('#credentialsModalLabel').html(`<i class="ti ti-fingerprint me-2"></i>IoT Credentials - ${empName}`);
+        $('#credentialEmployeeId').val(employee.id);
+        $('#addCredentialForm').trigger('reset');
+        loadCredentials(employee.id);
+        credentialsModal.show();
+    }
+
+    function loadCredentials(employeeId) {
+        // Show loading, hide other states
+        $('#credentialsLoading').show();
+        $('#credentialsEmpty').hide();
+        $('#credentialsTable').hide();
+
+        fetch(`/hrms/api/api_employees.php?action=get_credentials&employee_id=${employeeId}`)
+            .then(res => res.json())
+            .then(data => {
+                $('#credentialsLoading').hide();
+
+                if (data.success && data.data && data.data.length > 0) {
+                    renderCredentials(data.data);
+                    $('#credentialsTable').show();
+                    $('#credentialCount').text(data.data.length);
+                } else {
+                    $('#credentialsEmpty').show();
+                    $('#credentialCount').text('0');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading credentials:', error);
+                $('#credentialsLoading').hide();
+                $('#credentialsEmpty').show();
+                showToast('Failed to load credentials.', 'error');
+            });
+    }
+
+    function renderCredentials(credentials) {
+        const tbody = $('#credentialsTableBody');
+        tbody.empty();
+
+        const typeIcons = {
+            'rfid': 'ti ti-id-badge',
+            'fingerprint': 'ti ti-fingerprint',
+            'face_id': 'ti ti-face-id'
+        };
+        const typeLabels = {
+            'rfid': 'RFID Card',
+            'fingerprint': 'Fingerprint',
+            'face_id': 'Face ID'
+        };
+
+        credentials.forEach(cred => {
+            const icon = typeIcons[cred.type] || 'ti ti-key';
+            const label = typeLabels[cred.type] || cred.type;
+            const date = new Date(cred.created_at).toLocaleDateString('en-IN', {
+                day: '2-digit', month: 'short', year: 'numeric'
+            });
+
+            tbody.append(`
+                <tr>
+                    <td><i class="${icon} me-1"></i>${escapeHTML(label)}</td>
+                    <td><code class="user-select-all">${escapeHTML(cred.identifier_value)}</code></td>
+                    <td><small class="text-muted">${date}</small></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCredential(${cred.id})" title="Remove">
+                            <i class="ti ti-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `);
+        });
+    }
+
+    // Handle credential type change — update help text
+    $('#credentialType').on('change', function () {
+        const type = $(this).val();
+        const helpTexts = {
+            'rfid': 'Enter the RFID card UID (hex, e.g. 0A8F8005). Check Serial Monitor for the UID when tapping a card.',
+            'fingerprint': 'Enter the fingerprint template ID from the sensor.',
+            'face_id': 'Enter the face recognition ID from the camera module.'
+        };
+        const placeholders = {
+            'rfid': 'e.g., 0A8F8005 (tap card on reader to get UID)',
+            'fingerprint': 'e.g., FP_001',
+            'face_id': 'e.g., FACE_001'
+        };
+        $('#credentialHelp').text(helpTexts[type] || '');
+        $('#identifierValue').attr('placeholder', placeholders[type] || '');
+    });
+
+    // Handle add credential form submit
+    $('#addCredentialForm').on('submit', function (e) {
+        e.preventDefault();
+
+        const employeeId = $('#credentialEmployeeId').val();
+        const type = $('#credentialType').val();
+        const identifierValue = $('#identifierValue').val().trim();
+
+        if (!identifierValue) {
+            showToast('Identifier value is required.', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('action', 'add_credential');
+        formData.append('employee_id', employeeId);
+        formData.append('credential_type', type);
+        formData.append('identifier_value', identifierValue);
+
+        const submitBtn = $('#addCredentialBtn');
+        const restoreBtn = UIController.showButtonLoading(submitBtn[0], 'Adding...');
+
+        fetch('/hrms/api/api_employees.php', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    $('#addCredentialForm').trigger('reset');
+                    loadCredentials(employeeId);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error adding credential:', error);
+                showToast('Failed to add credential.', 'error');
+            })
+            .finally(() => restoreBtn());
+    });
+
+    function deleteCredential(credentialId) {
+        showConfirmationModal(
+            'Are you sure you want to remove this credential? The employee will no longer be able to use it for attendance.',
+            () => {
+                const formData = new FormData();
+                formData.append('action', 'delete_credential');
+                formData.append('credential_id', credentialId);
+
+                fetch('/hrms/api/api_employees.php', { method: 'POST', body: formData })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast(data.message, 'success');
+                            const employeeId = $('#credentialEmployeeId').val();
+                            loadCredentials(employeeId);
+                        } else {
+                            showToast(data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error deleting credential:', error);
+                        showToast('Failed to remove credential.', 'error');
+                    });
+            },
+            'Remove Credential',
+            'Remove',
+            'btn-danger'
+        );
     }
 </script>

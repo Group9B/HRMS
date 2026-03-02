@@ -213,6 +213,120 @@ switch ($action) {
         }
         break;
 
+    // ─────────────────────────────────────────────────────────────
+    // IoT Credential Management (RFID / Fingerprint / Face ID)
+    // ─────────────────────────────────────────────────────────────
+
+    case 'get_credentials':
+        $employee_id = isset($_GET['employee_id']) ? (int) $_GET['employee_id'] : 0;
+
+        if ($employee_id <= 0) {
+            $response['message'] = 'Invalid employee ID.';
+            break;
+        }
+
+        // Verify employee belongs to this company
+        $emp_check = query($mysqli, "SELECT e.id FROM employees e JOIN users u ON e.user_id = u.id WHERE e.id = ? AND u.company_id = ?", [$employee_id, $company_id]);
+        if (!$emp_check['success'] || empty($emp_check['data'])) {
+            $response['message'] = 'Employee not found or unauthorized.';
+            break;
+        }
+
+        $sql = "SELECT id, type, identifier_value, created_at FROM employee_credentials WHERE employee_id = ? ORDER BY created_at DESC";
+        $result = query($mysqli, $sql, [$employee_id]);
+
+        if ($result['success']) {
+            $response = ['success' => true, 'data' => $result['data'] ?? []];
+        } else {
+            $response['message'] = 'Failed to fetch credentials.';
+        }
+        break;
+
+    case 'add_credential':
+        $employee_id = isset($_POST['employee_id']) ? (int) $_POST['employee_id'] : 0;
+        $type = $_POST['credential_type'] ?? '';
+        $identifier_value = trim($_POST['identifier_value'] ?? '');
+
+        // Validate inputs
+        if ($employee_id <= 0) {
+            $response['message'] = 'Invalid employee ID.';
+            break;
+        }
+
+        $valid_types = ['rfid', 'fingerprint', 'face_id'];
+        if (!in_array($type, $valid_types, true)) {
+            $response['message'] = 'Invalid credential type. Must be: rfid, fingerprint, or face_id.';
+            break;
+        }
+
+        if (empty($identifier_value)) {
+            $response['message'] = 'Identifier value is required.';
+            break;
+        }
+
+        // For RFID: validate hex format and normalize to uppercase
+        if ($type === 'rfid') {
+            $identifier_value = strtoupper(preg_replace('/[^a-fA-F0-9]/', '', $identifier_value));
+            if (empty($identifier_value) || strlen($identifier_value) < 4 || strlen($identifier_value) > 20) {
+                $response['message'] = 'RFID UID must be 4-20 hex characters (e.g., 0A8F8005).';
+                break;
+            }
+        }
+
+        // Verify employee belongs to this company
+        $emp_check = query($mysqli, "SELECT e.id FROM employees e JOIN users u ON e.user_id = u.id WHERE e.id = ? AND u.company_id = ?", [$employee_id, $company_id]);
+        if (!$emp_check['success'] || empty($emp_check['data'])) {
+            $response['message'] = 'Employee not found or unauthorized.';
+            break;
+        }
+
+        // Check if credential already exists (unique constraint)
+        $dup_check = query($mysqli, "SELECT ec.id, e.first_name, e.last_name FROM employee_credentials ec JOIN employees e ON ec.employee_id = e.id WHERE ec.type = ? AND ec.identifier_value = ?", [$type, $identifier_value]);
+        if ($dup_check['success'] && !empty($dup_check['data'])) {
+            $existing = $dup_check['data'][0];
+            $response['message'] = "This {$type} credential is already assigned to {$existing['first_name']} {$existing['last_name']}.";
+            break;
+        }
+
+        $sql = "INSERT INTO employee_credentials (employee_id, type, identifier_value) VALUES (?, ?, ?)";
+        $result = query($mysqli, $sql, [$employee_id, $type, $identifier_value]);
+
+        if ($result['success']) {
+            $response = ['success' => true, 'message' => ucfirst($type) . ' credential added successfully!'];
+        } else {
+            if ($mysqli->errno == 1062) {
+                $response['message'] = 'This credential is already registered to another employee.';
+            } else {
+                $response['message'] = 'Failed to add credential: ' . ($result['error'] ?? 'Unknown error');
+            }
+        }
+        break;
+
+    case 'delete_credential':
+        $credential_id = isset($_POST['credential_id']) ? (int) $_POST['credential_id'] : 0;
+
+        if ($credential_id <= 0) {
+            $response['message'] = 'Invalid credential ID.';
+            break;
+        }
+
+        // Verify credential belongs to an employee in this company
+        $cred_check = query($mysqli, "SELECT ec.id FROM employee_credentials ec JOIN employees e ON ec.employee_id = e.id JOIN users u ON e.user_id = u.id WHERE ec.id = ? AND u.company_id = ?", [$credential_id, $company_id]);
+        if (!$cred_check['success'] || empty($cred_check['data'])) {
+            $response['message'] = 'Credential not found or unauthorized.';
+            break;
+        }
+
+        $sql = "DELETE FROM employee_credentials WHERE id = ?";
+        $result = query($mysqli, $sql, [$credential_id]);
+
+        if ($result['success'] && $result['affected_rows'] > 0) {
+            $response = ['success' => true, 'message' => 'Credential removed successfully!'];
+        } else {
+            $response['message'] = 'Failed to remove credential.';
+        }
+        break;
+
     default:
         $response['message'] = 'Invalid action specified.';
         break;
