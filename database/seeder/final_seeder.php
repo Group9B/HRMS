@@ -3,33 +3,10 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-$logFile = __DIR__ . '/final_seeder_log.txt';
-file_put_contents($logFile, "Script started at " . date('Y-m-d H:i:s') . "\n");
-
-function logger($msg)
-{
-    global $logFile;
-    echo $msg . "\n";
-    file_put_contents($logFile, $msg . "\n", FILE_APPEND);
-}
-
-$host = 'localhost';
-$db = 'original_template';
-$user = 'root';
-$pass = '';
-$charset = 'utf8mb4';
-
-$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-$options = [
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES => false,
-];
+require_once __DIR__ . '/_common/seeder_runtime.php';
 
 try {
-    logger("Connecting to $db...");
-    $pdo = new PDO($dsn, $user, $pass, $options);
-    logger("Connected successfully.");
+    seeder_log("Final (Companies) Seeder started.");
 
     // Data Generation Arrays
     $prefixes = [
@@ -141,7 +118,7 @@ try {
     $pdo->beginTransaction();
     $stmt = $pdo->prepare("INSERT INTO companies (name, email, phone, address, subscription_status) VALUES (?, ?, ?, ?, 'active')");
 
-    logger("Seeding $target_count companies...");
+    seeder_log("Seeding $target_count companies...");
 
     for ($i = 0; $i < $target_count; $i++) {
         $prefix = $prefixes[array_rand($prefixes)];
@@ -172,15 +149,15 @@ try {
     }
 
     $pdo->commit();
-    logger("SUCCESS: Inserted $generated_count companies.");
+    seeder_log("SUCCESS: Inserted $generated_count companies.");
 
     // Verify Count
     $count = $pdo->query("SELECT COUNT(*) FROM companies")->fetchColumn();
-    logger("Total Companies in DB: $count");
+    seeder_log("Total Companies in DB: $count");
 
 } catch (Exception $e) {
     if (isset($pdo) && $pdo->inTransaction())
         $pdo->rollBack();
-    logger("ERROR: " . $e->getMessage());
+    seeder_log("ERROR: " . $e->getMessage());
 }
 ?>

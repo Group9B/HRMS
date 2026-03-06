@@ -3,41 +3,13 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Database Configuration
-$host = 'localhost';
-$db = 'original_template';
-$user = 'root';
-$pass = '';
-$dsn = "mysql:host=$host;dbname=$db;charset=utf8mb4";
-$options = [
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES => false,
-];
+require_once __DIR__ . '/_common/seeder_identity.php';
 
 try {
-    echo "Connecting to $db...\n";
-    $pdo = new PDO($dsn, $user, $pass, $options);
-    echo "Connected.\n";
+    seeder_log("Detailed Employees Seeder started.");
 
-    // 1. Ensure Roles Exist
-    // We assume 1=SuperAdmin, 2=CompanyAdmin. We add 3=Manager, 4=HR, 5=Employee if not exist.
-    $roles_to_check = [
-        3 => 'manager',
-        4 => 'hr',
-        5 => 'employee'
-    ];
-    foreach ($roles_to_check as $id => $name) {
-        // specific ID insertion might fail if ID exists but name differs, so we check first
-        $stmt = $pdo->prepare("SELECT id FROM roles WHERE id = ?");
-        $stmt->execute([$id]);
-        if (!$stmt->fetch()) {
-            // Insert
-            $stmt = $pdo->prepare("INSERT IGNORE INTO roles (id, name) VALUES (?, ?)");
-            $stmt->execute([$id, $name]);
-            echo "Created Role: $name (ID $id)\n";
-        }
-    }
+    // Roles are defined in _common/seeder_runtime.php constants
+    // ROLE_HR = 3, ROLE_EMPLOYEE = 4, ROLE_MANAGER = 6
 
     // 2. Fetch First 3 Companies
     $stmt = $pdo->query("SELECT * FROM companies ORDER BY id ASC LIMIT 3");
@@ -118,12 +90,16 @@ try {
         $count = 0;
         $target = 55; // > 50
 
-        // 1. HR Manager (Fixed)
-        create_employee($pdo, $cid, 'Human Resources', 'HR Manager', 4, $dept_ids, $desig_ids, $shift_ids, $first_names, $last_names, $company, 'hr');
+        // 1. Increase HR headcount with 3 fixed HR users
+        create_employee($pdo, $cid, 'Human Resources', 'HR Manager', ROLE_HR, $dept_ids, $desig_ids, $shift_ids, $first_names, $last_names, $company, 'hr');
+        $count++;
+        create_employee($pdo, $cid, 'Human Resources', 'HR Executive', ROLE_HR, $dept_ids, $desig_ids, $shift_ids, $first_names, $last_names, $company, 'hr');
+        $count++;
+        create_employee($pdo, $cid, 'Human Resources', 'Recruiter', ROLE_HR, $dept_ids, $desig_ids, $shift_ids, $first_names, $last_names, $company, 'hr');
         $count++;
 
-        // 2. Operations Manager (Fixed - proxy for "Manager")
-        create_employee($pdo, $cid, 'Operations', 'Operations Manager', 3, $dept_ids, $desig_ids, $shift_ids, $first_names, $last_names, $company, 'manager');
+        // 2. Operations Manager (Fixed)
+        create_employee($pdo, $cid, 'Operations', 'Operations Manager', ROLE_MANAGER, $dept_ids, $desig_ids, $shift_ids, $first_names, $last_names, $company, 'manager');
         $count++;
 
         // 3. Loop rest
@@ -139,9 +115,13 @@ try {
             // If designation contains 'Manager', assign Role 3? Else Role 5.
             $rand_desig = $des_keys[array_rand($des_keys)];
 
-            $role = 5; // Employee default
-            if (strpos($rand_desig, 'Manager') !== false)
-                $role = 3;
+            $role = ROLE_EMPLOYEE; // Employee default
+            if ($rand_dept === 'Human Resources') {
+                $role = ROLE_HR;
+            }
+            if (strpos($rand_desig, 'Manager') !== false) {
+                $role = ROLE_MANAGER;
+            }
 
             create_employee($pdo, $cid, $rand_dept, $rand_desig, $role, $dept_ids, $desig_ids, $shift_ids, $first_names, $last_names, $company);
             $count++;
@@ -157,25 +137,27 @@ try {
 
 function create_employee($pdo, $cid, $dept_name, $desig_name, $role_id, $dept_ids, $desig_ids, $shift_ids, $fnames, $lnames, $company, $user_prefix = null)
 {
-    if ($user_prefix) {
-        // Specific user (HR/Manager)
-        // clean company name for stub
-        $slug = strtolower(preg_replace('/[^a-z0-9]/', '', $company['name']));
-        $username = $slug . '_' . $user_prefix . '_' . rand(100, 999);
-        $fname = ucfirst($user_prefix);
-        $lname = 'Manager';
-    } else {
-        $fname = $fnames[array_rand($fnames)];
-        $lname = $lnames[array_rand($lnames)];
-        $username = strtolower($fname . '.' . $lname . rand(1, 999));
+    $fname = $fnames[array_rand($fnames)];
+    $lname = $lnames[array_rand($lnames)];
+    $dob = sprintf('%04d-%02d-%02d', rand(1980, 2000), rand(1, 12), rand(1, 28));
+
+    $roleTag = 'emp';
+    if ($role_id === ROLE_HR) {
+        $roleTag = 'hr';
+    }
+    if ($role_id === ROLE_MANAGER) {
+        $roleTag = 'mgr';
+    }
+    if ($user_prefix === 'hr') {
+        $roleTag = 'hr';
+    }
+    if ($user_prefix === 'manager' || $user_prefix === 'mgr') {
+        $roleTag = 'mgr';
     }
 
-    $email = $username . '@' . strtolower(str_replace(' ', '', $company['name'])) . '.com';
-    // ensure unique email
-    $chk = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-    $chk->execute([$email]);
-    if ($chk->fetch())
-        $email = $username . rand(1, 999) . '@test.com';
+    $creds = generate_credentials($pdo, $company['name'], $roleTag, $fname, $lname, $dob);
+    $username = $creds['username'];
+    $email = $creds['email'];
 
     $password = password_hash('Staff12@', PASSWORD_DEFAULT);
     $status = 'active';
@@ -186,7 +168,7 @@ function create_employee($pdo, $cid, $dept_name, $desig_name, $role_id, $dept_id
         $stmt->execute([$cid, $role_id, $username, $email, $password, $status]);
         $uid = $pdo->lastInsertId();
     } catch (PDOException $e) {
-        // user duplicate? skip or retry. simpler to skip/return
+        // If collision happens between generate/check and insert, skip this row.
         return;
     }
 
@@ -198,8 +180,7 @@ function create_employee($pdo, $cid, $dept_name, $desig_name, $role_id, $dept_id
     // Employee Code: EMP-{CID}-{UID}
     $emp_code = "EMP-" . $cid . "-" . $uid;
     $phone = "9" . rand(100000000, 999999999);
-    $dob = rand(1980, 2000) . "-" . rand(1, 12) . "-" . rand(1, 28);
-    $doj = rand(2022, 2025) . "-" . rand(1, 12) . "-" . rand(1, 28);
+    $doj = sprintf('%04d-%02d-%02d', rand(2022, 2025), rand(1, 12), rand(1, 28));
     $salary = rand(30000, 150000);
     $gender = (rand(0, 1) == 0) ? 'male' : 'female';
     $address = $company['address'] ?? "India";

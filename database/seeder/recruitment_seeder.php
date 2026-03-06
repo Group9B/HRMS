@@ -3,21 +3,10 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Database Configuration
-$host = 'localhost';
-$db = 'original_template';
-$user = 'root';
-$pass = '';
-$dsn = "mysql:host=$host;dbname=$db;charset=utf8mb4";
-$options = [
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES => false,
-];
+require_once __DIR__ . '/_common/seeder_runtime.php';
 
 try {
-    echo "Connecting to $db...\n";
-    $pdo = new PDO($dsn, $user, $pass, $options);
+    seeder_log("Recruitment Seeder started.");
 
     // Fetch First 3 Companies
     $stmt = $pdo->query("SELECT id, name FROM companies ORDER BY id ASC LIMIT 3");
@@ -101,7 +90,7 @@ try {
         $stmt = $pdo->prepare("
             SELECT u.id as user_id 
             FROM users u 
-            WHERE u.company_id = ? AND u.role_id IN (2, 3, 4) 
+            WHERE u.company_id = ? AND u.role_id IN (2, 3, 6) 
             LIMIT 1
         ");
         $stmt->execute([$cid]);

@@ -3,21 +3,10 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Database Configuration
-$host = 'localhost';
-$db = 'original_template';
-$user = 'root';
-$pass = '';
-$dsn = "mysql:host=$host;dbname=$db;charset=utf8mb4";
-$options = [
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES => false,
-];
+require_once __DIR__ . '/_common/seeder_runtime.php';
 
 try {
-    echo "Connecting to $db...\n";
-    $pdo = new PDO($dsn, $user, $pass, $options);
+    seeder_log("Leave Seeder started.");
 
     // Target Company: Navbharat Construct (ID 1)
     $cid = 1;
@@ -49,7 +38,7 @@ try {
 
     // 2. Fetch Employees
     $stmt = $pdo->prepare("
-        SELECT e.id, e.first_name, e.last_name 
+        SELECT e.id, e.first_name, e.last_name, e.gender 
         FROM employees e 
         JOIN departments d ON e.department_id = d.id 
         WHERE d.company_id = ? AND e.status = 'active'
@@ -94,9 +83,19 @@ try {
 
         // Random Policy
         $p_keys = array_keys($policy_map);
-        $type = $p_keys[array_rand($p_keys)];
-        // Skip maternity if male (simple check: if name contains regex? No, data has gender col? Yes)
-        // Schema lookup for emp gender would be better but let's just allow for now or random success.
+        $gender = strtolower((string) ($emp['gender'] ?? ''));
+
+        if ($gender === 'female') {
+            $type = $p_keys[array_rand($p_keys)];
+        } else {
+            $eligible = array_values(array_filter($p_keys, function ($leaveType) {
+                return $leaveType !== 'Maternity Leave';
+            }));
+            if (empty($eligible)) {
+                continue;
+            }
+            $type = $eligible[array_rand($eligible)];
+        }
 
         $start = date('Y-m-d', strtotime("-" . rand(0, 60) . " days"));
         $duration = rand(1, 4);

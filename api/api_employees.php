@@ -327,6 +327,197 @@ switch ($action) {
         }
         break;
 
+    // ─────────────────────────────────────────────────────────────
+    // IoT Device Card Scanning (Remote RFID scan from Web UI)
+    // ─────────────────────────────────────────────────────────────
+
+    case 'get_iot_devices':
+        // Get all active IoT devices for this company
+        $result = query(
+            $mysqli,
+            "SELECT id, device_name, location, status, last_heartbeat, 
+                    add_card_mode, pending_card_uid, card_scan_requested_at, card_scanned_at
+             FROM iot_devices 
+             WHERE company_id = ? AND status = 'active' 
+             ORDER BY device_name ASC",
+            [$company_id]
+        );
+
+        if ($result['success']) {
+            // Determine online status based on last heartbeat (online if within 60 seconds)
+            foreach ($result['data'] as &$dev) {
+                $dev['is_online'] = false;
+                if ($dev['last_heartbeat']) {
+                    $lastBeat = strtotime($dev['last_heartbeat']);
+                    $dev['is_online'] = (time() - $lastBeat) < 60;
+                }
+            }
+            unset($dev);
+            $response = ['success' => true, 'data' => $result['data']];
+        } else {
+            $response['message'] = 'Failed to fetch IoT devices.';
+        }
+        break;
+
+    case 'activate_device_scan':
+        // HR clicks "Scan from Device" → set add_card_mode = 1 on selected device
+        $device_id = isset($_POST['device_id']) ? (int) $_POST['device_id'] : 0;
+
+        if ($device_id <= 0) {
+            $response['message'] = 'Invalid device ID.';
+            break;
+        }
+
+        // Verify device belongs to this company
+        $devCheck = query(
+            $mysqli,
+            "SELECT id, device_name FROM iot_devices WHERE id = ? AND company_id = ? AND status = 'active'",
+            [$device_id, $company_id]
+        );
+        if (!$devCheck['success'] || empty($devCheck['data'])) {
+            $response['message'] = 'Device not found or unauthorized.';
+            break;
+        }
+
+        // Clear any old pending card and activate scan mode
+        $result = query(
+            $mysqli,
+            "UPDATE iot_devices 
+             SET add_card_mode = 1, 
+                 pending_card_uid = NULL, 
+                 card_scan_requested_at = NOW(), 
+                 card_scanned_at = NULL 
+             WHERE id = ?",
+            [$device_id]
+        );
+
+        if ($result['success']) {
+            $response = [
+                'success' => true,
+                'message' => 'Card capture activated on ' . $devCheck['data'][0]['device_name'] . '. Tap the check-in/out card on the device.',
+                'data' => ['device_id' => $device_id, 'device_name' => $devCheck['data'][0]['device_name']]
+            ];
+        } else {
+            $response['message'] = 'Failed to activate scan mode.';
+        }
+        break;
+
+    case 'poll_scanned_card':
+        // HR browser polls this to check if a card has been scanned
+        $device_id = isset($_GET['device_id']) ? (int) $_GET['device_id'] : 0;
+
+        if ($device_id <= 0) {
+            $response['message'] = 'Invalid device ID.';
+            break;
+        }
+
+        // Verify device belongs to this company
+        $devCheck = query(
+            $mysqli,
+            "SELECT id, device_name, add_card_mode, pending_card_uid, card_scan_requested_at, card_scanned_at 
+             FROM iot_devices 
+             WHERE id = ? AND company_id = ? AND status = 'active'",
+            [$device_id, $company_id]
+        );
+
+        if (!$devCheck['success'] || empty($devCheck['data'])) {
+            $response['message'] = 'Device not found or unauthorized.';
+            break;
+        }
+
+        $dev = $devCheck['data'][0];
+
+        if (!empty($dev['pending_card_uid']) && $dev['card_scanned_at']) {
+            // Card has been scanned - return the UID and clear state
+            $cardUid = $dev['pending_card_uid'];
+
+            query(
+                $mysqli,
+                "UPDATE iot_devices 
+                 SET pending_card_uid = NULL, 
+                     add_card_mode = 0, 
+                     card_scan_requested_at = NULL, 
+                     card_scanned_at = NULL 
+                 WHERE id = ?",
+                [$device_id]
+            );
+
+            $response = [
+                'success' => true,
+                'status' => 'scanned',
+                'message' => 'Card scanned successfully!',
+                'data' => [
+                    'card_uid' => $cardUid,
+                    'device_name' => $dev['device_name'],
+                    'scanned_at' => $dev['card_scanned_at']
+                ]
+            ];
+        } elseif ($dev['add_card_mode'] == 1) {
+            // Still waiting for card scan
+            $elapsed = $dev['card_scan_requested_at'] ? time() - strtotime($dev['card_scan_requested_at']) : 0;
+
+            if ($elapsed > 60) {
+                // Timeout after 60 seconds
+                query(
+                    $mysqli,
+                    "UPDATE iot_devices SET add_card_mode = 0, card_scan_requested_at = NULL WHERE id = ?",
+                    [$device_id]
+                );
+                $response = [
+                    'success' => false,
+                    'status' => 'timeout',
+                    'message' => 'Scan timed out. No card was tapped on the device.'
+                ];
+            } else {
+                $response = [
+                    'success' => true,
+                    'status' => 'waiting',
+                    'message' => 'Waiting for card scan...',
+                    'data' => ['elapsed_seconds' => $elapsed]
+                ];
+            }
+        } else {
+            $response = [
+                'success' => false,
+                'status' => 'inactive',
+                'message' => 'Device is not in scan mode.'
+            ];
+        }
+        break;
+
+    case 'cancel_device_scan':
+        // Cancel an active scan request
+        $device_id = isset($_POST['device_id']) ? (int) $_POST['device_id'] : 0;
+
+        if ($device_id <= 0) {
+            $response['message'] = 'Invalid device ID.';
+            break;
+        }
+
+        $devCheck = query(
+            $mysqli,
+            "SELECT id FROM iot_devices WHERE id = ? AND company_id = ? AND status = 'active'",
+            [$device_id, $company_id]
+        );
+        if (!$devCheck['success'] || empty($devCheck['data'])) {
+            $response['message'] = 'Device not found or unauthorized.';
+            break;
+        }
+
+        query(
+            $mysqli,
+            "UPDATE iot_devices 
+             SET add_card_mode = 0, 
+                 pending_card_uid = NULL, 
+                 card_scan_requested_at = NULL, 
+                 card_scanned_at = NULL 
+             WHERE id = ?",
+            [$device_id]
+        );
+
+        $response = ['success' => true, 'message' => 'Scan cancelled.'];
+        break;
+
     default:
         $response['message'] = 'Invalid action specified.';
         break;

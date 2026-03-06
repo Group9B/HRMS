@@ -108,6 +108,71 @@ require_once '../components/layout/header.php';
     </div>
 </div>
 
+<!-- IoT Devices Modal -->
+<div class="modal fade" id="devicesModal" tabindex="-1" aria-labelledby="devicesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="devicesModalLabel">IoT Devices</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="devicesCompanyId" value="0">
+
+                <!-- Add Device Form -->
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3">Add New Device</h6>
+                        <form id="addDeviceForm" class="row g-2 align-items-end">
+                            <div class="col-md-4">
+                                <label for="deviceName" class="form-label">Device Name <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="deviceName" name="device_name" required
+                                    maxlength="100" placeholder="e.g. Main Entrance Scanner">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="deviceLocation" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="deviceLocation" name="location"
+                                    maxlength="100" placeholder="e.g. Front Gate">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary w-100"><i class="ti ti-plus me-1"></i>Add
+                                    Device</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Devices List -->
+                <div id="devicesListContainer">
+                    <div class="text-center text-muted py-4" id="devicesLoading">
+                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>Loading devices...
+                    </div>
+                    <div class="table-responsive d-none" id="devicesTableWrap">
+                        <table class="table table-hover table-bordered table-sm" id="devicesTable">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Token</th>
+                                    <th>Last Heartbeat</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="devicesTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="text-center text-muted py-4 d-none" id="devicesEmpty">
+                        <i class="ti ti-device-desktop-off fs-1 d-block mb-2"></i>No IoT devices registered for this
+                        company.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Toast Notification -->
 <div id="toast" class="toast-notification"></div>
 
@@ -189,6 +254,9 @@ require_once '../components/layout/header.php';
             const company = JSON.parse($(this).attr('data-company'));
             const dropdownHTML = createActionDropdown(
                 {
+                    onManage: function () {
+                        openDevicesModal(company);
+                    },
                     onEdit: function () {
                         prepareEditModal(company);
                         companyModal.show();
@@ -198,6 +266,8 @@ require_once '../components/layout/header.php';
                     }
                 },
                 {
+                    manageTooltip: 'IoT Devices',
+                    manageIcon: 'ti ti-device-desktop-analytics',
                     editTooltip: 'Edit Company',
                     deleteTooltip: 'Delete Company'
                 }
@@ -314,6 +384,9 @@ require_once '../components/layout/header.php';
         const company = JSON.parse(dropdownElement.attr('data-company'));
         const dropdownHTML = createActionDropdown(
             {
+                onManage: function () {
+                    openDevicesModal(company);
+                },
                 onEdit: function () {
                     prepareEditModal(company);
                     companyModal.show();
@@ -323,6 +396,8 @@ require_once '../components/layout/header.php';
                 }
             },
             {
+                manageTooltip: 'IoT Devices',
+                manageIcon: 'ti ti-device-desktop-analytics',
                 editTooltip: 'Edit Company',
                 deleteTooltip: 'Delete Company'
             }
@@ -415,4 +490,146 @@ require_once '../components/layout/header.php';
     $('#companyModal').on('show.bs.modal', function () {
         clearValidationErrors();
     });
+
+    // ─── IoT Device Management ────────────────────────────────
+    let devicesModalInstance;
+    $(function () {
+        devicesModalInstance = new bootstrap.Modal(document.getElementById('devicesModal'));
+
+        $('#addDeviceForm').on('submit', function (e) {
+            e.preventDefault();
+            const companyId = $('#devicesCompanyId').val();
+            const deviceName = $('#deviceName').val().trim();
+            const location = $('#deviceLocation').val().trim();
+
+            if (!deviceName) { showToast('Device name is required.', 'error'); return; }
+
+            const fd = new FormData();
+            fd.append('action', 'add_device');
+            fd.append('company_id', companyId);
+            fd.append('device_name', deviceName);
+            fd.append('location', location);
+
+            fetch('/hrms/api/api_companies.php', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        $('#addDeviceForm')[0].reset();
+                        loadDevices(companyId);
+                    } else {
+                        if (data.errors) {
+                            const msgs = Object.values(data.errors).join(' ');
+                            showToast(msgs, 'error');
+                        } else {
+                            showToast(data.message, 'error');
+                        }
+                    }
+                })
+                .catch(() => showToast('An unexpected error occurred.', 'error'));
+        });
+    });
+
+    function openDevicesModal(company) {
+        $('#devicesCompanyId').val(company.id);
+        $('#devicesModalLabel').text('IoT Devices — ' + escapeHTML(company.name));
+        $('#addDeviceForm')[0].reset();
+        devicesModalInstance.show();
+        loadDevices(company.id);
+    }
+
+    function loadDevices(companyId) {
+        $('#devicesLoading').removeClass('d-none');
+        $('#devicesTableWrap, #devicesEmpty').addClass('d-none');
+
+        fetch('/hrms/api/api_companies.php?action=list_devices&company_id=' + encodeURIComponent(companyId))
+            .then(r => r.json())
+            .then(data => {
+                $('#devicesLoading').addClass('d-none');
+                if (data.success && data.devices.length > 0) {
+                    renderDevicesTable(data.devices);
+                    $('#devicesTableWrap').removeClass('d-none');
+                } else {
+                    $('#devicesEmpty').removeClass('d-none');
+                }
+            })
+            .catch(() => {
+                $('#devicesLoading').addClass('d-none');
+                $('#devicesEmpty').removeClass('d-none');
+            });
+    }
+
+    function renderDevicesTable(devices) {
+        const tbody = $('#devicesTableBody');
+        tbody.empty();
+        devices.forEach(d => {
+            const statusBadge = d.status === 'active'
+                ? '<span class="badge bg-success">Active</span>'
+                : '<span class="badge bg-secondary">Inactive</span>';
+            const heartbeat = d.last_heartbeat
+                ? new Date(d.last_heartbeat).toLocaleString()
+                : '<span class="text-muted">Never</span>';
+            const maskedToken = d.device_token.substring(0, 8) + '…';
+            tbody.append(`
+                <tr id="device-row-${d.id}">
+                    <td>${escapeHTML(d.device_name)}</td>
+                    <td>${d.location ? escapeHTML(d.location) : '<span class="text-muted">—</span>'}</td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        <code class="me-1">${escapeHTML(maskedToken)}</code>
+                        <button class="btn btn-sm btn-outline-secondary py-0 px-1" title="Copy token" onclick="copyToken('${escapeHTML(d.device_token)}')"><i class="ti ti-copy"></i></button>
+                    </td>
+                    <td>${heartbeat}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteDevice(${d.id})" title="Delete device"><i class="ti ti-trash"></i></button>
+                    </td>
+                </tr>
+            `);
+        });
+    }
+
+    function deleteDevice(deviceId) {
+        showConfirmationModal(
+            'Are you sure you want to delete this IoT device? This cannot be undone.',
+            function () {
+                const fd = new FormData();
+                fd.append('action', 'delete_device');
+                fd.append('device_id', deviceId);
+
+                fetch('/hrms/api/api_companies.php', { method: 'POST', body: fd })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast(data.message, 'success');
+                            $(`#device-row-${deviceId}`).remove();
+                            if ($('#devicesTableBody tr').length === 0) {
+                                $('#devicesTableWrap').addClass('d-none');
+                                $('#devicesEmpty').removeClass('d-none');
+                            }
+                        } else {
+                            showToast(data.message, 'error');
+                        }
+                    })
+                    .catch(() => showToast('An unexpected error occurred.', 'error'));
+            },
+            'Delete Device',
+            'Delete',
+            'btn-danger'
+        );
+    }
+
+    function copyToken(token) {
+        navigator.clipboard.writeText(token).then(() => {
+            showToast('Device token copied to clipboard.', 'success');
+        }).catch(() => {
+            // Fallback for older browsers
+            const ta = document.createElement('textarea');
+            ta.value = token;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showToast('Device token copied to clipboard.', 'success');
+        });
+    }
 </script>

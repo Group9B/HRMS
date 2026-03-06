@@ -88,7 +88,7 @@ function verifyDevice(): array
     // Query for active device with this token
     $result = query(
         $mysqli,
-        "SELECT id, company_id, device_name, location, status, last_heartbeat, created_at 
+        "SELECT id, company_id, device_name, location, status, last_heartbeat, created_at, add_card_mode 
          FROM iot_devices 
          WHERE device_token = ? AND status = 'active'",
         [$token]

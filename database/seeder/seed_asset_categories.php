@@ -2,11 +2,9 @@
 /**
  * Asset Category Seeder
  * Run this script once to populate default asset categories for all existing companies.
- * Usage: php database/seed_asset_categories.php
- * Or visit: /hrms/database/seed_asset_categories.php
+ * Usage: php database/seeder/seed_asset_categories.php
  */
-// die(__DIR__);
-require_once __DIR__ . '/../../config/db.php';
+require_once __DIR__ . '/_common/seeder_runtime.php';
 
 $default_categories = [
     // Hardware
@@ -50,8 +48,8 @@ $default_categories = [
 ];
 
 // Get all companies
-$companies = $mysqli->query("SELECT id, name FROM companies");
-if (!$companies || $companies->num_rows === 0) {
+$companies = $pdo->query("SELECT id, name FROM companies")->fetchAll();
+if (empty($companies)) {
     echo "No companies found.\n";
     exit;
 }
@@ -59,21 +57,18 @@ if (!$companies || $companies->num_rows === 0) {
 $inserted = 0;
 $skipped = 0;
 
-while ($company = $companies->fetch_assoc()) {
+foreach ($companies as $company) {
     $company_id = $company['id'];
     echo "Seeding categories for Company: {$company['name']} (ID: {$company_id})\n";
 
     foreach ($default_categories as $cat) {
-        $stmt = $mysqli->prepare("INSERT IGNORE INTO asset_categories (company_id, name, type, description) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("isss", $company_id, $cat['name'], $cat['type'], $cat['description']);
-        if ($stmt->execute()) {
-            if ($stmt->affected_rows > 0) {
-                $inserted++;
-            } else {
-                $skipped++;
-            }
+        $stmt = $pdo->prepare("INSERT IGNORE INTO asset_categories (company_id, name, type, description) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$company_id, $cat['name'], $cat['type'], $cat['description']]);
+        if ($stmt->rowCount() > 0) {
+            $inserted++;
+        } else {
+            $skipped++;
         }
-        $stmt->close();
     }
 }
 

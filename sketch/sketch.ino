@@ -94,7 +94,7 @@ const char* WIFI_PASSWORD = "Adiv2005@";    // ← Your WiFi password
 const char* SERVER_BASE_URL = "http://192.168.1.3/HRMS/api";
 
 // Device token from iot_devices table (run iot_test.php to generate one)
-const char* DEVICE_TOKEN = "test_token_abc123xyz789";
+const char* DEVICE_TOKEN = "34481d80d8ccb98a0dadd2799cafcc21e3946a1fdcf90dad100907e0c339d958";
 
 // ─────────────────────────────────────────────────────────────
 // PIN DEFINITIONS (ESP32 → RC522)
@@ -106,12 +106,43 @@ const char* DEVICE_TOKEN = "test_token_abc123xyz789";
 // MISO → GPIO 19 (default SPI)
 
 // ─────────────────────────────────────────────────────────────
+// LED & BUTTON PIN DEFINITIONS
+// ─────────────────────────────────────────────────────────────
+#define LED_RED     2   // Red LED - Errors/Failed states
+#define LED_GREEN   4   // Green LED - Success states
+#define LED_BLUE    16  // Blue LED - Processing states
+#define LED_YELLOW  17  // Yellow LED - Standby/Ready states
+#define BUTTON_PIN  21  // Push button for adding new cards
+#define SWITCH_PIN  22  // On/Off switch for reset/power control
+
+// ─────────────────────────────────────────────────────────────
 // TIMING CONSTANTS
 // ─────────────────────────────────────────────────────────────
 #define HEARTBEAT_INTERVAL   30000   // Heartbeat every 30 seconds
 #define CARD_COOLDOWN        3000    // 3 sec cooldown between same card taps
 #define WIFI_RETRY_DELAY     5000    // 5 sec between WiFi reconnect attempts
 #define HTTP_TIMEOUT         10000   // 10 sec HTTP request timeout
+#define BUTTON_DEBOUNCE      200     // Button debounce time in ms
+#define LED_BLINK_INTERVAL   500     // LED blink interval for processing states
+#define ADD_CARD_TIMEOUT     60000   // 60 sec timeout for add card mode (matches server)
+
+// ─────────────────────────────────────────────────────────────
+// SYSTEM MODES
+// ─────────────────────────────────────────────────────────────
+enum SystemMode {
+  MODE_NORMAL,      // Normal attendance operation
+  MODE_ADD_CARD     // Adding new RFID card mode
+};
+
+// ─────────────────────────────────────────────────────────────
+// LED STATES
+// ─────────────────────────────────────────────────────────────
+enum LedState {
+  LED_OFF,
+  LED_ON,
+  LED_BLINK_SLOW,
+  LED_BLINK_FAST
+};
 
 // ─────────────────────────────────────────────────────────────
 // GLOBAL OBJECTS
@@ -126,6 +157,185 @@ int scanCount = 0;
 int successCount = 0;
 int failCount = 0;
 
+// ─────────────────────────────────────────────────────────────
+// BUTTON & LED CONTROL VARIABLES
+// ─────────────────────────────────────────────────────────────
+SystemMode currentMode = MODE_NORMAL;
+unsigned long lastButtonPress = 0;
+unsigned long addCardModeStart = 0;
+bool buttonPressed = false;
+bool lastButtonState = HIGH;
+unsigned long lastLedBlink = 0;
+bool ledBlinkState = false;
+
+// LED states
+LedState redLedState = LED_OFF;
+LedState greenLedState = LED_OFF;
+LedState blueLedState = LED_OFF;
+LedState yellowLedState = LED_OFF;
+
+// ═════════════════════════════════════════════════════════════
+//  LED CONTROL FUNCTIONS
+// ═════════════════════════════════════════════════════════════
+void setLedState(int ledPin, LedState state) {
+  switch (ledPin) {
+    case LED_RED: redLedState = state; break;
+    case LED_GREEN: greenLedState = state; break;
+    case LED_BLUE: blueLedState = state; break;
+    case LED_YELLOW: yellowLedState = state; break;
+  }
+}
+
+void updateLeds() {
+  unsigned long currentTime = millis();
+  
+  if (currentTime - lastLedBlink >= LED_BLINK_INTERVAL) {
+    ledBlinkState = !ledBlinkState;
+    lastLedBlink = currentTime;
+  }
+  
+  // Update each LED based on its state
+  updateSingleLed(LED_RED, redLedState);
+  updateSingleLed(LED_GREEN, greenLedState);
+  updateSingleLed(LED_BLUE, blueLedState);
+  updateSingleLed(LED_YELLOW, yellowLedState);
+}
+
+void updateSingleLed(int ledPin, LedState state) {
+  switch (state) {
+    case LED_OFF:
+      digitalWrite(ledPin, LOW);
+      break;
+    case LED_ON:
+      digitalWrite(ledPin, HIGH);
+      break;
+    case LED_BLINK_SLOW:
+      digitalWrite(ledPin, ledBlinkState);
+      break;
+    case LED_BLINK_FAST:
+      if ((millis() / 200) % 2 == 0) {
+        digitalWrite(ledPin, HIGH);
+      } else {
+        digitalWrite(ledPin, LOW);
+      }
+      break;
+  }
+}
+
+void setStatusLeds(String status) {
+  // Turn off all LEDs first
+  setLedState(LED_RED, LED_OFF);
+  setLedState(LED_GREEN, LED_OFF);
+  setLedState(LED_BLUE, LED_OFF);
+  setLedState(LED_YELLOW, LED_OFF);
+  
+  if (status == "WIFI_CONNECTING") {
+    setLedState(LED_BLUE, LED_BLINK_SLOW);
+  } else if (status == "WIFI_CONNECTED") {
+    setLedState(LED_GREEN, LED_ON);
+    setLedState(LED_YELLOW, LED_ON);
+  } else if (status == "WIFI_ERROR") {
+    setLedState(LED_RED, LED_BLINK_FAST);
+  } else if (status == "RFID_ERROR") {
+    setLedState(LED_RED, LED_ON);
+  } else if (status == "PROCESSING") {
+    setLedState(LED_BLUE, LED_BLINK_FAST);
+  } else if (status == "SUCCESS") {
+    setLedState(LED_GREEN, LED_BLINK_FAST);
+    delay(1000); // Flash green for 1 second
+    setLedState(LED_GREEN, LED_OFF);
+    setLedState(LED_YELLOW, LED_ON); // Back to ready
+  } else if (status == "FAILED") {
+    setLedState(LED_RED, LED_BLINK_FAST);
+    delay(1000); // Flash red for 1 second
+    setLedState(LED_RED, LED_OFF);
+    setLedState(LED_YELLOW, LED_ON); // Back to ready
+  } else if (status == "READY") {
+    setLedState(LED_YELLOW, LED_ON);
+  } else if (status == "ADD_CARD_MODE") {
+    setLedState(LED_BLUE, LED_BLINK_SLOW);
+    setLedState(LED_YELLOW, LED_BLINK_SLOW);
+  } else if (status == "HEARTBEAT") {
+    // Brief green flash for heartbeat
+    setLedState(LED_GREEN, LED_ON);
+    delay(100);
+    setLedState(LED_GREEN, LED_OFF);
+    setLedState(LED_YELLOW, LED_ON); // Back to ready
+  }
+}
+
+// ═════════════════════════════════════════════════════════════
+//  BUTTON HANDLING FUNCTIONS
+// ═════════════════════════════════════════════════════════════
+void checkButton() {
+  bool currentButtonState = digitalRead(BUTTON_PIN);
+  
+  if (currentButtonState != lastButtonState) {
+    if (millis() - lastButtonPress > BUTTON_DEBOUNCE) {
+      if (currentButtonState == LOW) { // Button pressed (assuming pull-up)
+        handleButtonPress();
+        lastButtonPress = millis();
+      }
+    }
+    lastButtonState = currentButtonState;
+  }
+}
+
+void handleButtonPress() {
+  if (currentMode == MODE_NORMAL) {
+    // Enter add card mode
+    currentMode = MODE_ADD_CARD;
+    addCardModeStart = millis();
+    Serial.println();
+    Serial.println("═══════════════════════════════════════════════════════");
+    Serial.println("  ADD NEW RFID CARD MODE ACTIVATED");
+    Serial.println("  Tap a new RFID card to register it for assignment");
+    Serial.println("  Mode will timeout in 30 seconds");
+    Serial.println("═══════════════════════════════════════════════════════");
+    setStatusLeds("ADD_CARD_MODE");
+  } else if (currentMode == MODE_ADD_CARD) {
+    // Exit add card mode
+    currentMode = MODE_NORMAL;
+    Serial.println("[MODE] Exited add card mode - returning to normal operation");
+    setStatusLeds("READY");
+  }
+}
+
+void checkAddCardTimeout() {
+  if (currentMode == MODE_ADD_CARD) {
+    if (millis() - addCardModeStart > ADD_CARD_TIMEOUT) {
+      currentMode = MODE_NORMAL;
+      Serial.println("[MODE] Add card mode timeout - returning to normal operation");
+      setStatusLeds("READY");
+    }
+  }
+}
+
+// ═════════════════════════════════════════════════════════════
+//  POWER SWITCH HANDLING
+// ═════════════════════════════════════════════════════════════
+void checkPowerSwitch() {
+  if (digitalRead(SWITCH_PIN) == LOW) { // Switch turned off
+    Serial.println();
+    Serial.println("═══════════════════════════════════════════════════════");
+    Serial.println("  POWER SWITCH OFF - ENTERING DEEP SLEEP MODE");
+    Serial.println("  Device will restart when switch is turned back on");
+    Serial.println("═══════════════════════════════════════════════════════");
+    
+    // Turn off all LEDs
+    setStatusLeds("");
+    digitalWrite(LED_RED, LOW);
+    digitalWrite(LED_GREEN, LOW);
+    digitalWrite(LED_BLUE, LOW);
+    digitalWrite(LED_YELLOW, LOW);
+    
+    delay(1000); // Give time for message to be sent
+    
+    // Enter deep sleep (will reset on wake)
+    esp_deep_sleep_start();
+  }
+}
+
 // ═════════════════════════════════════════════════════════════
 //  SETUP
 // ═════════════════════════════════════════════════════════════
@@ -139,8 +349,35 @@ void setup() {
   Serial.println("═══════════════════════════════════════════════════════");
   Serial.println();
 
+  // ─── Initialize GPIO Pins ───
+  Serial.println("[INIT] Initializing GPIO pins...");
+  
+  // LED pins as outputs
+  pinMode(LED_RED, OUTPUT);
+  pinMode(LED_GREEN, OUTPUT);
+  pinMode(LED_BLUE, OUTPUT);
+  pinMode(LED_YELLOW, OUTPUT);
+  
+  // Button and switch pins as inputs with pull-up
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(SWITCH_PIN, INPUT_PULLUP);
+  
+  // Turn off all LEDs initially
+  digitalWrite(LED_RED, LOW);
+  digitalWrite(LED_GREEN, LOW);
+  digitalWrite(LED_BLUE, LOW);
+  digitalWrite(LED_YELLOW, LOW);
+  
+  Serial.println("[INIT] GPIO pins initialized ✓");
+  Serial.println("[INIT]   LEDs: Red=2, Green=4, Blue=16, Yellow=17");
+  Serial.println("[INIT]   Button: 21 (pull-up), Switch: 22 (pull-up)");
+
+  // ─── Check Power Switch ───
+  checkPowerSwitch();
+
   // ─── Initialize SPI Bus ───
   Serial.println("[INIT] Initializing SPI bus...");
+  setStatusLeds("PROCESSING");
   SPI.begin();
   Serial.println("[INIT] SPI bus initialized (SCK=18, MOSI=23, MISO=19)");
 
@@ -164,7 +401,11 @@ void setup() {
     Serial.println("[ERROR]   ESP32 3V3 → RC522 3.3V");
     Serial.println("[ERROR]   ESP32 GND → RC522 GND");
     Serial.println("[ERROR] Halting. Fix wiring and reset.");
-    while (true) { delay(1000); }
+    setStatusLeds("RFID_ERROR");
+    while (true) { 
+      updateLeds();
+      delay(100); 
+    }
   }
 
   Serial.println("[INIT] MFRC522 detected and ready ✓");
@@ -184,25 +425,54 @@ void setup() {
 
   Serial.println();
   Serial.println("═══════════════════════════════════════════════════════");
-  Serial.println("  SYSTEM READY - Tap an RFID card to mark attendance");
+  Serial.println("  SYSTEM READY - Tap RFID card or press button");
+  Serial.println("  🟡 Yellow LED = Ready/Standby");
+  Serial.println("  🔵 Blue LED = Processing/WiFi connecting");  
+  Serial.println("  🟢 Green LED = Success/Connected");
+  Serial.println("  🔴 Red LED = Error/Failed");
+  Serial.println("  📋 BUTTON = Press to enter Add Card mode");
+  Serial.println("  🔄 SWITCH = Turn off to reset/sleep device");
   Serial.println("═══════════════════════════════════════════════════════");
   Serial.println();
+  
+  // Set system to ready state
+  setStatusLeds("READY");
 }
 
 // ═════════════════════════════════════════════════════════════
 //  MAIN LOOP
 // ═════════════════════════════════════════════════════════════
 void loop() {
+  // ─── Update LEDs ───
+  updateLeds();
+  
+  // ─── Check Power Switch ───
+  checkPowerSwitch();
+  
+  // ─── Check Button ───
+  checkButton();
+  
+  // ─── Check Add Card Mode Timeout ───
+  checkAddCardTimeout();
+  
   // ─── Check WiFi Connection ───
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("[WIFI] Connection lost! Reconnecting...");
+    setStatusLeds("WIFI_CONNECTING");
     connectWiFi();
   }
 
-  // ─── Periodic Heartbeat ───
-  if (millis() - lastHeartbeat >= HEARTBEAT_INTERVAL) {
+  // ─── Periodic Heartbeat (faster polling when idle to catch server scan requests) ───
+  unsigned long heartbeatInterval = (currentMode == MODE_NORMAL) ? HEARTBEAT_INTERVAL : 5000;
+  if (millis() - lastHeartbeat >= heartbeatInterval) {
+    if (currentMode == MODE_NORMAL) {
+      setStatusLeds("HEARTBEAT");
+    }
     sendHeartbeat();
     lastHeartbeat = millis();
+    if (currentMode == MODE_NORMAL) {
+      setStatusLeds("READY");
+    }
   }
 
   // ─── Check for RFID Card ───
@@ -213,6 +483,9 @@ void loop() {
 
   if (!rfid.PICC_ReadCardSerial()) {
     Serial.println("[RFID] Card detected but failed to read serial. Try again.");
+    setStatusLeds("FAILED");
+    delay(500);
+    setStatusLeds("READY");
     return;
   }
 
@@ -229,23 +502,34 @@ void loop() {
   Serial.print("[RFID] Card type: ");
   Serial.println(rfid.PICC_GetTypeName(rfid.PICC_GetType(rfid.uid.sak)));
 
-  // ─── Cooldown Check (prevent double-tap) ───
-  if (cardUID == lastCardUID && (millis() - lastCardScan) < CARD_COOLDOWN) {
-    unsigned long remaining = CARD_COOLDOWN - (millis() - lastCardScan);
-    Serial.print("[RFID] Same card tapped too quickly. Cooldown: ");
-    Serial.print(remaining);
-    Serial.println("ms remaining. Ignoring.");
-    rfid.PICC_HaltA();
-    rfid.PCD_StopCrypto1();
-    return;
+  // ─── Handle Different Modes ───
+  if (currentMode == MODE_ADD_CARD) {
+    handleNewCardRegistration(cardUID);
+  } else {
+    // Normal attendance mode
+    
+    // ─── Cooldown Check (prevent double-tap) ───
+    if (cardUID == lastCardUID && (millis() - lastCardScan) < CARD_COOLDOWN) {
+      unsigned long remaining = CARD_COOLDOWN - (millis() - lastCardScan);
+      Serial.print("[RFID] Same card tapped too quickly. Cooldown: ");
+      Serial.print(remaining);
+      Serial.println("ms remaining. Ignoring.");
+      setStatusLeds("FAILED");
+      delay(500);
+      setStatusLeds("READY");
+      rfid.PICC_HaltA();
+      rfid.PCD_StopCrypto1();
+      return;
+    }
+
+    lastCardUID = cardUID;
+    lastCardScan = millis();
+
+    // ─── Send Attendance Request ───
+    Serial.println("[HTTP] Sending attendance request to server...");
+    setStatusLeds("PROCESSING");
+    sendAttendance(cardUID);
   }
-
-  lastCardUID = cardUID;
-  lastCardScan = millis();
-
-  // ─── Send Attendance Request ───
-  Serial.println("[HTTP] Sending attendance request to server...");
-  sendAttendance(cardUID);
 
   // ─── Halt card communication ───
   rfid.PICC_HaltA();
@@ -263,6 +547,7 @@ void connectWiFi() {
   Serial.println(WIFI_SSID);
   Serial.print("[WIFI] Connecting");
 
+  setStatusLeds("WIFI_CONNECTING");
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
@@ -271,16 +556,19 @@ void connectWiFi() {
     delay(500);
     Serial.print(".");
     attempts++;
+    updateLeds(); // Keep LEDs blinking during connection
 
     if (attempts >= 40) {  // 20 second timeout
       Serial.println();
       Serial.println("[WIFI] *** CONNECTION FAILED after 20 seconds ***");
       Serial.println("[WIFI] Check SSID and password. Retrying in 5 sec...");
+      setStatusLeds("WIFI_ERROR");
       delay(WIFI_RETRY_DELAY);
       attempts = 0;
       WiFi.disconnect();
       WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
       Serial.print("[WIFI] Retrying");
+      setStatusLeds("WIFI_CONNECTING");
     }
   }
 
@@ -296,6 +584,10 @@ void connectWiFi() {
   Serial.print("[WIFI] DNS: ");
   Serial.println(WiFi.dnsIP());
   Serial.println();
+  
+  setStatusLeds("WIFI_CONNECTED");
+  delay(1000); // Show connected status
+  setStatusLeds("READY");
 }
 
 // ═════════════════════════════════════════════════════════════
@@ -331,6 +623,7 @@ String getCardUID() {
 void sendAttendance(String cardUID) {
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("[HTTP] ERROR: WiFi not connected! Cannot send attendance.");
+    setStatusLeds("WIFI_ERROR");
     failCount++;
     return;
   }
@@ -376,6 +669,7 @@ void sendAttendance(String cardUID) {
     if (error) {
       Serial.print("[JSON] Parse error: ");
       Serial.println(error.c_str());
+      setStatusLeds("FAILED");
       failCount++;
     } else {
       bool success = doc["success"] | false;
@@ -415,9 +709,11 @@ void sendAttendance(String cardUID) {
       if (success) {
         successCount++;
         Serial.println("[RESULT] ✓ Attendance recorded successfully!");
+        setStatusLeds("SUCCESS");
       } else {
         failCount++;
         Serial.println("[RESULT] ✗ Attendance failed!");
+        setStatusLeds("FAILED");
       }
     }
   } else {
@@ -426,11 +722,110 @@ void sendAttendance(String cardUID) {
     Serial.print("[HTTP] Error: ");
     Serial.println(http.errorToString(httpCode));
     Serial.println("[HTTP] Check: Is XAMPP Apache running? Is the IP correct?");
+    setStatusLeds("FAILED");
     failCount++;
   }
 
   http.end();
   printStats();
+}
+
+// ═════════════════════════════════════════════════════════════
+//  NEW CARD REGISTRATION (for Add Card Mode)
+// ═════════════════════════════════════════════════════════════
+void handleNewCardRegistration(String cardUID) {
+  Serial.println();
+  Serial.println("[NEW CARD] ═══ NEW RFID CARD REGISTRATION ═══");
+  Serial.print("[NEW CARD] Card UID: ");
+  Serial.println(cardUID);
+  Serial.println("[NEW CARD] Sending to server for registration...");
+
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("[NEW CARD] ERROR: WiFi not connected!");
+    setStatusLeds("WIFI_ERROR");
+    return;
+  }
+
+  HTTPClient http;
+  String url = String(SERVER_BASE_URL) + "/iot_register_card.php";
+
+  Serial.print("[NEW CARD] URL: ");
+  Serial.println(url);
+
+  http.begin(url);
+  http.setTimeout(HTTP_TIMEOUT);
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("Authorization", String("Bearer ") + DEVICE_TOKEN);
+
+  // Build JSON payload for new card registration
+  String jsonPayload = "{\"card_uid\":\"" + cardUID + "\"}";
+  Serial.print("[NEW CARD] Payload: ");
+  Serial.println(jsonPayload);
+
+  Serial.println("[NEW CARD] Sending POST request...");
+  setStatusLeds("PROCESSING");
+  
+  unsigned long startTime = millis();
+  int httpCode = http.POST(jsonPayload);
+  unsigned long elapsed = millis() - startTime;
+
+  Serial.print("[NEW CARD] Response time: ");
+  Serial.print(elapsed);
+  Serial.println("ms");
+  Serial.print("[NEW CARD] HTTP Status Code: ");
+  Serial.println(httpCode);
+
+  if (httpCode > 0) {
+    String response = http.getString();
+    Serial.print("[NEW CARD] Response: ");
+    Serial.println(response);
+
+    // Parse JSON response
+    StaticJsonDocument<512> doc;
+    DeserializationError error = deserializeJson(doc, response);
+
+    if (!error) {
+      bool success = doc["success"] | false;
+      const char* message = doc["message"] | "No message";
+
+      Serial.println("[NEW CARD] ─── Registration Result ───");
+      Serial.print("[NEW CARD] Success: ");
+      Serial.println(success ? "YES" : "NO");
+      Serial.print("[NEW CARD] Message: ");
+      Serial.println(message);
+
+      if (success) {
+        Serial.println("[NEW CARD] ✓ Card registered successfully!");
+        Serial.println("[NEW CARD] HR can now assign this card to an employee");
+        Serial.println("[NEW CARD] via the Employee Management page");
+        setStatusLeds("SUCCESS");
+        
+        // Exit add card mode after successful registration
+        currentMode = MODE_NORMAL;
+        delay(2000); // Show success for 2 seconds
+        setStatusLeds("READY");
+      } else {
+        Serial.println("[NEW CARD] ✗ Card registration failed!");
+        Serial.println("[NEW CARD] Card may already be registered");
+        setStatusLeds("FAILED");
+        delay(2000); // Show fail for 2 seconds
+        setStatusLeds("ADD_CARD_MODE"); // Stay in add card mode
+      }
+    } else {
+      Serial.print("[NEW CARD] JSON Parse error: ");
+      Serial.println(error.c_str());
+      setStatusLeds("FAILED");
+    }
+  } else {
+    Serial.print("[NEW CARD] ERROR: Request failed. Error code: ");
+    Serial.println(httpCode);
+    Serial.print("[NEW CARD] Error: ");
+    Serial.println(http.errorToString(httpCode));
+    setStatusLeds("FAILED");
+  }
+
+  http.end();
+  Serial.println("[NEW CARD] ═══════════════════════════════════");
 }
 
 // ═════════════════════════════════════════════════════════════
@@ -517,18 +912,33 @@ void sendHeartbeat() {
   if (httpCode == 200) {
     String response = http.getString();
 
-    StaticJsonDocument<256> doc;
+    StaticJsonDocument<512> doc;
     DeserializationError error = deserializeJson(doc, response);
     if (!error) {
       const char* serverTime = doc["data"]["server_time"] | "N/A";
       const char* serverDate = doc["data"]["server_date"] | "N/A";
       const char* deviceName = doc["data"]["device_name"] | "N/A";
+      int addCardMode = doc["data"]["add_card_mode"] | 0;
+      
       Serial.print("[HEARTBEAT] Server time: ");
       Serial.print(serverDate);
       Serial.print(" ");
       Serial.println(serverTime);
       Serial.print("[HEARTBEAT] Device: ");
       Serial.println(deviceName);
+      
+      // Check if server wants us to enter add card mode
+      if (addCardMode == 1 && currentMode != MODE_ADD_CARD) {
+        currentMode = MODE_ADD_CARD;
+        addCardModeStart = millis();
+        Serial.println();
+        Serial.println("═══════════════════════════════════════════════════════");
+        Serial.println("  SERVER REQUESTED: ADD CARD MODE ACTIVATED");
+        Serial.println("  HR is waiting - tap an RFID card to register it");
+        Serial.println("  Mode will timeout in 60 seconds");
+        Serial.println("═══════════════════════════════════════════════════════");
+        setStatusLeds("ADD_CARD_MODE");
+      }
     }
     Serial.println("[HEARTBEAT] ✓ Device online");
   } else if (httpCode == 401) {

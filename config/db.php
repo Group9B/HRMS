@@ -24,8 +24,10 @@ if (file_exists($env_file)) {
     }
 }
 
+$enable_logging = getenv('APP_DEBUG') ?? false;
+
 $host = getenv('DB_HOST') ?: '127.0.0.1';
-$db = getenv('DB_NAME') ?: 'original_template';
+$db = getenv('DB_NAME') ?: 'hrms_db_template';
 $user = getenv('DB_USER') ?: 'root';
 $pass = getenv('DB_PASS') ?: '';
 $charset = 'utf8mb4';

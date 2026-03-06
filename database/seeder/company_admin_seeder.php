@@ -3,39 +3,16 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-$logFile = __DIR__ . '/admin_seeder_log.txt';
-file_put_contents($logFile, "Admin Seeder Started at " . date('Y-m-d H:i:s') . "\n");
-
-function logger($msg)
-{
-    global $logFile;
-    echo $msg . "\n";
-    file_put_contents($logFile, $msg . "\n", FILE_APPEND);
-}
-
-// Database Configuration
-$host = 'localhost';
-$db = 'original_template';
-$user = 'root';
-$pass = '';
-
-$dsn = "mysql:host=$host;dbname=$db;charset=utf8mb4";
-$options = [
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES => false,
-];
+require_once __DIR__ . '/_common/seeder_identity.php';
 
 try {
-    logger("Connecting to $db...");
-    $pdo = new PDO($dsn, $user, $pass, $options);
-    logger("Connected successfully.");
+    seeder_log("Company Admin Seeder started.");
 
     // Fetch all companies with Address
     $stmt = $pdo->query("SELECT id, name, email, phone, address FROM companies");
     $companies = $stmt->fetchAll();
 
-    logger("Found " . count($companies) . " companies. Processing...");
+    seeder_log("Found " . count($companies) . " companies. Processing...");
 
     $pdo->beginTransaction();
     $created_count = 0;
@@ -43,23 +20,30 @@ try {
     foreach ($companies as $company) {
         $company_id = $company['id'];
         $company_name = $company['name'];
-        $company_email = $company['email']; // Is Indian info@...
-        $phone = $company['phone'];         // Is Indian +91...
-        $address = $company['address'];     // Is Indian Address
+        $phone = $company['phone'];
+        $address = $company['address'];
 
-        // 1. Generate Username
-        $clean_name = strtolower(preg_replace('/[^a-zA-Z0-9\s]/', '', $company_name));
-        $username = str_replace(' ', '_', $clean_name) . '_admin';
-
-        $check = $pdo->prepare("SELECT id FROM users WHERE username = ?");
-        $check->execute([$username]);
-        if ($check->fetch()) {
-            logger("User $username already exists.");
-            // We continue to ensure Employee record links if missing? 
-            // Ideally we shouldn't create duplicate employees if user exists.
-            // We'll skip for now to avoid complexity.
+        // Skip if company already has a Company Owner
+        if (company_has_role($pdo, $company_id, ROLE_COMPANY_OWNER)) {
+            seeder_log("Company $company_name (#$company_id) already has an owner. Skipping.");
             continue;
         }
+
+        // Build owner identity data first so email can include name + DOB
+        $parts = preg_split('/\s+/', trim($company_name));
+        $first_name = $parts[0] ?? 'Owner';
+        $last_name = $parts[1] ?? 'Admin';
+
+        // Generate realistic Indian DOB (Owners usually 30-50 years old)
+        $year = rand(1975, 1995);
+        $month = rand(1, 12);
+        $day = rand(1, 28);
+        $dob = sprintf('%04d-%02d-%02d', $year, $month, $day);
+
+        // Generate unique credentials
+        $creds = generate_credentials($pdo, $company_name, 'owner', $first_name, $last_name, $dob);
+        $username = $creds['username'];
+        $email_to_use = $creds['email'];
 
         // 2. Default Department: Administration
         $stmt_dept = $pdo->prepare("SELECT id FROM departments WHERE company_id = ? AND name = 'Administration'");
@@ -93,16 +77,7 @@ try {
 
         // 5. Create User
         $password_hash = password_hash('Staff12@', PASSWORD_DEFAULT);
-        $role_id = 2; // Company Owner
-
-        // Ensure email unique
-        $check_email = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-        $check_email->execute([$company_email]);
-        if ($check_email->fetch()) {
-            $email_to_use = $username . '@example.com';
-        } else {
-            $email_to_use = $company_email;
-        }
+        $role_id = ROLE_COMPANY_OWNER;
 
         $stmt_user = $pdo->prepare("INSERT INTO users (company_id, role_id, username, email, password, status) VALUES (?, ?, ?, ?, ?, 'active')");
         $stmt_user->execute([$company_id, $role_id, $username, $email_to_use, $password_hash]);
@@ -110,16 +85,6 @@ try {
 
         // 6. Create Employee with FULL Indian Details
         $emp_code = "ADM-" . str_pad($company_id, 3, '0', STR_PAD_LEFT);
-
-        $parts = explode(' ', $company_name);
-        $first_name = $parts[0];
-        $last_name = isset($parts[1]) ? $parts[1] : 'Admin';
-
-        // Generate realistic Indian DOB (Owners usually 30-50 years old)
-        $year = rand(1975, 1995);
-        $month = rand(1, 12);
-        $day = rand(1, 28);
-        $dob = "$year-$month-$day";
 
         $gender = (rand(0, 1) == 0) ? 'male' : 'female';
 
@@ -129,16 +94,16 @@ try {
             $stmt_emp->execute([$user_id, $emp_code, $first_name, $last_name, $phone, $address, $dept_id, $des_id, $shift_id, $dob, $gender]);
             $created_count++;
         } catch (PDOException $e) {
-            logger("Failed to create employee for $username: " . $e->getMessage());
+            seeder_log("Failed to create employee for $username: " . $e->getMessage());
         }
     }
 
     $pdo->commit();
-    logger("SUCCESS: Created $created_count admins for " . count($companies) . " companies.");
+    seeder_log("SUCCESS: Created $created_count admins for " . count($companies) . " companies.");
 
 } catch (Exception $e) {
     if (isset($pdo) && $pdo->inTransaction())
         $pdo->rollBack();
-    logger("ERROR: " . $e->getMessage());
+    seeder_log("ERROR: " . $e->getMessage());
 }
 ?>

@@ -3,22 +3,10 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Database Configuration
-$host = 'localhost';
-$db = 'original_template';
-$user = 'root';
-$pass = '';
-$dsn = "mysql:host=$host;dbname=$db;charset=utf8mb4";
-$options = [
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES => false,
-];
+require_once __DIR__ . '/_common/seeder_identity.php';
 
 try {
-    echo "Connecting to $db...\n";
-    $pdo = new PDO($dsn, $user, $pass, $options);
-    echo "Connected.\n";
+    seeder_log("Manager Seeder started.");
 
     // 1. Fetch First 3 Companies
     $stmt = $pdo->query("SELECT * FROM companies ORDER BY id ASC LIMIT 3");
@@ -102,21 +90,24 @@ try {
             $shift_id = $pdo->lastInsertId();
         }
 
-        // 4. Create User: [company_slug]_manager
-        $slug = strtolower(preg_replace('/[^a-z0-9]/', '', $cname));
-        $username = $slug . '_manager';
-        $email = $username . '@' . $slug . '.com';
+        // 4. Manager identity so credentials use name + DOB
+        $fname = "General";
+        $lname = "Manager";
+        $dob = "1980-01-01";
 
-        // Check if exists
-        $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
-        $stmt->execute([$username]);
-        if ($stmt->fetch()) {
-            echo "  User $username already exists. Skipping.\n";
+        // Create User: unique manager credentials
+        $creds = generate_credentials($pdo, $cname, 'mgr', $fname, $lname, $dob);
+        $username = $creds['username'];
+        $email = $creds['email'];
+
+        // Check if this company already has a manager user
+        if (company_has_role($pdo, $cid, ROLE_MANAGER)) {
+            echo "  Company $cname already has a manager. Skipping.\n";
             continue;
         }
 
         $password = password_hash('Staff12@', PASSWORD_DEFAULT);
-        $role_id = 3; // Manager Role
+        $role_id = ROLE_MANAGER;
 
         $stmt = $pdo->prepare("INSERT INTO users (company_id, role_id, username, email, password, status) VALUES (?, ?, ?, ?, ?, 'active')");
         $stmt->execute([$cid, $role_id, $username, $email, $password]);
@@ -125,11 +116,8 @@ try {
 
         // 5. Create Employee Record
         $emp_code = "MGR-" . $cid . "-" . $uid;
-        $fname = "General";
-        $lname = "Manager";
         $phone = "9" . rand(100000000, 999999999);
         $address = $company['address'] ?? "Head Office";
-        $dob = "1980-01-01";
         $doj = date('Y-m-d');
 
         $stmt = $pdo->prepare("INSERT INTO employees (user_id, employee_code, first_name, last_name, contact, address, department_id, designation_id, shift_id, date_of_joining, dob, gender, status, salary) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'male', 'active', 150000)");

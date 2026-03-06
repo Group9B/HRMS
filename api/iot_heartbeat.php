@@ -58,5 +58,6 @@ sendIotSuccess('heartbeat', 'Device online', [
     'timezone' => 'Asia/Kolkata',
     'device_id' => (int) $device['id'],
     'device_name' => $device['device_name'],
-    'device_location' => $device['location'] ?? ''
+    'device_location' => $device['location'] ?? '',
+    'add_card_mode' => (int) ($device['add_card_mode'] ?? 0)
 ]);

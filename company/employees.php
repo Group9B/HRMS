@@ -174,59 +174,120 @@ require_once '../components/layout/header.php';
 
 <!-- IoT Credentials Modal -->
 <div class="modal fade" id="credentialsModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="credentialsModalLabel">
-                    <i class="ti ti-fingerprint me-2"></i>IoT Credentials
+                    <i class="ti ti-clock-check me-2"></i>Attendance Access
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="credentialEmployeeId" value="0">
 
-                <!-- Add Credential Form -->
-                <div class="card mb-4">
-                    <div class="card-header py-2">
-                        <h6 class="m-0"><i class="ti ti-plus me-1"></i>Add New Credential</h6>
-                    </div>
-                    <div class="card-body">
-                        <form id="addCredentialForm">
-                            <div class="col align-items-end">
-                                <div class="row-md-3 mb-2">
-                                    <label class="form-label">Type <span class="text-danger">*</span></label>
-                                    <select class="form-select" name="credential_type" id="credentialType" required>
-                                        <option value="rfid" selected>RFID Card</option>
-                                        <option value="fingerprint">Fingerprint</option>
-                                        <option value="face_id">Face ID</option>
-                                    </select>
+                <div class="row g-3 mb-3">
+                    <!-- Scan from Device -->
+                    <div class="col-12 col-lg-6">
+                        <div class="card h-100" id="deviceScanCard">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <h6 class="m-0"><i class="ti ti-device-mobile me-1"></i>Capture Check-In Card</h6>
                                 </div>
-                                <div class="row-md-6 mb-2">
-                                    <label class="form-label">Identifier Value <span
-                                            class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="identifier_value" id="identifierValue"
-                                        placeholder="e.g., 0A8F8005 (tap card on reader to get UID)" required>
-                                    <small class="form-text text-muted" id="credentialHelp">
-                                        Enter the RFID card UID (hex, e.g. 0A8F8005). Check Serial Monitor for the UID
-                                        when tapping a card.
-                                    </small>
+                                <div class="row g-2 align-items-end" id="deviceScanForm">
+                                    <div class="col-md-7">
+                                        <label class="form-label">Attendance Device</label>
+                                        <select class="form-select form-select-sm" id="iotDeviceSelect">
+                                            <option value="">Loading devices...</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <button type="button" class="btn btn-outline-info btn-sm w-100"
+                                            id="startScanBtn" disabled>
+                                            <i class="ti ti-scan me-1"></i>Start Capture
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="row-md-3 mb-2">
-                                    <button type="submit" class="btn btn-primary w-100" id="addCredentialBtn">
-                                        <i class="ti ti-plus me-1"></i>Add
-                                    </button>
+                                <!-- Scanning state -->
+                                <div id="scanningState" style="display:none;">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <div class="spinner-border spinner-border-sm text-info me-2" role="status">
+                                            </div>
+                                            <span class="text-info fw-semibold">Waiting for check-in/out card on <span
+                                                    id="scanDeviceName"></span>...</span>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                            id="cancelScanBtn">
+                                            <i class="ti ti-x me-1"></i>Cancel
+                                        </button>
+                                    </div>
+                                    <div class="progress mt-2" style="height: 4px;">
+                                        <div class="progress-bar bg-info progress-bar-striped progress-bar-animated"
+                                            id="scanProgressBar" style="width: 100%;"></div>
+                                    </div>
+                                    <small class="text-muted" id="scanTimer">Timeout in 60s</small>
+                                </div>
+                                <!-- Scan result -->
+                                <div id="scanResult" style="display:none;" class="mt-2">
+                                    <div
+                                        class="alert alert-success py-2 mb-0 d-flex align-items-center justify-content-between">
+                                        <span><i class="ti ti-check me-1"></i>Card captured: <code id="scannedCardUid"
+                                                class="user-select-all"></code></span>
+                                        <button type="button" class="btn btn-success btn-sm" id="useScannedCardBtn">
+                                            <i class="ti ti-arrow-down me-1"></i>Use this Card
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </form>
+                        </div>
+                    </div>
+
+                    <!-- Add Credential Form -->
+                    <div class="col-12 col-lg-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <h6 class="m-0"><i class="ti ti-plus me-1"></i>Assign Attendance Key</h6>
+                                </div>
+                                <form id="addCredentialForm">
+                                    <div class="col align-items-end">
+                                        <div class="row-md-3 mb-2">
+                                            <label class="form-label">Method <span class="text-danger">*</span></label>
+                                            <select class="form-select" name="credential_type" id="credentialType"
+                                                required>
+                                                <option value="rfid" selected>RFID Card</option>
+                                                <option value="fingerprint">Fingerprint</option>
+                                                <option value="face_id">Face ID</option>
+                                            </select>
+                                        </div>
+                                        <div class="row-md-6 mb-2">
+                                            <label class="form-label">Check-In Identifier <span
+                                                    class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" name="identifier_value"
+                                                id="identifierValue"
+                                                placeholder="e.g., 0A8F8005 (tap card on reader to get UID)" required>
+                                            <small class="form-text text-muted" id="credentialHelp">
+                                                Enter the RFID card UID (hex, e.g. 0A8F8005) used for check-in/out.
+                                            </small>
+                                        </div>
+                                        <div class="row-md-3 mb-2">
+                                            <button type="submit" class="btn btn-primary w-100" id="addCredentialBtn">
+                                                <i class="ti ti-plus me-1"></i>Assign
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
-                        <h6 class="m-0"><i class="ti ti-list me-1"></i>Registered Credentials</h6>
-                        <span class="badge bg-secondary" id="credentialCount">0</span>
-                    </div>
                     <div class="card-body p-0">
+                        <div class="d-flex justify-content-between align-items-center px-3 pt-3">
+                            <h6 class="m-0"><i class="ti ti-list me-1"></i>Assigned Attendance Keys</h6>
+                            <span class="badge bg-secondary" id="credentialCount">0</span>
+                        </div>
                         <div id="credentialsLoading" class="text-center p-4">
                             <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
                             <span class="ms-2 text-muted">Loading credentials...</span>
@@ -241,10 +302,10 @@ require_once '../components/layout/header.php';
                             <table class="table table-hover mb-0" id="credentialsTable" style="display: none;">
                                 <thead class="table">
                                     <tr>
-                                        <th>Type</th>
-                                        <th>Identifier</th>
-                                        <th>Registered On</th>
-                                        <th style="width: 80px;">Action</th>
+                                        <th>Method</th>
+                                        <th>Key</th>
+                                        <th>Assigned On</th>
+                                        <th style="width: 80px;">Remove</th>
                                     </tr>
                                 </thead>
                                 <tbody id="credentialsTableBody"></tbody>
@@ -318,7 +379,7 @@ require_once '../components/layout/header.php';
                         <?php endif; ?>
 
                         return createActionDropdown(actions, {
-                            manageTooltip: 'IoT Credentials',
+                            manageTooltip: 'Emp. Credentials',
                             manageIcon: 'ti ti-fingerprint',
                             editTooltip: 'Edit',
                             deleteTooltip: 'Delete'
@@ -915,10 +976,14 @@ require_once '../components/layout/header.php';
 
     function openCredentialsModal(employee) {
         const empName = `${escapeHTML(employee.first_name)} ${escapeHTML(employee.last_name)}`;
-        $('#credentialsModalLabel').html(`<i class="ti ti-fingerprint me-2"></i>IoT Credentials - ${empName}`);
+        $('#credentialsModalLabel').html(`<i class="ti ti-clock-check me-2"></i>Attendance Access - ${empName}`);
         $('#credentialEmployeeId').val(employee.id);
         $('#addCredentialForm').trigger('reset');
+        $('#credentialType').val('rfid').trigger('change');
+        $('#scanResult').hide();
+        resetScanUI();
         loadCredentials(employee.id);
+        loadIotDevices();
         credentialsModal.show();
     }
 
@@ -987,11 +1052,11 @@ require_once '../components/layout/header.php';
         });
     }
 
-    // Handle credential type change — update help text
+    // Handle credential type change — update help text and device scan visibility
     $('#credentialType').on('change', function () {
         const type = $(this).val();
         const helpTexts = {
-            'rfid': 'Enter the RFID card UID (hex, e.g. 0A8F8005). Check Serial Monitor for the UID when tapping a card.',
+            'rfid': 'Enter the RFID card UID (hex, e.g. 0A8F8005) used for check-in/out.',
             'fingerprint': 'Enter the fingerprint template ID from the sensor.',
             'face_id': 'Enter the face recognition ID from the camera module.'
         };
@@ -1002,6 +1067,8 @@ require_once '../components/layout/header.php';
         };
         $('#credentialHelp').text(helpTexts[type] || '');
         $('#identifierValue').attr('placeholder', placeholders[type] || '');
+        // Show device scan card only for RFID
+        $('#deviceScanCard').toggle(type === 'rfid');
     });
 
     // Handle add credential form submit
@@ -1073,4 +1140,175 @@ require_once '../components/layout/header.php';
             'btn-danger'
         );
     }
+
+    // ═════════════════════════════════════════════════════════════
+    //  IoT Device RFID Scanning
+    // ═════════════════════════════════════════════════════════════
+    let scanPollInterval = null;
+    let scanTimeoutTimer = null;
+    let scanStartTime = null;
+    let scanDeviceId = null;
+
+    function loadIotDevices() {
+        fetch('/hrms/api/api_employees.php?action=get_iot_devices')
+            .then(res => res.json())
+            .then(data => {
+                const select = $('#iotDeviceSelect');
+                select.empty();
+
+                if (!data.success || !data.data || data.data.length === 0) {
+                    select.html('<option value="">No IoT devices found</option>');
+                    $('#startScanBtn').prop('disabled', true);
+                    return;
+                }
+
+                select.append('<option value="">-- Select a device --</option>');
+                data.data.forEach(dev => {
+                    const statusText = dev.is_online ? 'Online' : 'Offline';
+                    const location = dev.location ? ` (${dev.location})` : '';
+                    select.append(`<option value="${dev.id}" data-name="${escapeHTML(dev.device_name)}" ${!dev.is_online ? 'disabled' : ''}>${statusText} - ${escapeHTML(dev.device_name)}${location}</option>`);
+                });
+
+                select.off('change').on('change', function () {
+                    $('#startScanBtn').prop('disabled', !$(this).val());
+                    $('#scanResult').hide();
+                });
+            })
+            .catch(() => {
+                $('#iotDeviceSelect').html('<option value="">Failed to load devices</option>');
+            });
+    }
+
+    function startDeviceScan() {
+        const deviceId = $('#iotDeviceSelect').val();
+        const deviceName = $('#iotDeviceSelect option:selected').data('name');
+        if (!deviceId) return;
+
+        scanDeviceId = deviceId;
+
+        const formData = new FormData();
+        formData.append('action', 'activate_device_scan');
+        formData.append('device_id', deviceId);
+
+        // Show scanning state
+        $('#deviceScanForm').hide();
+        $('#scanResult').hide();
+        $('#scanDeviceName').text(deviceName);
+        $('#scanningState').show();
+        scanStartTime = Date.now();
+        updateScanTimer();
+
+        fetch('/hrms/api/api_employees.php', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Start polling for scanned card
+                    scanPollInterval = setInterval(() => pollScannedCard(deviceId), 1500);
+                    scanTimeoutTimer = setInterval(updateScanTimer, 1000);
+                } else {
+                    showToast(data.message, 'error');
+                    resetScanUI();
+                }
+            })
+            .catch(() => {
+                showToast('Failed to activate scan mode.', 'error');
+                resetScanUI();
+            });
+    }
+
+    function pollScannedCard(deviceId) {
+        fetch(`/hrms/api/api_employees.php?action=poll_scanned_card&device_id=${deviceId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'scanned') {
+                    // Card found!
+                    clearInterval(scanPollInterval);
+                    clearInterval(scanTimeoutTimer);
+                    scanPollInterval = null;
+                    scanTimeoutTimer = null;
+
+                    $('#scanningState').hide();
+                    $('#scannedCardUid').text(data.data.card_uid);
+                    $('#scanResult').show();
+
+                    showToast(`Card ${data.data.card_uid} scanned from ${data.data.device_name}!`, 'success');
+                } else if (data.status === 'timeout') {
+                    clearInterval(scanPollInterval);
+                    clearInterval(scanTimeoutTimer);
+                    scanPollInterval = null;
+                    scanTimeoutTimer = null;
+
+                    showToast('Capture timed out. No card was tapped.', 'warning');
+                    resetScanUI();
+                }
+                // If 'waiting', keep polling
+            })
+            .catch(() => {
+                // Network error, keep polling unless we've timed out
+                if (scanStartTime && (Date.now() - scanStartTime > 65000)) {
+                    clearInterval(scanPollInterval);
+                    clearInterval(scanTimeoutTimer);
+                    scanPollInterval = null;
+                    scanTimeoutTimer = null;
+                    showToast('Capture timed out.', 'warning');
+                    resetScanUI();
+                }
+            });
+    }
+
+    function updateScanTimer() {
+        if (!scanStartTime) return;
+        const elapsed = Math.floor((Date.now() - scanStartTime) / 1000);
+        const remaining = Math.max(0, 60 - elapsed);
+        $('#scanTimer').text(`Timeout in ${remaining}s`);
+        const pct = (remaining / 60) * 100;
+        $('#scanProgressBar').css('width', pct + '%');
+
+        if (remaining <= 0) {
+            cancelDeviceScan();
+        }
+    }
+
+    function cancelDeviceScan() {
+        if (scanPollInterval) { clearInterval(scanPollInterval); scanPollInterval = null; }
+        if (scanTimeoutTimer) { clearInterval(scanTimeoutTimer); scanTimeoutTimer = null; }
+
+        if (scanDeviceId) {
+            const formData = new FormData();
+            formData.append('action', 'cancel_device_scan');
+            formData.append('device_id', scanDeviceId);
+            fetch('/hrms/api/api_employees.php', { method: 'POST', body: formData }).catch(() => { });
+        }
+
+        resetScanUI();
+    }
+
+    function resetScanUI() {
+        $('#scanningState').hide();
+        $('#deviceScanForm').show();
+        scanDeviceId = null;
+        scanStartTime = null;
+    }
+
+    function useScannedCard() {
+        const uid = $('#scannedCardUid').text().trim();
+        if (uid) {
+            $('#credentialType').val('rfid').trigger('change');
+            $('#identifierValue').val(uid);
+            $('#scanResult').hide();
+            $('#deviceScanForm').show();
+            showToast('Card UID filled in. Click Assign to link this employee.', 'info');
+        }
+    }
+
+    // Event bindings for scan UI
+    $('#startScanBtn').on('click', startDeviceScan);
+    $('#cancelScanBtn').on('click', cancelDeviceScan);
+    $('#useScannedCardBtn').on('click', useScannedCard);
+
+    // Clean up on modal close
+    $('#credentialsModal').on('hidden.bs.modal', function () {
+        cancelDeviceScan();
+        $('#scanResult').hide();
+    });
 </script>
