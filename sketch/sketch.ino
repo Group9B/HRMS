@@ -82,6 +82,8 @@
 #include <SPI.h>
 #include <MFRC522.h>
 #include <ArduinoJson.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 
 // ─────────────────────────────────────────────────────────────
 // CONFIGURATION - UPDATE THESE VALUES
@@ -112,8 +114,18 @@ const char* DEVICE_TOKEN = "34481d80d8ccb98a0dadd2799cafcc21e3946a1fdcf90dad1009
 #define LED_GREEN   4   // Green LED - Success states
 #define LED_BLUE    16  // Blue LED - Processing states
 #define LED_YELLOW  17  // Yellow LED - Standby/Ready states
-#define BUTTON_PIN  21  // Push button for adding new cards
-#define SWITCH_PIN  22  // On/Off switch for reset/power control
+#define BUTTON_PIN    21  // Push button for adding new cards
+#define SWITCH_PIN    22  // On/Off switch for reset/power control
+#define RFID_IRQ_PIN  27  // MFRC522 IRQ → GPIO27 (RTC-capable) for card-tap wake from deep sleep
+
+// ─────────────────────────────────────────────────────────────
+// I2C LCD DISPLAY (16×2)
+//   Wiring: LCD SDA → ESP32 GPIO33, LCD SCL → ESP32 GPIO32
+//           LCD VCC → 5V, LCD GND → GND
+// ─────────────────────────────────────────────────────────────
+#define LCD_SDA   33
+#define LCD_SCL   32
+#define LCD_ADDR  0x27  // Common I2C address; try 0x3F if display stays blank
 
 // ─────────────────────────────────────────────────────────────
 // TIMING CONSTANTS
@@ -148,6 +160,7 @@ enum LedState {
 // GLOBAL OBJECTS
 // ─────────────────────────────────────────────────────────────
 MFRC522 rfid(SS_PIN, RST_PIN);
+LiquidCrystal_I2C lcd(LCD_ADDR, 16, 2);
 
 unsigned long lastHeartbeat = 0;
 unsigned long lastCardScan = 0;
@@ -163,6 +176,7 @@ int failCount = 0;
 SystemMode currentMode = MODE_NORMAL;
 unsigned long lastButtonPress = 0;
 unsigned long addCardModeStart = 0;
+unsigned long bootTime = 0;
 bool buttonPressed = false;
 bool lastButtonState = HIGH;
 unsigned long lastLedBlink = 0;
@@ -222,6 +236,17 @@ void updateSingleLed(int ledPin, LedState state) {
   }
 }
 
+// ═════════════════════════════════════════════════════════════
+//  LCD HELPER
+// ═════════════════════════════════════════════════════════════
+void lcdPrint(String line1, String line2 = "") {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(line1.substring(0, 16));
+  lcd.setCursor(0, 1);
+  lcd.print(line2.substring(0, 16));
+}
+
 void setStatusLeds(String status) {
   // Turn off all LEDs first
   setLedState(LED_RED, LED_OFF);
@@ -241,14 +266,18 @@ void setStatusLeds(String status) {
   } else if (status == "PROCESSING") {
     setLedState(LED_BLUE, LED_BLINK_FAST);
   } else if (status == "SUCCESS") {
-    setLedState(LED_GREEN, LED_BLINK_FAST);
-    delay(1000); // Flash green for 1 second
-    setLedState(LED_GREEN, LED_OFF);
+    // Solid green for 2 seconds — attendance recorded
+    digitalWrite(LED_GREEN, HIGH);
+    updateLeds();
+    delay(2000);
+    digitalWrite(LED_GREEN, LOW);
     setLedState(LED_YELLOW, LED_ON); // Back to ready
   } else if (status == "FAILED") {
-    setLedState(LED_RED, LED_BLINK_FAST);
-    delay(1000); // Flash red for 1 second
-    setLedState(LED_RED, LED_OFF);
+    // Solid red for 2 seconds — attendance failed
+    digitalWrite(LED_RED, HIGH);
+    updateLeds();
+    delay(2000);
+    digitalWrite(LED_RED, LOW);
     setLedState(LED_YELLOW, LED_ON); // Back to ready
   } else if (status == "READY") {
     setLedState(LED_YELLOW, LED_ON);
@@ -268,6 +297,9 @@ void setStatusLeds(String status) {
 //  BUTTON HANDLING FUNCTIONS
 // ═════════════════════════════════════════════════════════════
 void checkButton() {
+  // Ignore button for 2 seconds after boot to avoid noise-triggered presses
+  if (millis() - bootTime < 2000) return;
+
   bool currentButtonState = digitalRead(BUTTON_PIN);
   
   if (currentButtonState != lastButtonState) {
@@ -293,11 +325,13 @@ void handleButtonPress() {
     Serial.println("  Mode will timeout in 30 seconds");
     Serial.println("═══════════════════════════════════════════════════════");
     setStatusLeds("ADD_CARD_MODE");
+    lcdPrint("Add Card Mode", "Tap new card");
   } else if (currentMode == MODE_ADD_CARD) {
     // Exit add card mode
     currentMode = MODE_NORMAL;
     Serial.println("[MODE] Exited add card mode - returning to normal operation");
     setStatusLeds("READY");
+    lcdPrint("System Ready", "Tap RFID Card");
   }
 }
 
@@ -307,6 +341,7 @@ void checkAddCardTimeout() {
       currentMode = MODE_NORMAL;
       Serial.println("[MODE] Add card mode timeout - returning to normal operation");
       setStatusLeds("READY");
+      lcdPrint("System Ready", "Tap RFID Card");
     }
   }
 }
@@ -315,25 +350,7 @@ void checkAddCardTimeout() {
 //  POWER SWITCH HANDLING
 // ═════════════════════════════════════════════════════════════
 void checkPowerSwitch() {
-  if (digitalRead(SWITCH_PIN) == LOW) { // Switch turned off
-    Serial.println();
-    Serial.println("═══════════════════════════════════════════════════════");
-    Serial.println("  POWER SWITCH OFF - ENTERING DEEP SLEEP MODE");
-    Serial.println("  Device will restart when switch is turned back on");
-    Serial.println("═══════════════════════════════════════════════════════");
-    
-    // Turn off all LEDs
-    setStatusLeds("");
-    digitalWrite(LED_RED, LOW);
-    digitalWrite(LED_GREEN, LOW);
-    digitalWrite(LED_BLUE, LOW);
-    digitalWrite(LED_YELLOW, LOW);
-    
-    delay(1000); // Give time for message to be sent
-    
-    // Enter deep sleep (will reset on wake)
-    esp_deep_sleep_start();
-  }
+  // Deep sleep removed — switch pin is no longer used.
 }
 
 // ═════════════════════════════════════════════════════════════
@@ -341,7 +358,7 @@ void checkPowerSwitch() {
 // ═════════════════════════════════════════════════════════════
 void setup() {
   Serial.begin(115200);
-  delay(1000);  // Wait for Serial Monitor to connect
+  delay(500);
 
   Serial.println();
   Serial.println("═══════════════════════════════════════════════════════");
@@ -351,29 +368,39 @@ void setup() {
 
   // ─── Initialize GPIO Pins ───
   Serial.println("[INIT] Initializing GPIO pins...");
-  
+
   // LED pins as outputs
   pinMode(LED_RED, OUTPUT);
   pinMode(LED_GREEN, OUTPUT);
   pinMode(LED_BLUE, OUTPUT);
   pinMode(LED_YELLOW, OUTPUT);
-  
-  // Button and switch pins as inputs with pull-up
+
+  // Button pin as input with pull-up
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   pinMode(SWITCH_PIN, INPUT_PULLUP);
-  
-  // Turn off all LEDs initially
+
+  // ─── Boot sequence: light ALL LEDs for 1 second ───
+  digitalWrite(LED_RED, HIGH);
+  digitalWrite(LED_GREEN, HIGH);
+  digitalWrite(LED_BLUE, HIGH);
+  digitalWrite(LED_YELLOW, HIGH);
+  Serial.println("[INIT] Boot indicator — all LEDs ON");
+  delay(1000);
   digitalWrite(LED_RED, LOW);
   digitalWrite(LED_GREEN, LOW);
   digitalWrite(LED_BLUE, LOW);
   digitalWrite(LED_YELLOW, LOW);
-  
+
+  // ─── Initialize I2C LCD ───
+  Wire.begin(LCD_SDA, LCD_SCL);
+  lcd.init();
+  lcd.backlight();
+  lcdPrint("HRMS Attendance", "Booting...");
+  Serial.println("[INIT] I2C LCD initialized (SDA=33, SCL=32) ✓");
+
   Serial.println("[INIT] GPIO pins initialized ✓");
   Serial.println("[INIT]   LEDs: Red=2, Green=4, Blue=16, Yellow=17");
   Serial.println("[INIT]   Button: 21 (pull-up), Switch: 22 (pull-up)");
-
-  // ─── Check Power Switch ───
-  checkPowerSwitch();
 
   // ─── Initialize SPI Bus ───
   Serial.println("[INIT] Initializing SPI bus...");
@@ -401,6 +428,7 @@ void setup() {
     Serial.println("[ERROR]   ESP32 3V3 → RC522 3.3V");
     Serial.println("[ERROR]   ESP32 GND → RC522 GND");
     Serial.println("[ERROR] Halting. Fix wiring and reset.");
+    lcdPrint("RFID ERROR!", "Check wiring");
     setStatusLeds("RFID_ERROR");
     while (true) { 
       updateLeds();
@@ -431,12 +459,16 @@ void setup() {
   Serial.println("  🟢 Green LED = Success/Connected");
   Serial.println("  🔴 Red LED = Error/Failed");
   Serial.println("  📋 BUTTON = Press to enter Add Card mode");
-  Serial.println("  🔄 SWITCH = Turn off to reset/sleep device");
   Serial.println("═══════════════════════════════════════════════════════");
   Serial.println();
   
   // Set system to ready state
   setStatusLeds("READY");
+  lcdPrint("System Ready", "Tap RFID Card");
+
+  // Read actual button state now so the first loop() doesn't see a fake transition
+  lastButtonState = digitalRead(BUTTON_PIN);
+  bootTime = millis();
 }
 
 // ═════════════════════════════════════════════════════════════
@@ -502,6 +534,8 @@ void loop() {
   Serial.print("[RFID] Card type: ");
   Serial.println(rfid.PICC_GetTypeName(rfid.PICC_GetType(rfid.uid.sak)));
 
+  lcdPrint("Card Scanned", cardUID);
+
   // ─── Handle Different Modes ───
   if (currentMode == MODE_ADD_CARD) {
     handleNewCardRegistration(cardUID);
@@ -548,6 +582,7 @@ void connectWiFi() {
   Serial.print("[WIFI] Connecting");
 
   setStatusLeds("WIFI_CONNECTING");
+  lcdPrint("Connecting WiFi", WIFI_SSID);
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
@@ -586,6 +621,7 @@ void connectWiFi() {
   Serial.println();
   
   setStatusLeds("WIFI_CONNECTED");
+  lcdPrint("WiFi Connected!", WiFi.localIP().toString());
   delay(1000); // Show connected status
   setStatusLeds("READY");
 }
@@ -708,10 +744,17 @@ void sendAttendance(String cardUID) {
 
       if (success) {
         successCount++;
+        const char* eName = doc["data"]["employee_name"] | "";
+        if (String(action) == "checked_in") {
+          lcdPrint("Welcome!", eName);
+        } else {
+          lcdPrint("Goodbye!", eName);
+        }
         Serial.println("[RESULT] ✓ Attendance recorded successfully!");
         setStatusLeds("SUCCESS");
       } else {
         failCount++;
+        lcdPrint("Denied!", message);
         Serial.println("[RESULT] ✗ Attendance failed!");
         setStatusLeds("FAILED");
       }
@@ -722,12 +765,14 @@ void sendAttendance(String cardUID) {
     Serial.print("[HTTP] Error: ");
     Serial.println(http.errorToString(httpCode));
     Serial.println("[HTTP] Check: Is XAMPP Apache running? Is the IP correct?");
+    lcdPrint("Server Error!", "Check connection");
     setStatusLeds("FAILED");
     failCount++;
   }
 
   http.end();
   printStats();
+  lcdPrint("System Ready", "Tap RFID Card");
 }
 
 // ═════════════════════════════════════════════════════════════
@@ -763,6 +808,7 @@ void handleNewCardRegistration(String cardUID) {
   Serial.println(jsonPayload);
 
   Serial.println("[NEW CARD] Sending POST request...");
+  lcdPrint("Registering...", cardUID);
   setStatusLeds("PROCESSING");
   
   unsigned long startTime = millis();
@@ -798,18 +844,22 @@ void handleNewCardRegistration(String cardUID) {
         Serial.println("[NEW CARD] ✓ Card registered successfully!");
         Serial.println("[NEW CARD] HR can now assign this card to an employee");
         Serial.println("[NEW CARD] via the Employee Management page");
+        lcdPrint("Card Registered!", "Assign in HRMS");
         setStatusLeds("SUCCESS");
         
         // Exit add card mode after successful registration
         currentMode = MODE_NORMAL;
         delay(2000); // Show success for 2 seconds
         setStatusLeds("READY");
+        lcdPrint("System Ready", "Tap RFID Card");
       } else {
         Serial.println("[NEW CARD] ✗ Card registration failed!");
         Serial.println("[NEW CARD] Card may already be registered");
+        lcdPrint("Reg Failed!", "Already exists?");
         setStatusLeds("FAILED");
         delay(2000); // Show fail for 2 seconds
         setStatusLeds("ADD_CARD_MODE"); // Stay in add card mode
+        lcdPrint("Add Card Mode", "Tap new card");
       }
     } else {
       Serial.print("[NEW CARD] JSON Parse error: ");
