@@ -88,12 +88,12 @@
 // ─────────────────────────────────────────────────────────────
 // CONFIGURATION - UPDATE THESE VALUES
 // ─────────────────────────────────────────────────────────────
-const char* WIFI_SSID     = "Airtel_Aditya_11111";       // ← Your WiFi name
-const char* WIFI_PASSWORD = "Adiv2005@";    // ← Your WiFi password
+const char* WIFI_SSID     = "Chirag";       // ← Your WiFi name
+const char* WIFI_PASSWORD = "24682468";    // ← Your WiFi password
 
 // Server URL - Use your PC's local IP (run 'ipconfig' in cmd to find it)
 // Example: "http://192.168.1.100/hrms/api"
-const char* SERVER_BASE_URL = "http://192.168.1.3/HRMS/api";
+const char* SERVER_BASE_URL = "http://10.238.215.151/HRMS/api";
 
 // Device token from iot_devices table (run iot_test.php to generate one)
 const char* DEVICE_TOKEN = "34481d80d8ccb98a0dadd2799cafcc21e3946a1fdcf90dad100907e0c339d958";
@@ -126,6 +126,9 @@ const char* DEVICE_TOKEN = "34481d80d8ccb98a0dadd2799cafcc21e3946a1fdcf90dad1009
 #define LCD_SDA   33
 #define LCD_SCL   32
 #define LCD_ADDR  0x27  // Common I2C address; try 0x3F if display stays blank
+
+// Temporary hardware test mode: keep all LEDs ON from startup.
+#define LED_TEST_ALL_ON  false
 
 // ─────────────────────────────────────────────────────────────
 // TIMING CONSTANTS
@@ -201,6 +204,14 @@ void setLedState(int ledPin, LedState state) {
 }
 
 void updateLeds() {
+  if (LED_TEST_ALL_ON) {
+    digitalWrite(LED_RED, HIGH);
+    digitalWrite(LED_GREEN, HIGH);
+    digitalWrite(LED_BLUE, HIGH);
+    digitalWrite(LED_YELLOW, HIGH);
+    return;
+  }
+
   unsigned long currentTime = millis();
   
   if (currentTime - lastLedBlink >= LED_BLINK_INTERVAL) {
@@ -248,6 +259,14 @@ void lcdPrint(String line1, String line2 = "") {
 }
 
 void setStatusLeds(String status) {
+  if (LED_TEST_ALL_ON) {
+    setLedState(LED_RED, LED_ON);
+    setLedState(LED_GREEN, LED_ON);
+    setLedState(LED_BLUE, LED_ON);
+    setLedState(LED_YELLOW, LED_ON);
+    return;
+  }
+
   // Turn off all LEDs first
   setLedState(LED_RED, LED_OFF);
   setLedState(LED_GREEN, LED_OFF);
@@ -267,17 +286,17 @@ void setStatusLeds(String status) {
     setLedState(LED_BLUE, LED_BLINK_FAST);
   } else if (status == "SUCCESS") {
     // Solid green for 2 seconds — attendance recorded
-    digitalWrite(LED_GREEN, HIGH);
+    setLedState(LED_GREEN, LED_ON);
     updateLeds();
     delay(2000);
-    digitalWrite(LED_GREEN, LOW);
+    setLedState(LED_GREEN, LED_OFF);
     setLedState(LED_YELLOW, LED_ON); // Back to ready
   } else if (status == "FAILED") {
     // Solid red for 2 seconds — attendance failed
-    digitalWrite(LED_RED, HIGH);
+    setLedState(LED_RED, LED_ON);
     updateLeds();
     delay(2000);
-    digitalWrite(LED_RED, LOW);
+    setLedState(LED_RED, LED_OFF);
     setLedState(LED_YELLOW, LED_ON); // Back to ready
   } else if (status == "READY") {
     setLedState(LED_YELLOW, LED_ON);
@@ -379,17 +398,21 @@ void setup() {
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   pinMode(SWITCH_PIN, INPUT_PULLUP);
 
-  // ─── Boot sequence: light ALL LEDs for 1 second ───
+  // ─── Boot sequence / LED test mode ───
   digitalWrite(LED_RED, HIGH);
   digitalWrite(LED_GREEN, HIGH);
   digitalWrite(LED_BLUE, HIGH);
   digitalWrite(LED_YELLOW, HIGH);
-  Serial.println("[INIT] Boot indicator — all LEDs ON");
-  delay(1000);
-  digitalWrite(LED_RED, LOW);
-  digitalWrite(LED_GREEN, LOW);
-  digitalWrite(LED_BLUE, LOW);
-  digitalWrite(LED_YELLOW, LOW);
+  if (LED_TEST_ALL_ON) {
+    Serial.println("[INIT] LED test mode enabled — all LEDs forced ON");
+  } else {
+    Serial.println("[INIT] Boot indicator — all LEDs ON");
+    delay(1000);
+    digitalWrite(LED_RED, LOW);
+    digitalWrite(LED_GREEN, LOW);
+    digitalWrite(LED_BLUE, LOW);
+    digitalWrite(LED_YELLOW, LOW);
+  }
 
   // ─── Initialize I2C LCD ───
   Wire.begin(LCD_SDA, LCD_SCL);
@@ -988,6 +1011,7 @@ void sendHeartbeat() {
         Serial.println("  Mode will timeout in 60 seconds");
         Serial.println("═══════════════════════════════════════════════════════");
         setStatusLeds("ADD_CARD_MODE");
+        lcdPrint("Add Card Mode", "Tap new card");
       }
     }
     Serial.println("[HEARTBEAT] ✓ Device online");
